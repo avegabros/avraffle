@@ -5,7 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: avegabros/avraffle:latest
     container_name: avraffle-web
     restart: unless-stopped
     ports:
