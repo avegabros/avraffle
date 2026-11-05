@@ -6,6 +6,7 @@ import 'modes/registration_mode.dart';
 import 'modes/emcee_mode.dart';
 import 'modes/prize_management_mode.dart';
 import 'modes/attendee_check_screen.dart';
+import 'modes/public_prizes_screen.dart';
 import 'version.dart';
 
 void main() async {
@@ -72,7 +73,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
     });
   }
 
-  Future<void> _login() async {
+  Future<void> _login(BuildContext modalContext) async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
@@ -99,6 +100,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
           _currentUser = data['user'];
           _isLoggedIn = true;
         });
+        if (modalContext.mounted) Navigator.pop(modalContext);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Welcome, ${data['user']['name']}!')),
@@ -114,7 +116,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to connect to server. Check server settings.')),
+          const SnackBar(content: Text('Unable to connect to server. Check settings.')),
         );
       }
     } finally {
@@ -131,6 +133,104 @@ class _MainGateScreenState extends State<MainGateScreen> {
       _usernameController.clear();
       _passwordController.clear();
     });
+  }
+
+  void _showLoginSheet() {
+    _usernameController.clear();
+    _passwordController.clear();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 28,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 28,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.shield_outlined, color: Color(0xFFF59E0B)),
+                      SizedBox(width: 8),
+                      Text(
+                        'Event Staff Sign In',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Sign in with your committee credentials to unlock Emcee Remote, Registration Desk, and Prizes Management.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+
+              TextField(
+                controller: _usernameController,
+                decoration: InputDecoration(
+                  labelText: 'Username',
+                  prefixIcon: const Icon(Icons.person_outline, size: 20),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.key, size: 20),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              ElevatedButton.icon(
+                icon: _isAuthenticating
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                    : const Icon(Icons.login, color: Colors.black),
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                  child: Text(
+                    _isAuthenticating ? 'LOGGING IN...' : 'SIGN IN AS STAFF',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 15),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF59E0B),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: _isAuthenticating ? null : () => _login(ctx),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showSettingsDialog() {
@@ -301,151 +401,145 @@ class _MainGateScreenState extends State<MainGateScreen> {
             const SizedBox(height: 28),
 
             // ==========================================
-            // PUBLIC ACCESS SECTION: ATTENDEE TICKET CHECK
-            // ==========================================
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.search, color: Color(0xFFF59E0B), size: 24),
-                      SizedBox(width: 10),
-                      Text(
-                        'Attendee Raffle Verification',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'No login required. Attendees can verify if they are registered and active on the wheel.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.verified, color: Colors.black),
-                    label: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Text('CHECK MY RAFFLE STATUS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF59E0B),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AttendeeCheckScreen(serverUrl: _serverUrl),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
-
-            // ==========================================
-            // STAFF / OPERATOR ACCESS: LOGIN OR MODES
+            // PUBLIC ATTENDEE HUB (Visible when logged OUT)
             // ==========================================
             if (!_isLoggedIn) ...[
-              // LOGIN FORM FOR EVENT STAFF
+              // Card 1: Check My Raffle Status
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                  ),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.lock, color: Colors.white70, size: 20),
-                        SizedBox(width: 8),
+                        Icon(Icons.search, color: Color(0xFFF59E0B), size: 24),
+                        SizedBox(width: 10),
                         Text(
-                          'Event Staff & Committee Sign In',
+                          'Attendee Verification',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     const Text(
-                      'Log in with your administrator or committee account to access remote controls.',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      'Check if you are registered and active on the wheel. No password needed.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
-
-                    TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        prefixIcon: const Icon(Icons.person_outline, size: 20),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.key, size: 20),
-                        filled: true,
-                        fillColor: const Color(0xFF0F172A),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-
                     ElevatedButton.icon(
-                      icon: _isAuthenticating
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.login),
-                      label: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          _isAuthenticating ? 'LOGGING IN...' : 'LOG IN AS STAFF',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                      icon: const Icon(Icons.verified, color: Colors.black),
+                      label: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0),
+                        child: Text('CHECK MY RAFFLE STATUS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
+                        backgroundColor: const Color(0xFFF59E0B),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      onPressed: _isAuthenticating ? null : _login,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AttendeeCheckScreen(serverUrl: _serverUrl),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
-            ] else ...[
-              // AUTHENTICATED STAFF MODES
+              const SizedBox(height: 16),
+
+              // Card 2: View Raffle Prizes Showcase
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.card_giftcard, color: Color(0xFF10B981), size: 24),
+                        SizedBox(width: 10),
+                        Text(
+                          'Raffle Prizes Catalog',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Browse the grand prizes and regular items in play for $_location.',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.visibility, color: Color(0xFF10B981)),
+                      label: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0),
+                        child: Text('BROWSE RAFFLE PRIZES', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF10B981), width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PublicPrizesScreen(serverUrl: _serverUrl, location: _location),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Staff Login Button (Cleans up the screen, avoids raw inputs)
+              Center(
+                child: TextButton.icon(
+                  icon: const Icon(Icons.lock_outline, size: 18, color: Colors.white60),
+                  label: const Text(
+                    'Staff & Committee Sign In',
+                    style: TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.bold),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: _showLoginSheet,
+                ),
+              ),
+            ] else ...[
+              // ==========================================
+              // STAFF / OPERATOR ACCESS (Logged In)
+              // ==========================================
+              Container(
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
                 ),
                 child: Row(
@@ -453,11 +547,20 @@ class _MainGateScreenState extends State<MainGateScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.account_circle, color: Color(0xFF10B981)),
+                        const Icon(Icons.verified_user, color: Color(0xFF10B981)),
                         const SizedBox(width: 8),
-                        Text(
-                          'Signed in: ${_currentUser?['name'] ?? 'Staff'}',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _currentUser?['name'] ?? 'Staff',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            Text(
+                              'Role: ${_currentUser?['role'] ?? 'OPERATOR'}',
+                              style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -526,6 +629,26 @@ class _MainGateScreenState extends State<MainGateScreen> {
                     ),
                   );
                 },
+              ),
+              const SizedBox(height: 24),
+
+              // Subtle secondary link for staff in case an attendee approaches them:
+              Center(
+                child: TextButton.icon(
+                  icon: const Icon(Icons.search, size: 16, color: Colors.white54),
+                  label: const Text(
+                    'Quick Attendee Status Lookup',
+                    style: TextStyle(fontSize: 12, color: Colors.white54),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AttendeeCheckScreen(serverUrl: _serverUrl),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
 
