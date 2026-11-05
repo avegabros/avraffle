@@ -17,6 +17,7 @@ import {
 import { APP_VERSION } from '@/lib/version';
 
 const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${APP_VERSION.package}`;
+const GITHUB_APK_DOWNLOAD_URL = `https://github.com/avegabros/avraffle/releases/download/${APP_VERSION.tag}/app-release.apk`;
 
 export const metadata = {
   title: `AV-Raffle ${APP_VERSION.tag} | Official Avega Enterprise Event & Raffle System`,
@@ -81,7 +82,7 @@ export default function LandingPage() {
               <Smartphone className="w-4 h-4 text-emerald-400" /> Google Play
             </a>
             <a
-              href="/downloads/avraffle-latest.apk"
+              href={GITHUB_APK_DOWNLOAD_URL}
               download={`AV-Raffle-${APP_VERSION.tag}.apk`}
               className="px-4 py-2 rounded-xl text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 hover:brightness-110 shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5"
             >
@@ -130,7 +131,7 @@ export default function LandingPage() {
 
           {/* Button 2: Direct APK Download */}
           <a
-            href="/downloads/avraffle-latest.apk"
+            href={GITHUB_APK_DOWNLOAD_URL}
             download={`AV-Raffle-${APP_VERSION.tag}.apk`}
             className="group px-7 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-white/15 text-white font-black text-base shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
           >
