@@ -40,6 +40,7 @@ RUN mkdir -p /app/data /app/prisma /app/public/uploads /app/public/downloads && 
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
@@ -48,6 +49,7 @@ COPY --from=builder /app/package.json ./package.json
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'mkdir -p /app/data /app/public/uploads /app/public/downloads' >> /app/entrypoint.sh && \
     echo 'npx prisma db push --skip-generate' >> /app/entrypoint.sh && \
+    echo 'node scripts/seed-users.js || true' >> /app/entrypoint.sh && \
     echo 'exec npm start' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh && \
     chown nextjs:nodejs /app/entrypoint.sh
