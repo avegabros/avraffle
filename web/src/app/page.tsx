@@ -11,9 +11,12 @@ import {
   Tv, 
   CheckCircle2, 
   ChevronRight,
-  Flame
+  Flame,
+  ExternalLink
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
+
+const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${APP_VERSION.package}`;
 
 export const metadata = {
   title: `AV-Raffle ${APP_VERSION.tag} | Official Avega Enterprise Event & Raffle System`,
@@ -52,22 +55,30 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/stage"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-white/10 transition flex items-center gap-1.5"
+              className="hidden sm:flex px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-white/10 transition items-center gap-1.5"
             >
               <Tv className="w-4 h-4 text-amber-400" /> Wheel Stage
             </Link>
             <Link
               href="/admin"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-white/10 transition"
+              className="hidden md:flex px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-white/10 transition"
             >
               Admin Portal
             </Link>
+            <a
+              href={PLAY_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl text-xs font-black text-white bg-slate-800 hover:bg-slate-700 border border-white/20 transition flex items-center gap-1.5"
+            >
+              <Smartphone className="w-4 h-4 text-emerald-400" /> Google Play
+            </a>
             <a
               href="/downloads/avraffle-latest.apk"
               download={`AV-Raffle-${APP_VERSION.tag}.apk`}
               className="px-4 py-2 rounded-xl text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 hover:brightness-110 shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5"
             >
-              <Download className="w-4 h-4" /> Download APK
+              <Download className="w-4 h-4" /> APK
             </a>
           </div>
         </div>
@@ -93,26 +104,39 @@ export default function LandingPage() {
 
         {/* Primary Download & Action Buttons */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          {/* Button 1: Google Play Store Link */}
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group px-7 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-base shadow-2xl shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+          >
+            <svg className="w-5 h-5 fill-slate-950" viewBox="0 0 24 24">
+              <path d="M3.609 1.814L13.792 12 3.61 22.186a2.38 2.38 0 0 1-.61-.758V2.572c.18-.3.39-.56.61-.758zm11.233 11.234l2.457 2.457-11.45 6.467 8.993-8.924zm0-2.096L5.85 2.029l11.45 6.467-2.458 2.456zm3.568 2.05l2.748-1.55a1.77 1.77 0 0 0 0-3.084l-2.748-1.55-2.029 2.092 2.029 2.092z"/>
+            </svg>
+            <div className="text-left">
+              <div className="text-[10px] uppercase font-bold tracking-wider leading-none text-slate-900">Get it on</div>
+              <div className="text-sm font-black leading-tight">Google Play</div>
+            </div>
+            <ExternalLink className="w-4 h-4 text-slate-950/70 ml-1 group-hover:translate-x-0.5 transition-transform" />
+          </a>
+
+          {/* Button 2: Direct APK Download */}
           <a
             href="/downloads/avraffle-latest.apk"
             download={`AV-Raffle-${APP_VERSION.tag}.apk`}
-            className="group px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-base shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+            className="group px-7 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-white/15 text-white font-black text-base shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
           >
-            <Download className="w-5 h-5 text-slate-950 group-hover:translate-y-0.5 transition-transform" />
-            <span>Download Android APK</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-950/20 font-mono font-bold">
-              {APP_VERSION.tag}
-            </span>
+            <Download className="w-5 h-5 text-amber-400 group-hover:translate-y-0.5 transition-transform" />
+            <div className="text-left">
+              <div className="text-[10px] uppercase font-bold tracking-wider leading-none text-slate-400">Direct Install</div>
+              <div className="text-sm font-black leading-tight">Download APK ({APP_VERSION.tag})</div>
+            </div>
           </a>
-
-          <div className="px-6 py-4 rounded-2xl bg-slate-900/90 border border-white/10 text-slate-300 font-bold text-sm flex items-center gap-2.5">
-            <Smartphone className="w-5 h-5 text-emerald-400" />
-            <span>Google Play Console Ready</span>
-          </div>
         </div>
 
-        <p className="mt-4 text-xs font-mono text-slate-500">
-          Package: <code className="text-slate-400">{APP_VERSION.package}</code> • Version: <code className="text-amber-400">{APP_VERSION.full}</code> • Android 8.0+
+        <p className="mt-5 text-xs font-mono text-slate-500">
+          Package ID: <code className="text-slate-400">{APP_VERSION.package}</code> • Version: <code className="text-amber-400">{APP_VERSION.full}</code> • Android 8.0+
         </p>
       </section>
 
@@ -252,6 +276,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-6 font-mono text-[11px]">
             <span>Domain: https://avraffle.abas.ph</span>
+            <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">Google Play</a>
             <Link href="/privacy" className="hover:text-amber-400 transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-amber-400 transition">Terms of Service</Link>
             <Link href="/admin" className="hover:text-amber-400 transition">Admin Portal</Link>
