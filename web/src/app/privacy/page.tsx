@@ -46,7 +46,7 @@ export default function PrivacyPolicyPage() {
               <Eye className="w-5 h-5 text-amber-400" /> 1. Overview & Scope
             </h2>
             <p>
-              This Privacy Policy describes how <strong>Avega Bros Integrated Logistics, Inc.</strong> (&ldquo;Avega&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) collects, uses, protects, and discloses personal information obtained through the <strong>AV-Raffle</strong> system, including the mobile application (package: <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">ph.abas.avraffle</code>) and the web portals hosted under <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">https://avraffle.abas.ph</code>.
+              This Privacy Policy describes how <strong>Avega Bros Integrated Logistics, Inc.</strong> (&ldquo;Avega&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) collects, uses, protects, and discloses personal information obtained through the <strong>AV-Raffle</strong> system, including the mobile application (package: <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">ph.avegabros.avraffle</code>) and the web portals hosted under <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">https://avraffle.abas.ph</code>.
             </p>
             <p>
               This system is deployed exclusively for company corporate events, internal raffles, employee attendance verification, and prize distribution.

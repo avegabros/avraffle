@@ -2,8 +2,8 @@
 export const APP_VERSION = {
   version: '1.0.0',
   buildNumber: 1,
-  releaseDate: '2026-11-05',
+  releaseDate: '2026-11-06',
   tag: 'v1.0.0',
   full: 'v1.0.0 (Build 1)',
-  package: 'ph.abas.avraffle',
+  package: 'ph.avegabros.avraffle',
 };

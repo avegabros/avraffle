@@ -1,4 +1,4 @@
-package ph.abas.avraffle
+package ph.avegabros.avraffle
 
 import io.flutter.embedding.android.FlutterActivity
 
