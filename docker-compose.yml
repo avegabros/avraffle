@@ -9,12 +9,13 @@ services:
     container_name: avraffle-web
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # HOST:CONTAINER - change HOST_PORT in .env or Portainer env variables if 3000 is occupied
+      - "${HOST_PORT:-3001}:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
       - DATABASE_URL=file:/app/data/raffle.db
-      - NEXTAUTH_SECRET=avega_raffle_prod_secret_change_me
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-avega_raffle_prod_secret_2026}
     volumes:
       # Persistent SQLite database and attendee mugshots
       - raffle-data:/app/data
