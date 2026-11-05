@@ -20,8 +20,14 @@ export async function GET(req: NextRequest) {
       ];
     }
 
+    // If an employee is marked 'ALL' or matching the requested location, include them
     if (location && location !== 'ALL') {
-      where.location = location;
+      where.OR = where.OR
+        ? [
+            { AND: [where, { location }] },
+            { AND: [where, { location: 'ALL' }] },
+          ]
+        : [{ location }, { location: 'ALL' }];
     }
 
     if (yearStr) {
@@ -31,7 +37,7 @@ export async function GET(req: NextRequest) {
     const guests = await prisma.guest.findMany({
       where,
       orderBy: { id: 'desc' },
-      take: 200,
+      take: 1000,
     });
 
     return NextResponse.json({ guests });
@@ -101,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, guest });
   } catch (error) {
-    console.error('Registration upload error:', error);
-    return NextResponse.json({ error: 'Failed to process registration' }, { status: 500 });
+    console.error('Registration/Check-in error:', error);
+    return NextResponse.json({ error: 'Failed to register guest' }, { status: 500 });
   }
 }
