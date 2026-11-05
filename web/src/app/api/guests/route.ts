@@ -10,29 +10,29 @@ export async function GET(req: NextRequest) {
     const location = searchParams.get('location') || '';
     const yearStr = searchParams.get('year') || '';
 
-    const where: Record<string, unknown> = {};
+    const conditions: any[] = [];
 
     if (search) {
-      where.OR = [
-        { employeeId: { contains: search } },
-        { firstName: { contains: search } },
-        { lastName: { contains: search } },
-      ];
+      conditions.push({
+        OR: [
+          { employeeId: { contains: search } },
+          { firstName: { contains: search } },
+          { lastName: { contains: search } },
+        ],
+      });
     }
 
-    // If an employee is marked 'ALL' or matching the requested location, include them
     if (location && location !== 'ALL') {
-      where.OR = where.OR
-        ? [
-            { AND: [where, { location }] },
-            { AND: [where, { location: 'ALL' }] },
-          ]
-        : [{ location }, { location: 'ALL' }];
+      conditions.push({
+        OR: [{ location }, { location: 'ALL' }],
+      });
     }
 
     if (yearStr) {
-      where.eventYear = parseInt(yearStr, 10);
+      conditions.push({ eventYear: parseInt(yearStr, 10) });
     }
+
+    const where = conditions.length > 0 ? { AND: conditions } : {};
 
     const guests = await prisma.guest.findMany({
       where,
