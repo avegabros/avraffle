@@ -10,13 +10,13 @@ import {
   Camera, 
   Tv, 
   CheckCircle2, 
-  ExternalLink,
   ChevronRight,
   Flame
 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 
 export const metadata = {
-  title: 'AV-Raffle | Official Avega Enterprise Event & Raffle System',
+  title: `AV-Raffle ${APP_VERSION.tag} | Official Avega Enterprise Event & Raffle System`,
   description: 'Download the official AV-Raffle Android app for Emcee remote control, Registration Desk mugshot check-in, and Prize Management.',
 };
 
@@ -41,7 +41,7 @@ export default function LandingPage() {
             </div>
             <div>
               <div className="text-lg font-black tracking-wider text-white">
-                AV-RAFFLE <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">2026</span>
+                AV-RAFFLE <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">{APP_VERSION.tag}</span>
               </div>
               <div className="text-[11px] text-slate-400 font-mono tracking-widest uppercase">
                 Avega Bros Integrated Logistics
@@ -64,7 +64,7 @@ export default function LandingPage() {
             </Link>
             <a
               href="/downloads/avraffle-latest.apk"
-              download="AV-Raffle.apk"
+              download={`AV-Raffle-${APP_VERSION.tag}.apk`}
               className="px-4 py-2 rounded-xl text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 hover:brightness-110 shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5"
             >
               <Download className="w-4 h-4" /> Download APK
@@ -77,7 +77,7 @@ export default function LandingPage() {
       <section className="relative z-10 pt-16 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide mb-8 shadow-xl">
           <Flame className="w-4 h-4 text-amber-400 animate-pulse" />
-          <span>Official Android Companion for Avega Year-End Raffle</span>
+          <span>Official Android Companion for Avega Year-End Raffle ({APP_VERSION.tag})</span>
         </div>
 
         <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tight max-w-4xl leading-[1.1]">
@@ -95,12 +95,14 @@ export default function LandingPage() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <a
             href="/downloads/avraffle-latest.apk"
-            download="AV-Raffle.apk"
+            download={`AV-Raffle-${APP_VERSION.tag}.apk`}
             className="group px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-base shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
           >
             <Download className="w-5 h-5 text-slate-950 group-hover:translate-y-0.5 transition-transform" />
             <span>Download Android APK</span>
-            <span className="text-xs px-2 py-0.5 rounded-md bg-slate-950/20 font-mono font-bold">v1.0.0</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-950/20 font-mono font-bold">
+              {APP_VERSION.tag}
+            </span>
           </a>
 
           <div className="px-6 py-4 rounded-2xl bg-slate-900/90 border border-white/10 text-slate-300 font-bold text-sm flex items-center gap-2.5">
@@ -110,7 +112,7 @@ export default function LandingPage() {
         </div>
 
         <p className="mt-4 text-xs font-mono text-slate-500">
-          Package: <code className="text-slate-400">ph.abas.avraffle</code> • Android 8.0+ supported • SHA-256 Verified
+          Package: <code className="text-slate-400">{APP_VERSION.package}</code> • Version: <code className="text-amber-400">{APP_VERSION.full}</code> • Android 8.0+
         </p>
       </section>
 
@@ -242,11 +244,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Play Console & Submission Notes Footer */}
+      {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 py-12 px-6 bg-slate-950 text-center">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            © 2026 <strong className="text-slate-400">Avega Bros Integrated Logistics, Inc.</strong> All rights reserved.
+            © 2026 <strong className="text-slate-400">Avega Bros Integrated Logistics, Inc.</strong> • Build {APP_VERSION.full}
           </div>
           <div className="flex items-center gap-6 font-mono text-[11px]">
             <span>Domain: https://avraffle.abas.ph</span>
