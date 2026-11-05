@@ -12,13 +12,16 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=file:/app/data/dev.db
-      - NEXTAUTH_SECRET=raffle_secret_change_me_in_production
+      - PORT=3000
+      - DATABASE_URL=file:/app/data/raffle.db
+      - NEXTAUTH_SECRET=avega_raffle_prod_secret_change_me
     volumes:
-      # Persistent volume for SQLite DB and uploaded photos
+      # Persistent SQLite database and attendee mugshots
       - raffle-data:/app/data
       - raffle-uploads:/app/public/uploads
 
 volumes:
   raffle-data:
+    driver: local
   raffle-uploads:
+    driver: local
