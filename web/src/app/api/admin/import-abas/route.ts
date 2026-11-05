@@ -4,8 +4,8 @@ import { prisma } from '@/lib/db';
 export async function POST(req: NextRequest) {
   try {
     const {
-      apiUrl = 'http://localhost:8080/api/v1/hr/employees',
-      apiKey,
+      apiUrl = 'https://api.avegabros.org/website/id-employees',
+      apiKey = 'tMxLOAEnad9heg7fpIZWQrm2F',
       location = 'TAYUD',
       eventYear = 2026,
     } = await req.json();
@@ -14,25 +14,42 @@ export async function POST(req: NextRequest) {
 
     // Try fetching from specified ABAS-API endpoint
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (apiKey) {
-        headers['Authorization'] = `Bearer ${apiKey}`;
+      const urlObj = new URL(apiUrl);
+      if (apiKey && !urlObj.searchParams.has('key')) {
+        urlObj.searchParams.set('key', apiKey);
+      }
+      if (!urlObj.searchParams.has('status')) {
+        urlObj.searchParams.set('status', 'Active');
+      }
+      if (!urlObj.searchParams.has('limit')) {
+        urlObj.searchParams.set('limit', '500');
       }
 
-      const res = await fetch(apiUrl, { headers });
-      if (res.ok) {
-        const json = await res.json();
-        employeesToImport = json.data || json.employees || json;
+      // Fetch page 0 and page 1 to retrieve all active records
+      for (let page = 0; page <= 3; page++) {
+        urlObj.searchParams.set('page', String(page));
+        const res = await fetch(urlObj.toString(), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          const batch = Array.isArray(json) ? json : (json.data || json.employees || []);
+          if (Array.isArray(batch) && batch.length > 0) {
+            employeesToImport.push(...batch);
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
       }
     } catch (e) {
-      console.warn('ABAS-API endpoint unreachable, checking master seed list fallback...', e);
+      console.warn('ABAS-API endpoint error, checking master seed list fallback...', e);
     }
 
     // Fallback if local dev or mock
     if (!Array.isArray(employeesToImport) || employeesToImport.length === 0) {
-      // Use existing master employee seed data
       const fs = await import('fs');
       const path = await import('path');
       const masterPath = path.join(process.cwd(), 'src', 'data', 'master-employees.json');
@@ -55,9 +72,10 @@ export async function POST(req: NextRequest) {
       const fName = emp.first_name || emp.firstName;
       const lName = emp.last_name || emp.lastName;
       const mName = emp.middle_name || emp.middleName || null;
-      const dept = emp.department || null;
+      const dept = emp.department || emp.company || null;
       const pos = emp.position || null;
-      const assigned = emp.assigned || null;
+      const assigned = emp.assigned || emp.company || null;
+      const pic = emp.picture || null;
 
       if (!empId || !fName || !lName) continue;
 
@@ -75,12 +93,7 @@ export async function POST(req: NextRequest) {
           assigned: assigned,
           location: empLoc,
           eventYear: parseInt(String(eventYear), 10),
-          // Newly imported for 2026 starts un-registered until check-in
-          isRegistered: false,
-          inWheel: false,
-          isWinner: false,
-          prizeWon: null,
-          winOn: null,
+          imagePath: pic ? pic : undefined,
         },
         create: {
           employeeId: empId,
@@ -92,6 +105,7 @@ export async function POST(req: NextRequest) {
           assigned: assigned,
           location: empLoc,
           eventYear: parseInt(String(eventYear), 10),
+          imagePath: pic || null,
           isRegistered: false,
           inWheel: false,
           isWinner: false,
@@ -104,7 +118,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       importedCount,
-      message: `Successfully imported ${importedCount} employees from ABAS-API for 2026 Raffle!`,
+      message: `Successfully imported ${importedCount} employees from ABAS-API for ${eventYear} Raffle!`,
     });
   } catch (error) {
     console.error('Import error:', error);
