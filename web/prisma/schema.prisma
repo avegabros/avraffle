@@ -1,0 +1,80 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("ADMIN") // SUPERADMIN, ADMIN, REGISTRATION_STAFF
+  location     String    @default("TAYUD") // TAYUD, MAKATI, ALL
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("admin_users")
+}
+
+model Guest {
+  id           Int       @id @default(autoincrement())
+  employeeId   String    @unique @map("employee_id")
+  firstName    String    @map("first_name")
+  middleName   String?   @map("middle_name")
+  lastName     String    @map("last_name")
+  assigned     String?
+  department   String?
+  position     String?
+  location     String    @default("TAYUD") // TAYUD, MAKATI, etc.
+  eventYear    Int       @default(2026) @map("event_year")
+  imagePath    String?   @map("image")
+  thumbPath    String?   @map("thumb_image")
+  registeredOn DateTime  @default(now()) @map("registered_on")
+  
+  isRegistered Boolean   @default(false) @map("stat") // 1 = checked in
+  inWheel      Boolean   @default(false) @map("wheel") // 1 = in wheel
+  isWinner     Boolean   @default(false) @map("winner") // 1 = won
+  winOn        DateTime? @map("win_on")
+  prizeWon     String?   @map("prize")
+  
+  grandPrizeWon Prize?   @relation("GuestWonPrize")
+
+  @@index([inWheel, isWinner])
+  @@index([location, eventYear])
+  @@index([lastName, firstName])
+  @@map("guest")
+}
+
+model Prize {
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String?
+  type         String    @default("REGULAR") // REGULAR, GRAND
+  isGrandPrize Boolean   @default(false) @map("is_grand_prize")
+  imagePath    String?   @map("image_path")
+  quantity     Int       @default(1)
+  location     String    @default("TAYUD") // TAYUD, MAKATI, ALL
+  eventYear    Int       @default(2026) @map("event_year")
+  isWon        Boolean   @default(false) @map("is_won")
+  wonByGuestId Int?      @unique @map("won_by")
+  wonOn        DateTime? @map("won_on")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  wonBy        Guest?    @relation("GuestWonPrize", fields: [wonByGuestId], references: [id])
+
+  @@index([location, eventYear])
+  @@map("prizes")
+}
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "employeeId": "AVC-00020",
+    "fullName": "Edsil Louie Bihag",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Fleet Management Supervisor",
+    "prize": "Smart 4K TV 55\"",
+    "winOn": "2025-12-03T19:30:00Z",
+    "avatar": null
+  },
+  {
+    "id": 2,
+    "employeeId": "ABTSC-150502",
+    "fullName": "Roy Ebua",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Trucking Operations Supervisor",
+    "prize": "Apple iPad 10th Gen",
+    "winOn": "2025-12-03T19:45:00Z",
+    "avatar": null
+  },
+  {
+    "id": 3,
+    "employeeId": "ABISC-140505",
+    "fullName": "Wilda Marano",
+    "department": "MARKETING AND OPERATIONS",
+    "position": "Operations Staff",
+    "prize": "Air Fryer 4.5L",
+    "winOn": "2025-12-03T20:00:00Z",
+    "avatar": null
+  },
+  {
+    "id": 4,
+    "employeeId": "ABISC-200810",
+    "fullName": "Marjorie Obial",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Recruitment Officer II",
+    "prize": "Microwave Oven",
+    "winOn": "2025-12-03T20:15:00Z",
+    "avatar": null
+  },
+  {
+    "id": 5,
+    "employeeId": "ABISC-210104",
+    "fullName": "Amihan Badando",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR Manager",
+    "prize": "Grocery Basket ₱2,000",
+    "winOn": "2025-12-03T20:30:00Z",
+    "avatar": null
+  }
+]

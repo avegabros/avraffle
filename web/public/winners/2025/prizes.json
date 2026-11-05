@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "Smart 4K TV 55\"",
+    "type": "GRAND",
+    "isGrandPrize": true,
+    "quantity": 1,
+    "isWon": true,
+    "imagePath": null
+  },
+  {
+    "id": 2,
+    "name": "Apple iPad 10th Gen",
+    "type": "GRAND",
+    "isGrandPrize": true,
+    "quantity": 1,
+    "isWon": true,
+    "imagePath": null
+  },
+  {
+    "id": 3,
+    "name": "Microwave Oven",
+    "type": "REGULAR",
+    "isGrandPrize": false,
+    "quantity": 3,
+    "isWon": true,
+    "imagePath": null
+  },
+  {
+    "id": 4,
+    "name": "Air Fryer 4.5L",
+    "type": "REGULAR",
+    "isGrandPrize": false,
+    "quantity": 5,
+    "isWon": true,
+    "imagePath": null
+  },
+  {
+    "id": 5,
+    "name": "Grocery Basket ₱2,000",
+    "type": "REGULAR",
+    "isGrandPrize": false,
+    "quantity": 10,
+    "isWon": true,
+    "imagePath": null
+  }
+]

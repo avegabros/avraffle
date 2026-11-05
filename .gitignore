@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Flutter / Android build output
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/build/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/ios/.symlinks/
+
+# Environment files
+.env*.local
+.env
+
+# Large APKs (keep repository lightweight, APKs belong in GitHub Releases)
+*.apk
+*.aab
+
+# SQLite local database files (persist via volume in Docker)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db

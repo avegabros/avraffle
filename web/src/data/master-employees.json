@@ -1,0 +1,1782 @@
+[
+  {
+    "employeeId": "AVC-00020",
+    "lastName": "BIHAG",
+    "firstName": "EDSIL LOUIE",
+    "middleName": "BORRES",
+    "assigned": "NRA",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Fleet Management Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABTSC-150502",
+    "lastName": "EBUA",
+    "firstName": "ROY",
+    "middleName": "AGRAVANTE",
+    "assigned": "NRA",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Trucking Operations Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "AVC-00050",
+    "lastName": "ENSO",
+    "firstName": "VIRGILIO",
+    "middleName": "CAPINTOG",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Utility Staff I",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABTSC-140401",
+    "lastName": "MANJARES",
+    "firstName": "RONILO",
+    "middleName": "PINEDA",
+    "assigned": "NRA",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Chief Mechanic",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-140505",
+    "lastName": "MARANO",
+    "firstName": "WILDA",
+    "middleName": "CONDE",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Operations Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-150811",
+    "lastName": "RANAS",
+    "firstName": "ROBERT",
+    "middleName": "BALUG",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Operations Coordinator",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-140605",
+    "lastName": "DESPE",
+    "firstName": "EUGENE",
+    "middleName": "FEGURO",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Port Captain",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-180701",
+    "lastName": "CABAHUG",
+    "firstName": "KYLE WALLACE",
+    "middleName": "EMNACE",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Designated Person Ashore",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABTSC-141101",
+    "lastName": "JACOB",
+    "firstName": "GIOVANI",
+    "middleName": "CAMPOSO",
+    "assigned": "NRA",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Utility Messenger Staff I",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-190203",
+    "lastName": "MENDOZA",
+    "firstName": "PIO EDMUNDO",
+    "middleName": "DUMASIS",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Safety Officer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-200806",
+    "lastName": "ANGTUD",
+    "firstName": "MARY ANN",
+    "middleName": "BEJER",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR SUPERVISOR",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-200810",
+    "lastName": "OBIAL",
+    "firstName": "MARJORIE",
+    "middleName": "TAPAO",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "RECRUITMENT OFFICER II",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-210104",
+    "lastName": "BADANDO",
+    "firstName": "AMIHAN",
+    "middleName": "CALIM",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR MANAGER",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-210204",
+    "lastName": "ANDRADE",
+    "firstName": "JELLYN",
+    "middleName": "MALIGMAT",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR Officer II",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230101",
+    "lastName": "BANZON",
+    "firstName": "WYENNE ROSE",
+    "middleName": "CELESTIAL",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Operations Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-210701",
+    "lastName": "DELA CUESTA",
+    "firstName": "JERNY",
+    "middleName": "ARMONIO",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Utility Messenger Staff I",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240504",
+    "lastName": "MISA",
+    "firstName": "QUEENCY JASMEN",
+    "middleName": "PILAPIL",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Payroll Head",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220409",
+    "lastName": "ABAPO",
+    "firstName": "RACHEL",
+    "middleName": "VADAL",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Recruitment Officer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240601",
+    "lastName": "URSONAL",
+    "firstName": "ROLAND",
+    "middleName": "TIMOSA",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "LIAISON STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240401",
+    "lastName": "AROA",
+    "firstName": "ANGENITH",
+    "middleName": "PEPITO",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR PAYROLL OFFICER",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABTSC-230201",
+    "lastName": "REYES",
+    "firstName": "GIAN CARL",
+    "middleName": "ARCEO",
+    "assigned": "NRA",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Trucking Coordinator",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230505",
+    "lastName": "MAGLASANG",
+    "firstName": "CHENLY",
+    "middleName": "COSIDO",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240103",
+    "lastName": "RUBLICA",
+    "firstName": "ROQUE",
+    "middleName": "COMEDIDO",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "EHS SUPERVISOR",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240407",
+    "lastName": "DOLERA",
+    "firstName": "HEZEIL",
+    "middleName": "DAITOL",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "CREWING STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240501",
+    "lastName": "TABUNDA",
+    "firstName": "JIMWELL",
+    "middleName": "MAMITES",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "LIAISON STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240505",
+    "lastName": "MANULAT",
+    "firstName": "ARLENE MAE",
+    "middleName": "GALO",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "EMPLOYEE ENGAGEMENT STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240704",
+    "lastName": "SAYSON",
+    "firstName": "NOEL",
+    "middleName": "LOBERANES",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Environmental, Health and Safety Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240706",
+    "lastName": "LOQUELLANO",
+    "firstName": "ELOIZA FIONA",
+    "middleName": "CAPUNGAN",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR Compben Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABTSC-240801",
+    "lastName": "ALCONTIN",
+    "firstName": "LORD ERNICK",
+    "middleName": "VERALLO",
+    "assigned": "NRA",
+    "department": "TRUCKING DEPARTMENT",
+    "position": "Trucking Documentation/Operation Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240904",
+    "lastName": "COPINGCO",
+    "firstName": "FAIDA",
+    "middleName": "RODRIGO",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR Compensation and Benefits Officer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240905",
+    "lastName": "BELUNTA",
+    "firstName": "NICOLE PEARL",
+    "middleName": "BATIANCILA",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "TIMEKEEPER",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240907",
+    "lastName": "BANTILAN",
+    "firstName": "ANGELA",
+    "middleName": "MISA",
+    "assigned": "NRA",
+    "department": "FINANCE DEPARTMENT",
+    "position": "Finance Staff -RF Custodian",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-150704",
+    "lastName": "GONZALES",
+    "firstName": "JUN THERESE",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "Accounting Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-130910",
+    "lastName": "RABADON",
+    "firstName": "MERRYFLOR",
+    "middleName": "TABARES",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "Accounting Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-200708",
+    "lastName": "WASKIN",
+    "firstName": "JESSA",
+    "middleName": "MAGNETICO",
+    "assigned": "TAYUD",
+    "department": "FINANCE DEPARTMENT",
+    "position": "General Cashier",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-070201",
+    "lastName": "HECHANOVA",
+    "firstName": "JOEL",
+    "middleName": "SABIO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "VP-Engineering",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-140404",
+    "lastName": "ONDANGAN",
+    "firstName": "DANILO",
+    "middleName": "LERIO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Electrical Supervisor - Marine",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-140713",
+    "lastName": "PAGALAN",
+    "firstName": "ERWIN",
+    "middleName": "MAGDADARO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Crane Mechanic",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-140702",
+    "lastName": "RUELAN",
+    "firstName": "ADONIS",
+    "middleName": "BERNES",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Port Engineer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-150404",
+    "lastName": "PERFECIO",
+    "firstName": "RICHARD",
+    "middleName": "BARING",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Mechanic - Marine Machinery",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-150612",
+    "lastName": "PONCE",
+    "firstName": "RUDY",
+    "middleName": "SALINAS",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Asst. Hull Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-150905",
+    "lastName": "MERCEDE",
+    "firstName": "CHRISTOPHER",
+    "middleName": "CAMAY",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Leadman Mechanic - Gensets, Compressors and Small Machinery",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-151016",
+    "lastName": "ESTIOLA",
+    "firstName": "EDRASAN",
+    "middleName": "OYAO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Crane Operator",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-161015",
+    "lastName": "LIZA",
+    "firstName": "EDGAR",
+    "middleName": "DELANTE",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-151014",
+    "lastName": "CABUTIN",
+    "firstName": "MARIAN",
+    "middleName": "CADORNA",
+    "assigned": "TAYUD",
+    "department": "",
+    "position": "Accounts and Operations Officer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-110603",
+    "lastName": "LARIOSA",
+    "firstName": "EDMAR",
+    "middleName": "ALVERIO",
+    "assigned": "TAYUD",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "General Clerk",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-151218",
+    "lastName": "ONDANGAN",
+    "firstName": "DARYL",
+    "middleName": "SENADOS",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Toolkeeper",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-110201",
+    "lastName": "SARCAUGA JR",
+    "firstName": "ROGELIO",
+    "middleName": "SARMIENTO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Port Engineer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-200705",
+    "lastName": "LIBOT-LIBOT",
+    "firstName": "GIOVANI",
+    "middleName": "TITO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Crane Mechanic",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-170917",
+    "lastName": "ARJONA",
+    "firstName": "CRISANTO",
+    "middleName": "AUGUSTO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Crane Mechanic",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-160205",
+    "lastName": "KHO",
+    "firstName": "VIRGIL",
+    "middleName": "TUANO",
+    "assigned": "TAYUD",
+    "department": "PURCHASING DEPARTMENT",
+    "position": "Purchasing Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-160308",
+    "lastName": "CANONO",
+    "firstName": "JOSE JEMBOY",
+    "middleName": "OMIT",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "ASSISTANT ELECTRICAL SUPERVISOR",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-160305",
+    "lastName": "CABANIT",
+    "firstName": "GOEFFE",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Forklift Operator",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-160305",
+    "lastName": "ACABAL",
+    "firstName": "RAFFY",
+    "middleName": "PEPITO",
+    "assigned": "TAYUD",
+    "department": "PURCHASING DEPARTMENT",
+    "position": "Expediter",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-160609",
+    "lastName": "ADOLFO",
+    "firstName": "MARCELO",
+    "middleName": "OLARTE",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Timekeeper/Forklift and Service Boat Operator",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-160501",
+    "lastName": "ANGCON",
+    "firstName": "RICO",
+    "middleName": "MONTE",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Mechanic - Marine Machinery",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-231101",
+    "lastName": "LAURON",
+    "firstName": "JOVEN",
+    "middleName": "BOOC",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "Accounting Manager",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-160813",
+    "lastName": "FUENTES",
+    "firstName": "JOFEL",
+    "middleName": "BUCA",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Man",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-200916",
+    "lastName": "DOMANIG",
+    "firstName": "GLEN",
+    "middleName": "LARA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-160919",
+    "lastName": "YBALEZ",
+    "firstName": "MICHAEL",
+    "middleName": "LAZO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Shipfitter",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-160904",
+    "lastName": "SUMILI",
+    "firstName": "RICARDO SR",
+    "middleName": "MONARES",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Shipfitter",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-160920",
+    "lastName": "YCONG",
+    "firstName": "JOEL",
+    "middleName": "PATALINGHUG",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-160909",
+    "lastName": "ARGALLON",
+    "firstName": "FILZAR",
+    "middleName": "SULLANO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder/Hydraulic Technician",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-160911",
+    "lastName": "TANTE",
+    "firstName": "SATURNINO JR",
+    "middleName": "ARNADO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Shipfitter",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-160903",
+    "lastName": "OMPAD",
+    "firstName": "VENANCIO JR",
+    "middleName": "SAGARIO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-160915",
+    "lastName": "CASAS",
+    "firstName": "TEODORO",
+    "middleName": "PEREZ",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Shipfitter",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-160903",
+    "lastName": "MARIQUIT",
+    "firstName": "BRUCE JAMES",
+    "middleName": "ABABA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-160910",
+    "lastName": "DAYAG",
+    "firstName": "FELIPE",
+    "middleName": "DAYAG",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Shipfitter",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-160912",
+    "lastName": "IMPAS",
+    "firstName": "MARJUN",
+    "middleName": "MONEVA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Electrician - Industrial",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-160911",
+    "lastName": "ISON",
+    "firstName": "REMBERTO",
+    "middleName": "MONTES",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Mechanic - Marine Machinery",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-160906",
+    "lastName": "NALZARO",
+    "firstName": "SERGIO",
+    "middleName": "ABORDO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Forklift Operator/Fitter",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-160914",
+    "lastName": "GABASA",
+    "firstName": "SERGIO",
+    "middleName": "BARIBAR",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Electrician - Industrial",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-160912",
+    "lastName": "YBALES",
+    "firstName": "ALFONSO",
+    "middleName": "BAGIO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Foreman",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-161011",
+    "lastName": "COLONIA",
+    "firstName": "KENT NINO",
+    "middleName": "COLIPANO",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "Network and Hardware Administrator",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-170102",
+    "lastName": "PINO",
+    "firstName": "DANILO",
+    "middleName": "PINOTE",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machine Shop Assistant Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220804",
+    "lastName": "LAVADOR",
+    "firstName": "ELMER",
+    "middleName": "GONZALES",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-170201",
+    "lastName": "COMENDADOR",
+    "firstName": "CRIS ANTHONY",
+    "middleName": "DE LA SERNA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Foreman",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-170205",
+    "lastName": "PARBA",
+    "firstName": "RODEL",
+    "middleName": "BETONIO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Electrician - Marine",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220307",
+    "lastName": "ROBLE",
+    "firstName": "ARMANDO",
+    "middleName": "CASAS",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Heavy Equipment Operator",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-170602",
+    "lastName": "CANILLO",
+    "firstName": "JULIUS BRIAN",
+    "middleName": "DIAZ",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "Sr. System Developer",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-170607",
+    "lastName": "PINO",
+    "firstName": "LEO",
+    "middleName": "GONZALES",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-231003",
+    "lastName": "ILLUSTRISIMO",
+    "firstName": "JESUS",
+    "middleName": "BABAN",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "ASSISTANT PORT ENGINEER",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-171119",
+    "lastName": "ROMANILLOS",
+    "firstName": "HERALD",
+    "middleName": "GONGOB",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-180103",
+    "lastName": "ANDRADE",
+    "firstName": "LONDRINO",
+    "middleName": "CASAS",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Roving Engineer",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-180104",
+    "lastName": "CORSIGA",
+    "firstName": "RICHMEL",
+    "middleName": "MASCARDO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-160508",
+    "lastName": "QUINANOLA III",
+    "firstName": "STANLEY",
+    "middleName": "ABANTE",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "Utility Messenger Staff I",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-180605",
+    "lastName": "YBALEZ",
+    "firstName": "VIRGILIO",
+    "middleName": "CANO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-190202",
+    "lastName": "RIVERA",
+    "firstName": "JOMAR",
+    "middleName": "INAHID",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Crane Operator",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-190102",
+    "lastName": "SANCHEZ",
+    "firstName": "ALFREDO JR.",
+    "middleName": "OGARIO",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "IT Head",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-190409",
+    "lastName": "BALDICANTOS",
+    "firstName": "SUZETTE",
+    "middleName": "RIVERA",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "Compliance Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-190505",
+    "lastName": "BUICO",
+    "firstName": "JERIAL",
+    "middleName": "AMISTAD",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-190602",
+    "lastName": "PATANA",
+    "firstName": "RENI",
+    "middleName": "DANILA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-190605",
+    "lastName": "CENIZA",
+    "firstName": "EUGENE",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Painter",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-190608",
+    "lastName": "ANGANA",
+    "firstName": "PATRIC JOHN",
+    "middleName": "DONAL",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-190706",
+    "lastName": "CAOILE",
+    "firstName": "RUBEN",
+    "middleName": "BASCO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Building Maintenance",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-190720",
+    "lastName": "ORA",
+    "firstName": "SHIRLEY",
+    "middleName": "DIEZ",
+    "assigned": "TAYUD",
+    "department": "PURCHASING DEPARTMENT",
+    "position": "Purchasing Staff I",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-190823",
+    "lastName": "LIMBAGA",
+    "firstName": "PETER LOUIS",
+    "middleName": "PALIGSA",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Manager",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-200205",
+    "lastName": "DE CASTRO",
+    "firstName": "FRAHLYN",
+    "middleName": "BETONIO",
+    "assigned": "TAYUD",
+    "department": "FINANCE DEPARTMENT",
+    "position": "Finance Manager",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-210601",
+    "lastName": "SABANG",
+    "firstName": "VERNELIE",
+    "middleName": "CUYOS",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "ENGINEERING OFFICE STAFF II",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-210703",
+    "lastName": "CABAHUG",
+    "firstName": "EDUARDO JR.",
+    "middleName": "BOOC",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "ELECTRONIC TECHNICIAN",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-210801",
+    "lastName": "HECHANOVA",
+    "firstName": "KYLE DANIEL",
+    "middleName": "CAANGAY",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Management Trainee",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-211004",
+    "lastName": "AVES",
+    "firstName": "MADELYN",
+    "middleName": "BOLOTAOLO",
+    "assigned": "TAYUD",
+    "department": "ADMIN DEPARTMENT",
+    "position": "Admin Officer II",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220402",
+    "lastName": "BETINOL",
+    "firstName": "LYDIA",
+    "middleName": "PACPAKIN",
+    "assigned": "TAYUD",
+    "department": "PURCHASING DEPARTMENT",
+    "position": "Senior Canvasser",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220604",
+    "lastName": "SUSON",
+    "firstName": "ROSE ANN",
+    "middleName": "DUERO",
+    "assigned": "TAYUD",
+    "department": "ADMIN DEPARTMENT",
+    "position": "Admin Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220705",
+    "lastName": "BENOLIRAO",
+    "firstName": "JEROME",
+    "middleName": "DE LOS SANTOS",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Custodian",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220707",
+    "lastName": "CASINILLO",
+    "firstName": "FREDERICK",
+    "middleName": "DAUG",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Helper",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220801",
+    "lastName": "DUALOS",
+    "firstName": "FIERTZE KETH",
+    "middleName": "GARBO",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220805",
+    "lastName": "VASQUEZ",
+    "firstName": "JESRYL",
+    "middleName": "DURAN",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220806",
+    "lastName": "COMPANERO",
+    "firstName": "RAMON JR.",
+    "middleName": "BRIGOLI",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING ",
+    "position": "Machinist II",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220811",
+    "lastName": "PILAPIL",
+    "firstName": "JANET",
+    "middleName": "FORTUNA",
+    "assigned": "TAYUD",
+    "department": "FINANCE DEPARTMENT",
+    "position": "Finance Officer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-221001",
+    "lastName": "PEPITO",
+    "firstName": "KENT DOMINIC",
+    "middleName": "ORO",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "IT Support Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230102",
+    "lastName": "RIVERA",
+    "firstName": "ERMELITO",
+    "middleName": "ARNADO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Maintenance Mechanic",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-230201",
+    "lastName": "PANGANTIJON",
+    "firstName": "LAYA BONG RYAN",
+    "middleName": "CAPURNO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Diesel Mechanic",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230204",
+    "lastName": "FUNDADOR",
+    "firstName": "LLEONEL",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Roving Officer I",
+    "stat": 1
+  },
+  {
+    "employeeId": "AVREC-230401",
+    "lastName": "FAMOR",
+    "firstName": "WYNN CJ",
+    "middleName": "QUINANOLA",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Custodian",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230501",
+    "lastName": "URSABIA",
+    "firstName": "WENJIE",
+    "middleName": "AMORES",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Picker",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230502",
+    "lastName": "CABINAS",
+    "firstName": "LIMUELITO",
+    "middleName": "BASERA",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "MESSENGER DRIVER",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-230604",
+    "lastName": "CRESCENCIO JR",
+    "firstName": "FRANCISCO",
+    "middleName": "TORREMUCHA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Marine Electrician",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230804",
+    "lastName": "VEGA",
+    "firstName": "DOMINIC",
+    "middleName": "ANUTA",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "Jr. System Developer ",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230806",
+    "lastName": "BABOR",
+    "firstName": "STEPHEN",
+    "middleName": "HUBAHIB",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Checker",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-231001",
+    "lastName": "DAVID",
+    "firstName": "MARIA",
+    "middleName": "AFABLE",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "Accounting Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-231001",
+    "lastName": "ARELLANO",
+    "firstName": "RONNIE",
+    "middleName": "BRAVO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "QUALITY CONTROLLER",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240201",
+    "lastName": "TOH",
+    "firstName": "MARVIN",
+    "middleName": "ESCABUSA",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "Jr. System Developer ",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240301",
+    "lastName": "BOOC",
+    "firstName": "VERNADET",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240403",
+    "lastName": "MONTECILLO",
+    "firstName": "ELMER",
+    "middleName": "JAVIER",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Diesel Mechanic",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240602",
+    "lastName": "GALLARDO",
+    "firstName": "JEMINA MAE",
+    "middleName": "RIVERA",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "TAX ANALYST",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240603",
+    "lastName": "BATISTER",
+    "firstName": "MADEL ROSE",
+    "middleName": "SINGCOL",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "TAX ANALYST",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240604",
+    "lastName": "BOOC",
+    "firstName": "KATHLEEN",
+    "middleName": "NOYNAY",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "Accounting Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240703",
+    "lastName": "RODRIGO",
+    "firstName": "BEBELYN",
+    "middleName": "PEPITO",
+    "assigned": "TAYUD",
+    "department": "ADMIN DEPARTMENT",
+    "position": "Admin Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240707",
+    "lastName": "ARRIESGADO",
+    "firstName": "MARICHU",
+    "middleName": "PASTORPILI",
+    "assigned": "TAYUD",
+    "department": "PURCHASING DEPARTMENT",
+    "position": "Purchasing Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240710",
+    "lastName": "BOYLES",
+    "firstName": "CHERRY ROSE",
+    "middleName": "CABALOSA",
+    "assigned": "TAYUD",
+    "department": "FINANCE DEPARTMENT",
+    "position": "FINANCE STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240901",
+    "lastName": "ARNOCO",
+    "firstName": "RHEALYN",
+    "middleName": "OSTIA",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "INVENTORY CONTROL & QUALITY ASSURANCE STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "BRANZUELA JR.",
+    "firstName": "MARCOS",
+    "middleName": "A",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "DRIVER AND HEAVY EQUIPMENT OPERATOR",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-170305",
+    "lastName": "MATUGUINA",
+    "firstName": "ROBERT",
+    "middleName": "RETUYA",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "DRIVER AND HEAVY EQUIPMENT OPERATOR",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-211005",
+    "lastName": "PELLETERO",
+    "firstName": "JOE ART",
+    "middleName": "JUNIO",
+    "assigned": "TAYUD",
+    "department": "PURCHASING DEPARTMENT",
+    "position": "Driver and Heavy Equipment Operator",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-220706",
+    "lastName": "LADA",
+    "firstName": "ANDRES",
+    "middleName": "OMBAO",
+    "assigned": "TAYUD",
+    "department": "ADMIN DEPARTMENT",
+    "position": "ADMIN UTILITY",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-170812",
+    "lastName": "ANINON",
+    "firstName": "MARVIN",
+    "middleName": "CARTALLA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING ",
+    "position": "Navigational Aid Technician",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "ARRIESGADO",
+    "firstName": "GILBERTO",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "ELECTRICIAN-MARINE",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-150508",
+    "lastName": "ROLLOQUE",
+    "firstName": "PATERNO",
+    "middleName": "GERLDIZO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "PORT ENGINEER",
+    "stat": 1
+  },
+  {
+    "employeeId": "VIISC-150914",
+    "lastName": "MANIPIS",
+    "firstName": "EDGARDO",
+    "middleName": "ENTERO",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "MARINE MECHANIC",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-220302",
+    "lastName": "BARUC",
+    "firstName": "RICARDO",
+    "middleName": "OBENZA",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "MARINE MECHANIC",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-110902",
+    "lastName": "BOOC JR",
+    "firstName": "ANASTACIO",
+    "middleName": "BAWBAW",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "CRANE OPERATOR",
+    "stat": 1
+  },
+  {
+    "employeeId": "SVSC-120102",
+    "lastName": "BOOC",
+    "firstName": "JOSE",
+    "middleName": "BRIGOLE",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "CRANE OPERATOR",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-230310",
+    "lastName": "MOLINA",
+    "firstName": "KEVIN",
+    "middleName": "CANARECIO",
+    "assigned": "TAYUD",
+    "department": "GCH",
+    "position": "Office Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABTSC-230701",
+    "lastName": "GICA",
+    "firstName": "JERAHMAE",
+    "middleName": "PAJARES",
+    "assigned": "TAYUD",
+    "department": "GCH",
+    "position": "Operations Staff I",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-180312",
+    "lastName": "GELLA",
+    "firstName": "ARNOLD",
+    "middleName": "COLEGADO",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Operation Officer I",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "CANTAL JR.",
+    "firstName": "RAUL",
+    "middleName": "P",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Liason Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "AVC-00096",
+    "lastName": "DELOS REYES",
+    "firstName": "PERFECTO III",
+    "middleName": "R",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "VP Operation Manager",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "DANGCULOS",
+    "firstName": "LYN",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-240903",
+    "lastName": "BITAY",
+    "firstName": "ABEGAIL",
+    "middleName": "BORRES",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "ER OFFICER",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "BEDICO",
+    "firstName": "JUNREY",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "SUGBU MARINE",
+    "position": "OFFICE STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "CABANIT",
+    "firstName": "JEOFFRY",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "CONSTRUCTION",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "DADOL",
+    "firstName": "RICO",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "CONSTRUCTION",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "MANGILA",
+    "firstName": "JULITO",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "CONSTRUCTION",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "MANGILA",
+    "firstName": "ROMEO",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "CONSTRUCTION",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "OMANA",
+    "firstName": "GILBERT",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "CONSTRUCTION",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "RUNDUBIO",
+    "firstName": "JIUIL",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "CONSTRUCTION",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-230703",
+    "lastName": "FELMAR",
+    "firstName": "MANILA",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "Operations Officer 1",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-250401",
+    "lastName": "CABATO",
+    "firstName": "LYRAMIL",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "LIAISON STAFF",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "LUCERO",
+    "firstName": "JUNIL",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "SORIANO\\r\\n",
+    "firstName": "ERWIN",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "BABOR\\r\\n",
+    "firstName": "JHON MAR",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "MARKETING AND OPERATIONS DEPARTMENT",
+    "position": "",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-251001",
+    "lastName": "RAFOLS",
+    "firstName": "REYNEL",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "HR Crewing",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-251005",
+    "lastName": "ASIS",
+    "firstName": "MARJUN",
+    "middleName": "",
+    "assigned": "NRA",
+    "department": "HUMAN RESOURCES DEPARTMENT",
+    "position": "Safety Officer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-250101",
+    "lastName": "DUMORAN",
+    "firstName": "JOEMARIE",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "WAREHOUSING DEPARTMENT",
+    "position": "Warehouse Picker",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-250602",
+    "lastName": "MAGLANGIT",
+    "firstName": "SHEM",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "FINANCIAL AND TAX ANALYST",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-250603",
+    "lastName": "PONCE",
+    "firstName": "JULIA MAE",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ACCOUNTING DEPARTMENT",
+    "position": "FINANCIAL AND TAX ANALYST",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-250201",
+    "lastName": "DAWATON",
+    "firstName": "CRISJUNE",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "IT Support Staff",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-250403",
+    "lastName": "DO",
+    "firstName": "EARL JAN",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "I.T. DEPARTMENT",
+    "position": "Jr. System Developer",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-241104",
+    "lastName": "TAÑEZA",
+    "firstName": "GLENN",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "PURCHASING DEPARTMENT",
+    "position": "DRIVER",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-241101",
+    "lastName": "RELLON",
+    "firstName": "NORVILLE",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machine Shop Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABMCI-251102",
+    "lastName": "ABAQUITA",
+    "firstName": "SOLOMON",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-250905",
+    "lastName": "OUANO",
+    "firstName": "NIGEL",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-251002",
+    "lastName": "ALSOLA",
+    "firstName": "GLENN",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Machinist II",
+    "stat": 1
+  },
+  {
+    "employeeId": "PCTSC-250704",
+    "lastName": "ORUA",
+    "firstName": "BENJAMIN",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Electrician Maintenance",
+    "stat": 1
+  },
+  {
+    "employeeId": "ABISC-241201",
+    "lastName": "SATINITIGAN",
+    "firstName": "JOHAN KENEITH",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Hull Supervisor",
+    "stat": 1
+  },
+  {
+    "employeeId": "LMVC-250904",
+    "lastName": "TAPANG",
+    "firstName": "JOEY",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "Welder",
+    "stat": 1
+  },
+  {
+    "employeeId": "",
+    "lastName": "CORRO\\r\\n",
+    "firstName": "ANTONIO",
+    "middleName": "",
+    "assigned": "TAYUD",
+    "department": "ENGINEERING & MAINTENANCE DEPARTMENT",
+    "position": "MARINE MECHANIC",
+    "stat": 1
+  }
+]
