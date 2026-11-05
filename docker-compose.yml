@@ -9,8 +9,8 @@ services:
     container_name: avraffle-web
     restart: unless-stopped
     ports:
-      # HOST:CONTAINER - change HOST_PORT in .env or Portainer env variables if 3000 is occupied
-      - "${HOST_PORT:-3001}:3000"
+      # Host port 3300 mapped to container Next.js port 3000
+      - "3300:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
