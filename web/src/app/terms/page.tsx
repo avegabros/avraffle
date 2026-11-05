@@ -35,7 +35,7 @@ export default function TermsOfServicePage() {
             Terms of Service
           </h1>
           <p className="mt-3 text-sm text-slate-400 font-mono">
-            Effective Date: November 5, 2026 • Avega Bros Integrated Logistics, Inc.
+            Effective Date: November 5, 2026 • Avega Bros Integrated Shipping Corp.
           </p>
         </div>
 
@@ -46,7 +46,7 @@ export default function TermsOfServicePage() {
               <FileText className="w-5 h-5 text-amber-400" /> 1. Acceptance of Terms
             </h2>
             <p>
-              By installing, downloading, accessing, or operating the <strong>AV-Raffle</strong> mobile application or web portal (<code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">https://avraffle.abas.ph</code>), you agree to abide by these Terms of Service and all applicable corporate policies established by <strong>Avega Bros Integrated Logistics, Inc.</strong>
+              By installing, downloading, accessing, or operating the <strong>AV-Raffle</strong> mobile application or web portal (<code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">https://avraffle.abas.ph</code>), you agree to abide by these Terms of Service and all applicable corporate policies established by <strong>Avega Bros Integrated Shipping Corp.</strong>
             </p>
           </section>
 

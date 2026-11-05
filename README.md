@@ -2,7 +2,7 @@
 
 ![AV-Raffle Logo](web/public/logo/logo.jpg)
 
-**AV-Raffle** is the official corporate raffle, attendance verification, and prize distribution platform for **Avega Bros Integrated Logistics, Inc.** Built specifically for high-stakes corporate year-end celebrations and general assemblies across multiple locations (Tayud, Cebu & Makati City).
+**AV-Raffle** is the official corporate raffle, attendance verification, and prize distribution platform for **Avega Bros Integrated Shipping Corp.** Built specifically for high-stakes corporate year-end celebrations and general assemblies across multiple locations (Tayud, Cebu & Makati City).
 
 ---
 
@@ -255,5 +255,5 @@ docker cp avraffle-web:/app/public/uploads ./backup_uploads_$(date +%F)
 ---
 
 ## 📄 License & Ownership
-Copyright © 2026 **Avega Bros Integrated Logistics, Inc.** All rights reserved.  
+Copyright © 2026 **Avega Bros Integrated Shipping Corp.** All rights reserved.  
 Internal corporate enterprise software. Unauthorized distribution or reproduction is strictly prohibited.

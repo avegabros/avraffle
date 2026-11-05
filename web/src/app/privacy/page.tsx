@@ -4,7 +4,7 @@ import { ShieldCheck, ArrowLeft, Lock, Eye, Server, RefreshCw, Mail } from 'luci
 
 export const metadata = {
   title: 'Privacy Policy | AV-Raffle',
-  description: 'Privacy Notice and Data Protection Policy for the AV-Raffle application and Avega Bros Integrated Logistics, Inc.',
+  description: 'Privacy Notice and Data Protection Policy for the AV-Raffle application and Avega Bros Integrated Shipping Corp.',
 };
 
 export default function PrivacyPolicyPage() {
@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="mt-3 text-sm text-slate-400 font-mono">
-            Last Updated: November 5, 2026 • Avega Bros Integrated Logistics, Inc.
+            Last Updated: November 5, 2026 • Avega Bros Integrated Shipping Corp.
           </p>
         </div>
 
@@ -46,7 +46,7 @@ export default function PrivacyPolicyPage() {
               <Eye className="w-5 h-5 text-amber-400" /> 1. Overview & Scope
             </h2>
             <p>
-              This Privacy Policy describes how <strong>Avega Bros Integrated Logistics, Inc.</strong> (&ldquo;Avega&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) collects, uses, protects, and discloses personal information obtained through the <strong>AV-Raffle</strong> system, including the mobile application (package: <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">ph.avegabros.avraffle</code>) and the web portals hosted under <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">https://avraffle.abas.ph</code>.
+              This Privacy Policy describes how <strong>Avega Bros Integrated Shipping Corp.</strong> (&ldquo;Avega&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) collects, uses, protects, and discloses personal information obtained through the <strong>AV-Raffle</strong> system, including the mobile application (package: <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">ph.avegabros.avraffle</code>) and the web portals hosted under <code className="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">https://avraffle.abas.ph</code>.
             </p>
             <p>
               This system is deployed exclusively for company corporate events, internal raffles, employee attendance verification, and prize distribution.
@@ -90,7 +90,7 @@ export default function PrivacyPolicyPage() {
               <strong>We do not sell, rent, monetize, or trade any personal information</strong> to third-party advertisers or external marketing networks.
             </p>
             <p>
-              Information is stored on internal or secured corporate servers managed by Avega Bros Integrated Logistics, Inc. Data access is restricted to authorized HR, IT, and event committee administrators.
+              Information is stored on internal or secured corporate servers managed by Avega Bros Integrated Shipping Corp. Data access is restricted to authorized HR, IT, and event committee administrators.
             </p>
           </section>
 
@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage() {
               If you have any questions, concerns, or requests regarding this Privacy Notice or your rights under the Data Privacy Act, please contact:
             </p>
             <div className="p-4 rounded-2xl bg-slate-900 border border-white/10 text-xs font-mono space-y-1 text-slate-300">
-              <p className="font-bold text-white text-sm">Avega Bros Integrated Logistics, Inc. - IT Department</p>
+              <p className="font-bold text-white text-sm">Avega Bros Integrated Shipping Corp. - IT Department</p>
               <p>Email: <a href="mailto:it@avegabros.com" className="text-amber-400 hover:underline">it@avegabros.com</a></p>
               <p>Website: <a href="https://avraffle.abas.ph" className="text-amber-400 hover:underline">https://avraffle.abas.ph</a></p>
               <p>Offices: Tayud, Consolacion, Cebu / Makati City, Metro Manila, Philippines</p>

@@ -37,17 +37,24 @@ export default function LandingPage() {
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/70 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-red-600 to-amber-500 p-0.5 shadow-lg shadow-red-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-white text-lg tracking-wider">
-                <span className="text-red-500">A</span><span className="text-amber-400">V</span>
-              </div>
+            {/* Official Avega PNG Logo */}
+            <div className="h-12 w-auto flex items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo/logo.png"
+                alt="Avega Bros Integrated Shipping Corp."
+                className="h-11 w-auto object-contain rounded-lg shadow-md"
+              />
             </div>
             <div>
-              <div className="text-lg font-black tracking-wider text-white">
-                AV-RAFFLE <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">{APP_VERSION.tag}</span>
+              <div className="text-lg font-black tracking-wider text-white flex items-center gap-2">
+                <span>AV-RAFFLE</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">
+                  {APP_VERSION.tag}
+                </span>
               </div>
               <div className="text-[11px] text-slate-400 font-mono tracking-widest uppercase">
-                Avega Bros Integrated Logistics
+                Avega Bros Integrated Shipping Corp.
               </div>
             </div>
           </div>
@@ -272,7 +279,7 @@ export default function LandingPage() {
       <footer className="relative z-10 border-t border-white/10 py-12 px-6 bg-slate-950 text-center">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            © 2026 <strong className="text-slate-400">Avega Bros Integrated Logistics, Inc.</strong> • Build {APP_VERSION.full}
+            © 2026 <strong className="text-slate-400">Avega Bros Integrated Shipping Corp.</strong> • Build {APP_VERSION.full}
           </div>
           <div className="flex items-center gap-6 font-mono text-[11px]">
             <span>Domain: https://avraffle.abas.ph</span>

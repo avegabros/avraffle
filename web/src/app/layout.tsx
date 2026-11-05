@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AV-Raffle | Official Avega Enterprise Event & Raffle System",
-  description: "Official enterprise corporate raffle, attendance verification, and prize distribution system of Avega Bros Integrated Logistics, Inc.",
+  description: "Official enterprise corporate raffle, attendance verification, and prize distribution system of Avega Bros Integrated Shipping Corp.",
   icons: {
     icon: [
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
