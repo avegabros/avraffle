@@ -113,7 +113,7 @@ services:
     container_name: avraffle-web
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3300:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -131,13 +131,13 @@ volumes:
 ```
 
 ### Nginx / Reverse Proxy Configuration
-Point your domain `https://avraffle.abas.ph` to Port `3000` with **WebSockets Enabled**:
+Point your domain `https://avraffle.abas.ph` to Port `3300` with **WebSockets Enabled**:
 ```nginx
 server {
     server_name avraffle.abas.ph;
 
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3300;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
