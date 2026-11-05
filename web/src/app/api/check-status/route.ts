@@ -12,30 +12,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const guest = await prisma.guest.findFirst({
-      where: {
-        employeeId: employeeId.trim(),
-        lastName: {
-          equals: lastName.trim(),
-        },
-      },
-      select: {
-        employeeId: true,
-        firstName: true,
-        lastName: true,
-        department: true,
-        position: true,
-        location: true,
-        eventYear: true,
-        isRegistered: true,
-        inWheel: true,
-        isWinner: true,
-        prizeWon: true,
-        thumbPath: true,
-        imagePath: true,
-        registeredOn: true,
-      },
-    });
+    const cleanEmpId = employeeId.trim().toLowerCase();
+    const cleanLastName = lastName.trim().toLowerCase();
+
+    // Use raw query with LOWER() to guarantee case-insensitive search across SQLite/PostgreSQL
+    const guests = await prisma.$queryRaw<
+      Array<{
+        id: number;
+        employeeId: string;
+        firstName: string;
+        middleName: string | null;
+        lastName: string;
+        department: string | null;
+        position: string | null;
+        location: string;
+        eventYear: number;
+        isRegistered: number | boolean;
+        inWheel: number | boolean;
+        isWinner: number | boolean;
+        prizeWon: string | null;
+        thumbPath: string | null;
+        imagePath: string | null;
+        registeredOn: string | Date;
+      }>
+    >`
+      SELECT 
+        id,
+        employee_id as employeeId,
+        first_name as firstName,
+        middle_name as middleName,
+        last_name as lastName,
+        department,
+        position,
+        location,
+        event_year as eventYear,
+        stat as isRegistered,
+        wheel as inWheel,
+        winner as isWinner,
+        prize as prizeWon,
+        thumb_image as thumbPath,
+        image as imagePath,
+        registered_on as registeredOn
+      FROM guest
+      WHERE LOWER(employee_id) = ${cleanEmpId}
+        AND LOWER(last_name) = ${cleanLastName}
+      LIMIT 1
+    `;
+
+    const guest = guests.length > 0 ? guests[0] : null;
 
     if (!guest) {
       return NextResponse.json(
@@ -48,6 +72,9 @@ export async function POST(req: NextRequest) {
       found: true,
       guest: {
         ...guest,
+        isRegistered: Boolean(guest.isRegistered),
+        inWheel: Boolean(guest.inWheel),
+        isWinner: Boolean(guest.isWinner),
         fullName: `${guest.firstName} ${guest.lastName}`,
         avatar: guest.thumbPath || guest.imagePath || null,
       },
