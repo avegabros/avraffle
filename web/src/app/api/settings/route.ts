@@ -8,7 +8,7 @@ declare global {
     power: 'low' | 'medium' | 'high';
     fontSize: number;
     wheelSize: number;
-    activeLocation: 'TAYUD' | 'MAKATI';
+    activeLocation: 'ALL' | 'TAYUD' | 'MAKATI';
     activeYear: number;
     updatedAt: number;
   } | undefined;
@@ -20,7 +20,7 @@ if (!globalThis.__raffleWheelSettings) {
     power: 'high',
     fontSize: 13,
     wheelSize: 900,
-    activeLocation: 'TAYUD',
+    activeLocation: 'ALL',
     activeYear: 2026,
     updatedAt: Date.now(),
   };

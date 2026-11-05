@@ -233,7 +233,7 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${_guestResult!['department'] ?? 'Employee'} • ${_guestResult!['location'] ?? ''}',
+                                '${_guestResult!['department'] ?? 'Avega Group'}',
                                 style: const TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               Text(

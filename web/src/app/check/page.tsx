@@ -124,7 +124,7 @@ export default function CheckRegistrationPage() {
                 </p>
                 <div className="mt-1">
                   <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-900 text-amber-300 border border-slate-700">
-                    {status.location || 'TAYUD'} · {status.eventYear || 2026}
+                    {status.department || 'Avega Group'} · {status.eventYear || 2026}
                   </span>
                 </div>
               </div>

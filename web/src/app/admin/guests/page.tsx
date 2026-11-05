@@ -164,21 +164,6 @@ export default function AdminGuestsPage() {
             }}
             className="flex flex-wrap items-center gap-2"
           >
-            <div className="flex bg-slate-900 border border-slate-700 rounded-xl overflow-hidden p-1">
-              {['ALL', 'TAYUD', 'MAKATI'].map((loc) => (
-                <button
-                  type="button"
-                  key={loc}
-                  onClick={() => setSelectedLocation(loc)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-                    selectedLocation === loc ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {loc}
-                </button>
-              ))}
-            </div>
-
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
@@ -212,7 +197,7 @@ export default function AdminGuestsPage() {
                 <tr>
                   <th className="px-6 py-4">Employee ID</th>
                   <th className="px-6 py-4">Name</th>
-                  <th className="px-6 py-4">Location / Year</th>
+                  <th className="px-6 py-4">Company / Year</th>
                   <th className="px-6 py-4">Department / Position</th>
                   <th className="px-6 py-4 text-center">Registered</th>
                   <th className="px-6 py-4 text-center">In Wheel</th>
@@ -254,7 +239,7 @@ export default function AdminGuestsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 border border-slate-700">
-                          {g.location || 'TAYUD'} · {g.eventYear || 2026}
+                          {g.department || g.assigned || 'Avega Group'} · {g.eventYear || 2026}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-400">

@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const systemYear = globalThis.__raffleWheelSettings?.activeYear || 2026;
 
     const queryLocation = searchParams.get('location');
-    const location = queryLocation && queryLocation !== 'ALL' ? queryLocation : (queryLocation === 'ALL' ? undefined : systemLocation);
+    const location = (queryLocation && queryLocation !== 'ALL') ? queryLocation : undefined;
 
     const yearStr = searchParams.get('year');
     const eventYear = yearStr ? parseInt(yearStr, 10) : systemYear;

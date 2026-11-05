@@ -43,7 +43,7 @@ class MainGateScreen extends StatefulWidget {
 
 class _MainGateScreenState extends State<MainGateScreen> {
   String _serverUrl = 'https://avraffle.abas.ph';
-  String _location = 'TAYUD';
+  String _location = 'ALL';
   bool _isLoggedIn = false;
   Map<String, dynamic>? _currentUser;
   bool _isAuthenticating = false;
@@ -62,7 +62,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _serverUrl = prefs.getString('server_url') ?? 'https://avraffle.abas.ph';
-      _location = prefs.getString('event_location') ?? 'TAYUD';
+      _location = prefs.getString('event_location') ?? 'ALL';
       final userJson = prefs.getString('saved_user');
       if (userJson != null) {
         try {

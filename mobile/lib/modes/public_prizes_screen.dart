@@ -41,7 +41,7 @@ class _PublicPrizesScreenState extends State<PublicPrizesScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        title: Text('RAFFLE PRIZES (${widget.location})', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('RAFFLE PRIZES', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [

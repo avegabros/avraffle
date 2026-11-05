@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 class RegistrationScreen extends StatefulWidget {
   final String serverUrl;
   final String location;
-  const RegistrationScreen({super.key, required this.serverUrl, this.location = 'TAYUD'});
+  const RegistrationScreen({super.key, required this.serverUrl, this.location = 'ALL'});
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();

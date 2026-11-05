@@ -31,7 +31,7 @@ export default function StagePage() {
     imagePath: null,
   });
 
-  const [activeLocation, setActiveLocation] = useState<string>('TAYUD');
+  const [activeLocation, setActiveLocation] = useState<string>('ALL');
   const [activeYear, setActiveYear] = useState<number>(2026);
 
   const loadWheelData = async (loc = activeLocation, yr = activeYear) => {
@@ -217,7 +217,7 @@ export default function StagePage() {
               AV-RAFFLE
             </div>
             <span className="text-xs uppercase px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold tracking-wider">
-              📍 {activeLocation} ({activeYear})
+              🎉 Unified Event ({activeYear})
             </span>
             <span className="text-xs uppercase px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold tracking-widest">
               {selectedPrize.isGrand ? '🌟 Grand Prize Mode' : '🎁 Regular Draw'}
