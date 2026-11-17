@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+// Known statuses to strictly exclude (resigned, terminated, separated, awol, inactive, etc.)
+const INACTIVE_STATUS_KEYWORDS = [
+  'resigned',
+  'terminated',
+  'separated',
+  'retired',
+  'awol',
+  'on-leave without pay',
+  'suspended',
+  'preventive suspension',
+  'inactive',
+];
+
 export async function POST(req: NextRequest) {
   try {
     const {
@@ -224,6 +237,24 @@ export async function POST(req: NextRequest) {
         location = 'MAKATI';
       } else if (rawLoc.includes('TAYUD') || rawLoc.includes('CEBU')) {
         location = 'TAYUD';
+      }
+
+      // Determine status string
+      const empStatusStr = [
+        emp.status,
+        emp.employee_status,
+        typeof emp.employment_status === 'object'
+          ? emp.employment_status?.label || emp.employment_status?.name
+          : emp.employment_status,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      // Filter: Strictly exclude resigned, terminated, AWOL, inactive, etc.
+      const isInactive = INACTIVE_STATUS_KEYWORDS.some((kw) => empStatusStr.includes(kw));
+      if (isInactive) {
+        continue;
       }
 
       if (!empId || !fName || !lName) continue;
