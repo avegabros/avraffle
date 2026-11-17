@@ -113,13 +113,14 @@ export default function PrivacyPolicyPage() {
               <Mail className="w-5 h-5 text-amber-400" /> 6. Contact Information & Data Protection Officer
             </h2>
             <p>
-              If you have any questions, concerns, or requests regarding this Privacy Notice or your rights under the Data Privacy Act, please contact:
+              If you have any questions, concerns, or requests regarding this Privacy Notice or your rights under the Data Privacy Act of 2012, please reach out to our designated Data Protection Officer:
             </p>
-            <div className="p-4 rounded-2xl bg-slate-900 border border-white/10 text-xs font-mono space-y-1 text-slate-300">
-              <p className="font-bold text-white text-sm">Avega Bros Integrated Shipping Corp. - IT Department</p>
-              <p>Email: <a href="mailto:it@avegabros.com" className="text-amber-400 hover:underline">it@avegabros.com</a></p>
-              <p>Website: <a href="https://avraffle.abas.ph" className="text-amber-400 hover:underline">https://avraffle.abas.ph</a></p>
-              <p>Offices: Tayud, Consolacion, Cebu / Makati City, Metro Manila, Philippines</p>
+            <div className="p-4 rounded-2xl bg-slate-900 border border-white/10 text-xs font-mono space-y-1.5 text-slate-300">
+              <p className="font-bold text-white text-sm">Avega Bros Integrated Shipping Corp.</p>
+              <p><span className="text-slate-400">Office:</span> <strong className="text-white">Data Privacy Office</strong></p>
+              <p><span className="text-slate-400">DPO Email:</span> <a href="mailto:dpo@avegabros.org" className="text-amber-400 hover:underline font-bold">dpo@avegabros.org</a></p>
+              <p><span className="text-slate-400">Website:</span> <a href="https://avraffle.abas.ph" className="text-amber-400 hover:underline">https://avraffle.abas.ph</a></p>
+              <p><span className="text-slate-400">Offices:</span> Tayud, Consolacion, Cebu / Makati City, Metro Manila, Philippines</p>
             </div>
           </section>
         </div>
