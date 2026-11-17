@@ -19,7 +19,7 @@ interface WheelSettings {
   power: 'low' | 'medium' | 'high';
   fontSize: number;
   wheelSize: number;
-  activeLocation: 'TAYUD' | 'MAKATI';
+  activeLocation: 'ALL' | 'TAYUD' | 'MAKATI';
   activeYear: number;
 }
 
@@ -33,7 +33,7 @@ export default function AdminDashboardPage() {
     power: 'high',
     fontSize: 13,
     wheelSize: 900,
-    activeLocation: 'TAYUD',
+    activeLocation: 'ALL',
     activeYear: 2026,
   });
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data) {
-          const loc = data.activeLocation ?? 'TAYUD';
+          const loc = data.activeLocation ?? 'ALL';
           const yr = data.activeYear ?? 2026;
           setSettings({
             duration: data.duration ?? 8,
@@ -119,7 +119,7 @@ export default function AdminDashboardPage() {
 
           <div className="flex items-center gap-3">
             <div className="flex bg-slate-950 border border-slate-800 rounded-xl p-1">
-              {(['TAYUD', 'MAKATI'] as const).map((loc) => (
+              {(['ALL', 'TAYUD', 'MAKATI'] as const).map((loc) => (
                 <button
                   key={loc}
                   onClick={() => updateSettingRealtime({ ...settings, activeLocation: loc })}
@@ -129,7 +129,7 @@ export default function AdminDashboardPage() {
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  {loc === 'TAYUD' ? 'Tayud (Cebu)' : 'Makati (HQ)'}
+                  {loc === 'ALL' ? 'All Locations' : loc === 'TAYUD' ? 'Tayud (Cebu)' : 'Makati (HQ)'}
                 </button>
               ))}
             </div>
