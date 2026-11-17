@@ -25,7 +25,6 @@ export default function AdminArchivePage() {
   const [v2Username, setV2Username] = useState('admin');
   const [v2Password, setV2Password] = useState('1234567890');
 
-  const [importLocation, setImportLocation] = useState('ALL');
   const [importYear, setImportYear] = useState(2026);
   const [wipeBeforeSync, setWipeBeforeSync] = useState(false);
   const [importMsg, setImportMsg] = useState('');
@@ -131,7 +130,6 @@ export default function AdminArchivePage() {
             source: 'production',
             apiUrl: prodApiUrl,
             apiKey: prodApiKey,
-            location: importLocation,
             eventYear: importYear,
             wipeExisting: wipeBeforeSync,
           }
@@ -142,7 +140,6 @@ export default function AdminArchivePage() {
             loginUrl: v2LoginUrl,
             username: v2Username,
             password: v2Password,
-            location: importLocation,
             eventYear: importYear,
             wipeExisting: wipeBeforeSync,
           };
@@ -481,34 +478,17 @@ export default function AdminArchivePage() {
               </div>
             )}
 
-            {/* Common Location and Event Year Settings */}
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                  Default Target Location
-                </label>
-                <select
-                  value={importLocation}
-                  onChange={(e) => setImportLocation(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  <option value="ALL">All Locations (Unified)</option>
-                  <option value="TAYUD">Tayud Land-Based</option>
-                  <option value="MAKATI">Makati Land-Based</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                  Import Target Year
-                </label>
-                <input
-                  type="number"
-                  value={importYear}
-                  onChange={(e) => setImportYear(parseInt(e.target.value, 10))}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
+            {/* Target Event Year */}
+            <div className="pt-2">
+              <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                Import Target Year
+              </label>
+              <input
+                type="number"
+                value={importYear}
+                onChange={(e) => setImportYear(parseInt(e.target.value, 10))}
+                className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
             </div>
 
             {/* Wipe existing checkbox */}

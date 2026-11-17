@@ -260,27 +260,6 @@ class _MainGateScreenState extends State<MainGateScreen> {
                   hintText: 'e.g. https://avraffle.abas.ph or http://192.168.3.4:3000',
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Event Location',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
-              ),
-              const SizedBox(height: 8),
-              DropdownButton<String>(
-                value: tempLoc,
-                isExpanded: true,
-                dropdownColor: const Color(0xFF1E293B),
-                items: const [
-                  DropdownMenuItem(value: 'TAYUD', child: Text('Tayud Land-Based')),
-                  DropdownMenuItem(value: 'MAKATI', child: Text('Makati Land-Based')),
-                  DropdownMenuItem(value: 'ALL', child: Text('All Locations')),
-                ],
-                onChanged: (val) {
-                  if (val != null) {
-                    setDialogState(() => tempLoc = val);
-                  }
-                },
-              ),
             ],
           ),
           actions: [
@@ -293,10 +272,9 @@ class _MainGateScreenState extends State<MainGateScreen> {
                 final prefs = await SharedPreferences.getInstance();
                 final newUrl = urlController.text.trim();
                 await prefs.setString('server_url', newUrl);
-                await prefs.setString('event_location', tempLoc);
                 setState(() {
                   _serverUrl = newUrl;
-                  _location = tempLoc;
+                  _location = 'ALL';
                 });
                 if (ctx.mounted) Navigator.pop(ctx);
               },

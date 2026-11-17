@@ -224,36 +224,33 @@ export async function POST(req: NextRequest) {
         'Avega Group'
       ).trim();
 
-      // Safe location parsing (string or object)
-      const locObj = emp.user_location || emp.location;
-      const rawLoc = (
-        typeof locObj === 'string'
-          ? locObj
-          : locObj?.location_name || locObj?.name || ''
-      ).toUpperCase();
+      // Always assign 'ALL' location so attendees can be checked in at any desk
+      const location = 'ALL';
 
-      let location = 'ALL';
-      if (rawLoc.includes('MAKATI')) {
-        location = 'MAKATI';
-      } else if (rawLoc.includes('TAYUD') || rawLoc.includes('CEBU')) {
-        location = 'TAYUD';
+      // 1. Actual Employee Status (Active vs Resigned/Terminated/AWOL/etc.)
+      // In ABAS v3 API:
+      // - emp.status = "Active" | "Inactive"
+      // - emp.employee_status contains actual status like "Resigned", "AWOL", "Terminated", "Separated"
+      // - OR employment type like "Regular", "Probationary", "Fixed Term"
+      const statusField = (emp.status || '').toLowerCase();
+      const empStatusField = (emp.employee_status || '').toLowerCase();
+      const v2EmploymentStatus = (
+        typeof emp.employment_status === 'object'
+          ? emp.employment_status?.label || emp.employment_status?.name || ''
+          : emp.employment_status || ''
+      ).toLowerCase();
+
+      // Combined status string
+      const fullStatusStr = `${statusField} ${empStatusField} ${v2EmploymentStatus}`.toLowerCase();
+
+      // Filter: Strictly exclude if marked as resigned, terminated, awol, separated, inactive, etc.
+      const isInactive = INACTIVE_STATUS_KEYWORDS.some((kw) => fullStatusStr.includes(kw));
+      if (isInactive) {
+        continue;
       }
 
-      // Determine status string
-      const empStatusStr = [
-        emp.status,
-        emp.employee_status,
-        typeof emp.employment_status === 'object'
-          ? emp.employment_status?.label || emp.employment_status?.name
-          : emp.employment_status,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      // Filter: Strictly exclude resigned, terminated, AWOL, inactive, etc.
-      const isInactive = INACTIVE_STATUS_KEYWORDS.some((kw) => empStatusStr.includes(kw));
-      if (isInactive) {
+      // 2. Also ensure status is explicitly 'active' if statusField is present
+      if (statusField && statusField !== 'active') {
         continue;
       }
 
