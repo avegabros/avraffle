@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
       username = 'admin',
       password = '1234567890',
       eventYear = 2026,
+      wipeExisting = false,
     } = await req.json();
 
     let rawEmployees: any[] = [];
@@ -166,6 +167,25 @@ export async function POST(req: NextRequest) {
 
     let importedCount = 0;
     const validEmployeeIds: string[] = [];
+
+    // If wipeExisting is enabled, clean out old attendees for this eventYear first
+    if (wipeExisting) {
+      const yearToWipe = parseInt(String(eventYear), 10);
+      const guestsToWipe = await prisma.guest.findMany({
+        where: { eventYear: yearToWipe },
+        select: { id: true },
+      });
+      const guestIds = guestsToWipe.map((g) => g.id);
+      if (guestIds.length > 0) {
+        await prisma.prize.updateMany({
+          where: { wonByGuestId: { in: guestIds } },
+          data: { wonByGuestId: null, isWon: false, wonOn: null },
+        });
+      }
+      await prisma.guest.deleteMany({
+        where: { eventYear: yearToWipe },
+      });
+    }
 
     // ==========================================
     // Unified Employee Upserting

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AdminNav } from '@/components/admin/AdminNav';
 
@@ -27,8 +27,31 @@ export default function AdminArchivePage() {
 
   const [importLocation, setImportLocation] = useState('ALL');
   const [importYear, setImportYear] = useState(2026);
+  const [wipeBeforeSync, setWipeBeforeSync] = useState(false);
   const [importMsg, setImportMsg] = useState('');
   const [importLoading, setImportLoading] = useState(false);
+
+  // Attendee count & Clear Attendees state
+  const [currentAttendeeCount, setCurrentAttendeeCount] = useState<number | null>(null);
+  const [clearLoading, setClearLoading] = useState(false);
+  const [clearMsg, setClearMsg] = useState('');
+
+  // Fetch current attendee count for selected importYear
+  const fetchAttendeeCount = async (targetYear: number) => {
+    try {
+      const res = await fetch(`/api/admin/clear-attendees?year=${targetYear}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentAttendeeCount(data.count ?? 0);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchAttendeeCount(importYear);
+  }, [importYear]);
 
   const handleArchive = async () => {
     if (!confirm(`Are you sure you want to archive ${year} winners, clear old prizes, and reset the raffle for 2026?`)) {
@@ -46,6 +69,7 @@ export default function AdminArchivePage() {
       const data = await res.json();
       if (res.ok) {
         setArchiveMsg(`✅ ${data.message}`);
+        fetchAttendeeCount(importYear);
       } else {
         setArchiveMsg(`❌ ${data.error}`);
       }
@@ -56,7 +80,48 @@ export default function AdminArchivePage() {
     }
   };
 
+  const handleClearAttendees = async () => {
+    const countText = currentAttendeeCount !== null ? `(${currentAttendeeCount} records)` : '';
+    if (
+      !confirm(
+        `⚠️ DANGER: Are you sure you want to completely empty/delete ALL attendees ${countText} for year ${importYear}?\n\nThis will allow a completely clean slate before importing from another API source.`
+      )
+    ) {
+      return;
+    }
+
+    setClearLoading(true);
+    setClearMsg('');
+    try {
+      const res = await fetch('/api/admin/clear-attendees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year: importYear }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setClearMsg(`✅ ${data.message}`);
+        fetchAttendeeCount(importYear);
+      } else {
+        setClearMsg(`❌ ${data.error}`);
+      }
+    } catch {
+      setClearMsg('❌ Failed to connect to clear attendees endpoint');
+    } finally {
+      setClearLoading(false);
+    }
+  };
+
   const handleImportABAS = async () => {
+    if (
+      wipeBeforeSync &&
+      !confirm(
+        `⚠️ Notice: "Replace all attendees" is checked. This will DELETE all existing attendees for Year ${importYear} before syncing from the new API source.\n\nProceed?`
+      )
+    ) {
+      return;
+    }
+
     setImportLoading(true);
     setImportMsg('');
 
@@ -68,6 +133,7 @@ export default function AdminArchivePage() {
             apiKey: prodApiKey,
             location: importLocation,
             eventYear: importYear,
+            wipeExisting: wipeBeforeSync,
           }
         : {
             source: 'v2',
@@ -78,6 +144,7 @@ export default function AdminArchivePage() {
             password: v2Password,
             location: importLocation,
             eventYear: importYear,
+            wipeExisting: wipeBeforeSync,
           };
 
     try {
@@ -89,6 +156,7 @@ export default function AdminArchivePage() {
       const data = await res.json();
       if (res.ok) {
         setImportMsg(`✅ ${data.message}`);
+        fetchAttendeeCount(importYear);
       } else {
         setImportMsg(`❌ ${data.error}`);
       }
@@ -108,7 +176,7 @@ export default function AdminArchivePage() {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Archive & Year Transition</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Export historical winners for permanent static archiving, reset the database, and sync employee rosters
+            Export historical winners for permanent static archiving, manage attendee rosters, and sync between API sources
           </p>
         </div>
 
@@ -151,12 +219,62 @@ export default function AdminArchivePage() {
           )}
         </div>
 
-        {/* Section 2: Import from Selected Employee API */}
+        {/* Section 2: Manage & Empty Attendees */}
+        <div className="bg-slate-900 border border-red-500/20 rounded-3xl p-8 shadow-xl space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🗑️</span>
+              <div>
+                <h2 className="text-xl font-bold text-white">2. Clear / Empty Attendees Database</h2>
+                <p className="text-xs text-slate-400">
+                  Delete current attendees to switch cleanly between production and development API rosters.
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[10px] uppercase font-bold text-slate-500 block">Current Database Count</span>
+              <span className="text-lg font-black font-mono text-amber-400">
+                {currentAttendeeCount !== null ? `${currentAttendeeCount} Attendees` : 'Loading...'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-red-950/20 border border-red-500/20 p-4 rounded-2xl">
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-red-200">
+                Delete all attendees for Event Year {importYear}
+              </p>
+              <p className="text-[11px] text-slate-400">
+                This deletes Guest entries without touching Admin accounts, System Settings, or Prize definitions.
+              </p>
+            </div>
+
+            <button
+              onClick={handleClearAttendees}
+              disabled={clearLoading || currentAttendeeCount === 0}
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-500 font-bold rounded-xl text-xs shadow transition disabled:opacity-40 text-white whitespace-nowrap flex items-center gap-2 self-start sm:self-auto"
+            >
+              <span>{clearLoading ? '⏳' : '⚠️'}</span>
+              <span>{clearLoading ? 'Wiping Attendees...' : `Clear Year ${importYear} Attendees`}</span>
+            </button>
+          </div>
+
+          {clearMsg && (
+            <div className="p-4 bg-slate-800/80 border border-white/10 rounded-2xl text-xs font-semibold">
+              {clearMsg}
+            </div>
+          )}
+        </div>
+
+        {/* Section 3: Import from Selected Employee API */}
         <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-xl space-y-6">
           <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
             <span className="text-3xl">🔄</span>
             <div>
-              <h2 className="text-xl font-bold">2. Import / Sync Employees from Avega HR System</h2>
+              <h2 className="text-xl font-bold">3. Import / Sync Employees from Avega HR System</h2>
               <p className="text-xs text-slate-400">
                 Select your API source: Current Production ABAS v3 API or Development HRIS v2
               </p>
@@ -391,6 +509,20 @@ export default function AdminArchivePage() {
                   className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
+            </div>
+
+            {/* Wipe existing checkbox */}
+            <div className="p-3.5 rounded-xl bg-slate-800/40 border border-slate-700 flex items-center gap-3">
+              <input
+                id="wipeBeforeSync"
+                type="checkbox"
+                checked={wipeBeforeSync}
+                onChange={(e) => setWipeBeforeSync(e.target.checked)}
+                className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-slate-900 border-slate-600"
+              />
+              <label htmlFor="wipeBeforeSync" className="text-xs text-slate-300 font-semibold cursor-pointer select-none">
+                <span className="text-amber-400 font-bold">Wipe & replace:</span> Delete existing attendees for Year {importYear} before syncing from the selected source
+              </label>
             </div>
 
             <button
