@@ -58,6 +58,7 @@ model Prize {
   isGrandPrize Boolean   @default(false) @map("is_grand_prize")
   imagePath    String?   @map("image_path")
   quantity     Int       @default(1)
+  priority     Int       @default(999) // Higher numbers draw first (default 999)
   location     String    @default("TAYUD") // TAYUD, MAKATI, ALL
   eventYear    Int       @default(2026) @map("event_year")
   isWon        Boolean   @default(false) @map("is_won")
@@ -68,6 +69,7 @@ model Prize {
   wonBy        Guest?    @relation("GuestWonPrize", fields: [wonByGuestId], references: [id])
 
   @@index([location, eventYear])
+  @@index([priority, id])
   @@map("prizes")
 }
 

@@ -44,3 +44,8 @@ yarn-error.log*
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Uploaded test media
+web/public/uploads/2026/
+web/public/uploads/prizes/
+

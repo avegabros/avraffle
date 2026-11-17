@@ -18,7 +18,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
   bool _isConnected = false;
   bool _isSpinning = false;
   bool _keepScreenAwake = true;
-  String _currentPrize = '1 Sack 5 kl Rice';
+  String _currentPrize = 'Loading Prize...';
   String? _currentPrizeImage;
   bool _isGrand = false;
   int? _grandPrizeId;
@@ -68,6 +68,16 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                   Vibration.vibrate(duration: 400);
                 }
               }
+
+              // Sync current prize from server if updated or auto-advanced
+              if (state['prizeName'] != null && !_isSpinning) {
+                if (_currentPrize != state['prizeName']) {
+                  _currentPrize = state['prizeName'];
+                  _currentPrizeImage = state['prizeImagePath'];
+                  _isGrand = state['isGrand'] ?? false;
+                  _grandPrizeId = state['grandPrizeId'];
+                }
+              }
             });
           }
         }
@@ -86,10 +96,19 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
         setState(() {
           _grandPrizes = data['grandPrizes'] ?? [];
           _regularPrizes = data['regularPrizes'] ?? [];
-          // Pick first regular prize if available
-          if (_regularPrizes.isNotEmpty && _currentPrize == '1 Sack 5 kl Rice') {
-            _currentPrize = _regularPrizes.first['name'];
-            _currentPrizeImage = _regularPrizes.first['imagePath'];
+          // Pick first regular prize or grand prize from DB
+          if (_currentPrize == 'Loading Prize...' || _currentPrize == '1 Sack 5 kl Rice' || _currentPrize == 'General Raffle Prize') {
+            if (_regularPrizes.isNotEmpty) {
+              _currentPrize = _regularPrizes.first['name'];
+              _currentPrizeImage = _regularPrizes.first['imagePath'];
+              _isGrand = false;
+              _grandPrizeId = _regularPrizes.first['id'];
+            } else if (_grandPrizes.isNotEmpty) {
+              _currentPrize = _grandPrizes.first['name'];
+              _currentPrizeImage = _grandPrizes.first['imagePath'];
+              _isGrand = true;
+              _grandPrizeId = _grandPrizes.first['id'];
+            }
           }
         });
       }
@@ -300,98 +319,140 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
   }
 
   void _selectPrizeDialog() {
+    _fetchGrandPrizes(); // Refresh latest prize counts & list from server
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Select Draw Prize'),
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Row(
+          children: [
+            Icon(Icons.military_tech, color: Color(0xFFF59E0B)),
+            SizedBox(width: 8),
+            Text('Select Draw Prize', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+          ],
+        ),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView(
             shrinkWrap: true,
             children: [
-              const Text('Regular Prizes:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-              ..._regularPrizes.map((p) => ListTile(
-                    leading: const Icon(Icons.card_giftcard, color: Colors.green),
-                    title: Text(p['name']),
-                    subtitle: Text('Qty: ${p['quantity'] ?? 1}'),
-                    onTap: () async {
-                      setState(() {
-                        _currentPrize = p['name'];
-                        _currentPrizeImage = p['imagePath'];
-                        _isGrand = false;
-                        _grandPrizeId = null;
-                      });
-                      Navigator.pop(ctx);
-                      try {
-                        await http.post(
-                          Uri.parse('${widget.serverUrl}/api/wheel/state'),
-                          headers: {'Content-Type': 'application/json'},
-                          body: jsonEncode({
-                            'action': 'SELECT_PRIZE',
-                            'prizeName': p['name'],
-                            'prizeImagePath': p['imagePath'],
-                            'isGrand': false,
-                            'location': widget.location,
-                          }),
-                        );
-                      } catch (_) {}
-                    },
-                  )),
-              if (_regularPrizes.isEmpty)
-                ListTile(
-                  leading: const Icon(Icons.card_giftcard, color: Colors.green),
-                  title: const Text('1 Sack 5 kl Rice (Regular)'),
-                  onTap: () async {
-                    setState(() {
-                      _currentPrize = '1 Sack 5 kl Rice';
-                      _currentPrizeImage = null;
-                      _isGrand = false;
-                      _grandPrizeId = null;
-                    });
-                    Navigator.pop(ctx);
-                    try {
-                      await http.post(
-                        Uri.parse('${widget.serverUrl}/api/wheel/state'),
-                        headers: {'Content-Type': 'application/json'},
-                        body: jsonEncode({
-                          'action': 'SELECT_PRIZE',
-                          'prizeName': '1 Sack 5 kl Rice',
-                          'isGrand': false,
-                        }),
-                      );
-                    } catch (_) {}
-                  },
+              // Option: Auto Queue by Priority
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                tileColor: const Color(0xFF0F172A),
+                leading: const Icon(Icons.auto_mode, color: Colors.cyanAccent),
+                title: const Text('⚡ Auto-Queue by Priority', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Follows priority order configured in Admin', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    final res = await http.post(
+                      Uri.parse('${widget.serverUrl}/api/wheel/state'),
+                      headers: {'Content-Type': 'application/json'},
+                      body: jsonEncode({
+                        'action': 'RESET_TO_AUTO_QUEUE',
+                        'location': widget.location,
+                      }),
+                    );
+                    if (res.statusCode == 200) {
+                      final data = jsonDecode(res.body);
+                      final state = data['state'];
+                      if (state != null && mounted) {
+                        setState(() {
+                          _currentPrize = state['prizeName'] ?? _currentPrize;
+                          _currentPrizeImage = state['prizeImagePath'];
+                          _isGrand = state['isGrand'] ?? false;
+                          _grandPrizeId = state['grandPrizeId'];
+                        });
+                      }
+                    }
+                  } catch (_) {}
+                },
+              ),
+              const SizedBox(height: 12),
+
+              if (_regularPrizes.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: Text('Regular Prizes:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.greenAccent, fontSize: 13)),
                 ),
-              const Divider(),
-              const Text('Grand Prizes:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber)),
-              ..._grandPrizes.map((p) => ListTile(
-                    leading: const Icon(Icons.star, color: Colors.amber),
-                    title: Text(p['name']),
-                    subtitle: Text('Qty: ${p['quantity'] ?? 1}'),
-                    onTap: () async {
-                      setState(() {
-                        _currentPrize = p['name'];
-                        _currentPrizeImage = p['imagePath'];
-                        _isGrand = true;
-                        _grandPrizeId = p['id'];
-                      });
-                      Navigator.pop(ctx);
-                      try {
-                        await http.post(
-                          Uri.parse('${widget.serverUrl}/api/wheel/state'),
-                          headers: {'Content-Type': 'application/json'},
-                          body: jsonEncode({
-                            'action': 'SELECT_PRIZE',
-                            'prizeName': p['name'],
-                            'prizeImagePath': p['imagePath'],
-                            'isGrand': true,
-                            'grandPrizeId': p['id'],
-                            'location': widget.location,
-                          }),
-                        );
-                      } catch (_) {}
-                    },
-                  )),
+                ..._regularPrizes.map((p) => ListTile(
+                      dense: true,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      leading: const Icon(Icons.card_giftcard, color: Colors.greenAccent),
+                      title: Text(p['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      subtitle: Text('Qty: ${p['quantity'] ?? 1}${p['priority'] != null ? ' • Priority: ${p['priority']}' : ''}',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      onTap: () async {
+                        setState(() {
+                          _currentPrize = p['name'];
+                          _currentPrizeImage = p['imagePath'];
+                          _isGrand = false;
+                          _grandPrizeId = null;
+                        });
+                        Navigator.pop(ctx);
+                        try {
+                          await http.post(
+                            Uri.parse('${widget.serverUrl}/api/wheel/state'),
+                            headers: {'Content-Type': 'application/json'},
+                            body: jsonEncode({
+                              'action': 'SELECT_PRIZE',
+                              'prizeName': p['name'],
+                              'prizeImagePath': p['imagePath'],
+                              'isGrand': false,
+                              'location': widget.location,
+                            }),
+                          );
+                        } catch (_) {}
+                      },
+                    )),
+              ],
+
+              if (_grandPrizes.isNotEmpty) ...[
+                const Divider(color: Colors.white12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: Text('Grand Prizes:', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFF59E0B), fontSize: 13)),
+                ),
+                ..._grandPrizes.map((p) => ListTile(
+                      dense: true,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      leading: const Icon(Icons.star, color: Color(0xFFF59E0B)),
+                      title: Text(p['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      subtitle: Text('Qty: ${p['quantity'] ?? 1}${p['priority'] != null ? ' • Priority: ${p['priority']}' : ''}',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      onTap: () async {
+                        setState(() {
+                          _currentPrize = p['name'];
+                          _currentPrizeImage = p['imagePath'];
+                          _isGrand = true;
+                          _grandPrizeId = p['id'];
+                        });
+                        Navigator.pop(ctx);
+                        try {
+                          await http.post(
+                            Uri.parse('${widget.serverUrl}/api/wheel/state'),
+                            headers: {'Content-Type': 'application/json'},
+                            body: jsonEncode({
+                              'action': 'SELECT_PRIZE',
+                              'prizeName': p['name'],
+                              'prizeImagePath': p['imagePath'],
+                              'isGrand': true,
+                              'grandPrizeId': p['id'],
+                              'location': widget.location,
+                            }),
+                          );
+                        } catch (_) {}
+                      },
+                    )),
+              ],
+
+              if (_regularPrizes.isEmpty && _grandPrizes.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('No active prizes found in database. Add prizes in Admin Panel.',
+                      style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+                ),
             ],
           ),
         ),

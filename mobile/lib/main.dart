@@ -73,7 +73,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
     });
   }
 
-  Future<void> _login(BuildContext modalContext) async {
+  Future<void> _login(BuildContext modalContext, StateSetter setModalState) async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
@@ -84,6 +84,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
       return;
     }
 
+    setModalState(() => _isAuthenticating = true);
     setState(() => _isAuthenticating = true);
     try {
       final res = await http.post(
@@ -120,7 +121,12 @@ class _MainGateScreenState extends State<MainGateScreen> {
         );
       }
     } finally {
-      setState(() => _isAuthenticating = false);
+      if (modalContext.mounted) {
+        setModalState(() => _isAuthenticating = false);
+      }
+      if (mounted) {
+        setState(() => _isAuthenticating = false);
+      }
     }
   }
 
@@ -224,7 +230,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
                   backgroundColor: const Color(0xFFF59E0B),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                onPressed: _isAuthenticating ? null : () => _login(ctx),
+                onPressed: _isAuthenticating ? null : () => _login(ctx, setModalState),
               ),
             ],
           ),

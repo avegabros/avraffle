@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
 
     const prizeWhere: Record<string, unknown> = {
       isWon: false,
+      quantity: { gt: 0 },
       eventYear,
     };
     if (location) {
@@ -57,6 +58,10 @@ export async function GET(req: NextRequest) {
         ...prizeWhere,
         isGrandPrize: true,
       },
+      orderBy: [
+        { priority: 'desc' },
+        { id: 'asc' },
+      ],
     });
 
     const availableRegularPrizes = await prisma.prize.findMany({
@@ -64,6 +69,10 @@ export async function GET(req: NextRequest) {
         ...prizeWhere,
         isGrandPrize: false,
       },
+      orderBy: [
+        { priority: 'desc' },
+        { id: 'asc' },
+      ],
     });
 
     return NextResponse.json({

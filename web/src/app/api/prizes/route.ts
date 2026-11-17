@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
     const prizes = await prisma.prize.findMany({
       where: whereClause,
       orderBy: [
-        { isGrandPrize: 'desc' },
+        { priority: 'desc' },
+        { isGrandPrize: 'asc' },
         { id: 'desc' },
       ],
       include: {
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest) {
     const type = (formData.get('type') as string) || 'REGULAR';
     const isGrandPrize = formData.get('isGrandPrize') === 'true' || type === 'GRAND';
     const quantity = parseInt((formData.get('quantity') as string) || '1', 10);
+    const priority = parseInt((formData.get('priority') as string) || '999', 10);
     const location = (formData.get('location') as string) || 'TAYUD';
     const eventYear = parseInt((formData.get('eventYear') as string) || '2026', 10);
     const photoFile = formData.get('photo') as File | null;
@@ -76,6 +78,7 @@ export async function POST(req: NextRequest) {
         type: isGrandPrize ? 'GRAND' : 'REGULAR',
         isGrandPrize,
         quantity,
+        priority,
         location,
         eventYear,
         imagePath,
@@ -98,6 +101,7 @@ export async function PUT(req: NextRequest) {
     const description = (formData.get('description') as string) || null;
     const isGrandPrize = formData.get('isGrandPrize') === 'true';
     const quantity = parseInt((formData.get('quantity') as string) || '1', 10);
+    const priority = formData.get('priority') !== null ? parseInt((formData.get('priority') as string) || '0', 10) : undefined;
     const location = (formData.get('location') as string) || undefined;
     const eventYearStr = formData.get('eventYear') as string;
     const eventYear = eventYearStr ? parseInt(eventYearStr, 10) : undefined;
@@ -123,6 +127,7 @@ export async function PUT(req: NextRequest) {
         name,
         description,
         quantity,
+        ...(priority !== undefined ? { priority } : {}),
         isGrandPrize,
         type: isGrandPrize ? 'GRAND' : 'REGULAR',
         ...(location ? { location } : {}),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getNextAvailablePrize } from '@/app/api/wheel/state/route';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,21 +23,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const activeLoc = globalThis.__raffleWheelSettings?.activeLocation || updatedGuest.location || 'TAYUD';
+    const activeYr = globalThis.__raffleWheelSettings?.activeYear || updatedGuest.eventYear || 2026;
+
     // 2. If grand prize, mark prize as won
     if (grandPrizeId) {
       await prisma.prize.update({
         where: { id: grandPrizeId },
         data: {
           isWon: true,
+          quantity: 0,
           wonByGuestId: guestId,
           wonOn: now,
         },
       });
     } else if (prizeName) {
       // Find matching regular prize by name for current location and mark one unit won
-      const activeLoc = globalThis.__raffleWheelSettings?.activeLocation || updatedGuest.location || 'TAYUD';
-      const activeYr = globalThis.__raffleWheelSettings?.activeYear || updatedGuest.eventYear || 2026;
-
       const regularPrize = await prisma.prize.findFirst({
         where: {
           name: prizeName,
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
           await prisma.prize.update({
             where: { id: regularPrize.id },
             data: {
+              quantity: 0,
               isWon: true,
               wonByGuestId: guestId,
               wonOn: now,
@@ -66,7 +69,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, guest: updatedGuest });
+    // 3. Auto-queue next available prize if current prize ran out & trigger stage guest reload
+    if (globalThis.__raffleStageState) {
+      globalThis.__raffleStageState.reloadGuestsCount = (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+      
+      // Check if current prize still has remaining quantity
+      const remainingPrize = await prisma.prize.findFirst({
+        where: {
+          name: globalThis.__raffleStageState.prizeName,
+          isWon: false,
+          quantity: { gt: 0 },
+          eventYear: activeYr,
+          OR: [{ location: activeLoc }, { location: 'ALL' }],
+        },
+      });
+
+      if (!remainingPrize) {
+        // Auto advance to next prize by priority
+        const nextPrize = await getNextAvailablePrize(activeLoc, activeYr);
+        globalThis.__raffleStageState.prizeName = nextPrize.prizeName;
+        globalThis.__raffleStageState.prizeImagePath = nextPrize.prizeImagePath;
+        globalThis.__raffleStageState.isGrand = nextPrize.isGrand;
+        globalThis.__raffleStageState.grandPrizeId = nextPrize.grandPrizeId;
+      }
+      globalThis.__raffleStageState.timestamp = Date.now();
+    }
+
+    return NextResponse.json({ success: true, guest: updatedGuest, nextPrize: globalThis.__raffleStageState?.prizeName });
   } catch (error) {
     console.error('Failed to confirm winner:', error);
     return NextResponse.json({ error: 'Failed to record winner' }, { status: 500 });

@@ -14,6 +14,7 @@ export default function StagePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [pointingAttendee, setPointingAttendee] = useState<WheelSegment | null>(null);
 
   // Hidden by default top header, Show prize card by default
   const [showTopHeader, setShowTopHeader] = useState(false);
@@ -26,7 +27,7 @@ export default function StagePage() {
   const [wheelSize, setWheelSize] = useState(900);
 
   const [selectedPrize, setSelectedPrize] = useState<{ id?: number; name: string; isGrand: boolean; imagePath?: string | null }>({
-    name: '1 Sack 5 kl Rice',
+    name: 'Loading Prize...',
     isGrand: false,
     imagePath: null,
   });
@@ -40,6 +41,21 @@ export default function StagePage() {
       const data = await res.json();
       if (data.segments) {
         setSegments(data.segments);
+      }
+      // If no prize currently selected or still in initial state, sync with first prize from database
+      if (data.regularPrizes?.length > 0 || data.grandPrizes?.length > 0) {
+        const firstPrize = data.regularPrizes?.[0] || data.grandPrizes?.[0];
+        setSelectedPrize((prev) => {
+          if (!prev.id && (prev.name === 'Loading Prize...' || prev.name === 'General Raffle Prize')) {
+            return {
+              id: firstPrize.id,
+              name: firstPrize.name,
+              isGrand: firstPrize.isGrandPrize,
+              imagePath: firstPrize.imagePath || null,
+            };
+          }
+          return prev;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -66,12 +82,41 @@ export default function StagePage() {
   };
 
   useEffect(() => {
-    loadSettings();
-    loadWheelData();
+    // Initial fetch
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        const loc = data.activeLocation || 'ALL';
+        const yr = data.activeYear || 2026;
+        if (data.duration) setDuration(data.duration);
+        if (data.power) setPower(data.power);
+        if (data.fontSize) setFontSize(data.fontSize);
+        if (data.wheelSize) setWheelSize(data.wheelSize);
+        setActiveLocation(loc);
+        setActiveYear(yr);
+        loadWheelData(loc, yr);
+      })
+      .catch(() => loadWheelData());
+
+    // Fetch initial prize from /api/wheel/state
+    fetch('/api/wheel/state')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.state?.prizeName) {
+          setSelectedPrize({
+            id: data.state.grandPrizeId,
+            name: data.state.prizeName,
+            isGrand: data.state.isGrand ?? false,
+            imagePath: data.state.prizeImagePath || null,
+          });
+        }
+      })
+      .catch(console.error);
 
     // Poll for remote spin triggers & live settings updates every 600ms
     let lastSeenTrigger = 0;
     let lastSeenSettingsUpdate = 0;
+    let lastSeenReloadGuests = 0;
     let currentLoc = activeLocation;
     let currentYr = activeYear;
 
@@ -86,13 +131,28 @@ export default function StagePage() {
           const data = await stateRes.json();
           const state = data.state;
           if (state) {
+            // Reload wheel attendees when remote confirms a winner
+            if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
+              lastSeenReloadGuests = state.reloadGuestsCount;
+              loadWheelData(currentLoc, currentYr);
+            }
+
             // Sync selected prize from remote
-            if (state.prizeName && state.prizeName !== selectedPrize.name) {
-              setSelectedPrize({
-                id: state.grandPrizeId,
-                name: state.prizeName,
-                isGrand: state.isGrand,
-                imagePath: state.prizeImagePath || null,
+            if (state.prizeName) {
+              setSelectedPrize((prev) => {
+                if (
+                  prev.name !== state.prizeName ||
+                  prev.id !== state.grandPrizeId ||
+                  prev.imagePath !== state.prizeImagePath
+                ) {
+                  return {
+                    id: state.grandPrizeId,
+                    name: state.prizeName,
+                    isGrand: state.isGrand ?? false,
+                    imagePath: state.prizeImagePath || null,
+                  };
+                }
+                return prev;
               });
             }
 
@@ -239,8 +299,8 @@ export default function StagePage() {
       <div className={`flex-1 flex items-center w-full my-auto z-10 transition-all duration-500 ${
         showPrizeCard ? 'justify-between px-8 lg:px-16' : 'justify-center'
       }`}>
-        {/* Left/Center Wheel */}
-        <div className={`flex items-center justify-center transition-all duration-500 ${
+        {/* Left/Center Wheel Container */}
+        <div className={`flex flex-col items-center justify-center transition-all duration-500 -translate-y-4 ${
           showPrizeCard ? 'lg:-translate-x-6' : ''
         }`}>
           {loading ? (
@@ -253,16 +313,26 @@ export default function StagePage() {
               <p className="text-slate-400">Please check in attendees or activate them via the Admin panel.</p>
             </div>
           ) : (
-            <RaffleWheel
-              ref={wheelRef}
-              segments={segments}
-              onSpinEnd={handleSpinEnd}
-              onSpinStateChange={setIsSpinning}
-              duration={duration}
-              power={power}
-              fontSize={fontSize}
-              wheelSize={showPrizeCard ? Math.min(wheelSize, 820) : wheelSize}
-            />
+            <div className="flex flex-col items-center">
+              <RaffleWheel
+                ref={wheelRef}
+                segments={segments}
+                onSpinEnd={handleSpinEnd}
+                onSpinStateChange={setIsSpinning}
+                onPointingSegmentChange={setPointingAttendee}
+                duration={duration}
+                power={power}
+                fontSize={fontSize}
+                wheelSize={showPrizeCard ? Math.min(wheelSize, 780) : Math.min(wheelSize, 850)}
+              />
+
+              {/* Dynamic Live Attendee Spotlight Banner */}
+              <div className="mt-3 min-w-[320px] max-w-[90vw] px-8 py-3 rounded-2xl bg-slate-900/90 border border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-xl flex items-center justify-center text-center transition-all duration-100">
+                <div className="text-2xl lg:text-3xl font-black text-amber-400 tracking-wide truncate max-w-full drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                  {pointingAttendee?.name || '---'}
+                </div>
+              </div>
+            </div>
           )}
         </div>
 

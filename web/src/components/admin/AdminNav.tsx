@@ -71,6 +71,17 @@ export const AdminNav: React.FC<AdminNavProps> = ({ badgeTitle }) => {
         >
           🎟️ Check Portal
         </Link>
+
+        <button
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+          }}
+          className="px-2.5 py-1.5 bg-red-950/40 border border-red-500/30 text-red-300 hover:bg-red-900/50 hover:text-white rounded-xl transition"
+          title="Sign Out"
+        >
+          🚪 Sign Out
+        </button>
       </nav>
     </header>
   );

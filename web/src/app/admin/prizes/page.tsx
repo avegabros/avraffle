@@ -11,6 +11,7 @@ interface Prize {
   type: string;
   isGrandPrize: boolean;
   quantity: number;
+  priority?: number;
   location: string;
   eventYear: number;
   isWon: boolean;
@@ -37,6 +38,7 @@ export default function AdminPrizesPage() {
   const [description, setDescription] = useState('');
   const [isGrandPrize, setIsGrandPrize] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [priority, setPriority] = useState(999);
   const [location, setLocation] = useState('TAYUD');
   const [eventYear, setEventYear] = useState(2026);
   const [isWon, setIsWon] = useState(false);
@@ -67,6 +69,7 @@ export default function AdminPrizesPage() {
     setDescription('');
     setIsGrandPrize(false);
     setQuantity(1);
+    setPriority(999);
     setLocation(selectedLocation === 'ALL' ? 'TAYUD' : selectedLocation);
     setEventYear(selectedYear);
     setIsWon(false);
@@ -80,6 +83,7 @@ export default function AdminPrizesPage() {
     setDescription(p.description || '');
     setIsGrandPrize(p.isGrandPrize);
     setQuantity(p.quantity);
+    setPriority(p.priority ?? 999);
     setLocation(p.location || 'TAYUD');
     setEventYear(p.eventYear || 2026);
     setIsWon(p.isWon);
@@ -133,6 +137,7 @@ export default function AdminPrizesPage() {
     formData.append('name', name);
     formData.append('description', description);
     formData.append('quantity', String(quantity));
+    formData.append('priority', String(priority));
     formData.append('isGrandPrize', String(isGrandPrize));
     formData.append('type', isGrandPrize ? 'GRAND' : 'REGULAR');
     formData.append('location', location);
@@ -349,7 +354,7 @@ export default function AdminPrizesPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Quantity</label>
                   <input
@@ -357,6 +362,18 @@ export default function AdminPrizesPage() {
                     min={1}
                     value={quantity}
                     onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+                    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Queue Priority</label>
+                  <input
+                    type="number"
+                    value={priority}
+                    onChange={(e) => setPriority(parseInt(e.target.value, 10) || 0)}
+                    placeholder="999"
+                    title="Higher numbers draw first (default 999)"
                     className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                 </div>

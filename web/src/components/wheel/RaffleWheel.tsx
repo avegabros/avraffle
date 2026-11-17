@@ -2,7 +2,12 @@
 
 import React, { useEffect, useState, useImperativeHandle, forwardRef, useRef, useCallback } from 'react';
 import gsap from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
 import { soundManager } from '@/lib/sound';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(CustomEase);
+}
 
 export interface WheelSegment {
   id: number;
@@ -17,10 +22,11 @@ export interface RaffleWheelHandle {
   resetWheel: () => void;
 }
 
-interface RaffleWheelProps {
+export interface RaffleWheelProps {
   segments: WheelSegment[];
   onSpinEnd?: (winner: WheelSegment) => void;
   onSpinStateChange?: (isSpinning: boolean) => void;
+  onPointingSegmentChange?: (segment: WheelSegment | null) => void;
   power?: 'low' | 'medium' | 'high';
   duration?: number;
   fontSize?: number;
@@ -37,6 +43,7 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
   segments,
   onSpinEnd,
   onSpinStateChange,
+  onPointingSegmentChange,
   power = 'high',
   duration = 8,
   fontSize = 13,
@@ -48,6 +55,7 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
   const [isSpinning, setIsSpinning] = useState(false);
   const tweenRef = useRef<gsap.core.Tween | null>(null);
   const logoImageRef = useRef<HTMLImageElement | null>(null);
+  const lastReportedIdxRef = useRef<number>(-1);
 
   // Preload AV center logo
   useEffect(() => {
@@ -213,10 +221,31 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
     ctx.restore();
   }, []);
 
+  // Calculate currently pointed segment
+  const updatePointingSegment = useCallback((angle: number) => {
+    if (!onPointingSegmentChange || segments.length === 0) return;
+    const numSegments = segments.length;
+    const arc = (2 * Math.PI) / numSegments;
+    const pointerAngle = (3 * Math.PI) / 2; // top indicator
+    
+    // (angle + index * arc + arc/2) = pointerAngle
+    // index * arc = pointerAngle - angle - arc/2
+    const normalizedAngle = angle % (2 * Math.PI);
+    let relative = (pointerAngle - normalizedAngle) % (2 * Math.PI);
+    if (relative < 0) relative += 2 * Math.PI;
+
+    const idx = Math.floor(relative / arc) % numSegments;
+    if (idx !== lastReportedIdxRef.current) {
+      lastReportedIdxRef.current = idx;
+      onPointingSegmentChange(segments[idx]);
+    }
+  }, [segments, onPointingSegmentChange]);
+
   useEffect(() => {
     renderOffscreenWheel();
     drawRotatedWheel(currentAngleRef.current);
-  }, [renderOffscreenWheel, drawRotatedWheel]);
+    updatePointingSegment(currentAngleRef.current);
+  }, [renderOffscreenWheel, drawRotatedWheel, updatePointingSegment]);
 
   // Spin Execution with GSAP
   const spinToWinner = useCallback((targetIndex?: number) => {
@@ -235,20 +264,39 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
 
     const revolutions = power === 'low' ? 5 : power === 'medium' ? 10 : 16;
     const targetCenter = winnerIdx * arc + arc / 2;
-    const stopOffset = (3 * Math.PI / 2) - targetCenter;
-    const totalRotation = (revolutions * 2 * Math.PI) + stopOffset;
+    const pointerAngle = 3 * Math.PI / 2; // Top indicator is at 270 degrees (3*pi/2)
+    const currentAngle = currentAngleRef.current;
+    
+    // We want the wheel to stop such that: (finalAngle + targetCenter) % (2*PI) == pointerAngle % (2*PI)
+    // Therefore: finalAngle = pointerAngle - targetCenter (modulo 2*PI)
+    // To spin smoothly forward by `revolutions` full turns from currentAngle:
+    const baseTargetAngle = pointerAngle - targetCenter;
+    const currentMod = currentAngle % (2 * Math.PI);
+    let diff = (baseTargetAngle - currentMod) % (2 * Math.PI);
+    if (diff < 0) {
+      diff += 2 * Math.PI;
+    }
+    const finalAngle = currentAngle + (revolutions * 2 * Math.PI) + diff;
 
     const anim = { angle: currentAngleRef.current };
 
     if (tweenRef.current) tweenRef.current.kill();
 
+    // Realistic physical carnival wheel drag curve:
+    // Fast initial velocity, smooth middle deceleration, and an extended suspenseful final crawl across the last segments.
+    const wheelEase = CustomEase.create(
+      'realisticWheelDrag',
+      'M0,0 C0.06,0.38 0.16,0.82 0.52,0.94 0.72,0.978 0.88,0.993 1,1'
+    );
+
     tweenRef.current = gsap.to(anim, {
-      angle: currentAngleRef.current + totalRotation,
+      angle: finalAngle,
       duration: duration,
-      ease: 'power4.out',
+      ease: wheelEase,
       onUpdate: () => {
         currentAngleRef.current = anim.angle;
         drawRotatedWheel(anim.angle);
+        updatePointingSegment(anim.angle);
       },
       onComplete: () => {
         setIsSpinning(false);
@@ -265,10 +313,12 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
     if (tweenRef.current) tweenRef.current.kill();
     soundManager.stopAllTicks();
     currentAngleRef.current = 0;
+    lastReportedIdxRef.current = -1;
     setIsSpinning(false);
     onSpinStateChange?.(false);
     drawRotatedWheel(0);
-  }, [drawRotatedWheel, onSpinStateChange]);
+    updatePointingSegment(0);
+  }, [drawRotatedWheel, onSpinStateChange, updatePointingSegment]);
 
   useImperativeHandle(ref, () => ({
     spinToWinner,
