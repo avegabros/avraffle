@@ -4,51 +4,86 @@ import { prisma } from '@/lib/db';
 export async function POST(req: NextRequest) {
   try {
     const {
-      apiUrl = 'https://api.avegabros.org/website/id-employees',
-      apiKey = 'tMxLOAEnad9heg7fpIZWQrm2F',
+      loginUrl = 'https://api.avegabros.net/v2/auth/login',
+      apiUrl = 'https://api.avegabros.net/v2/hris/employees',
+      username = 'admin',
+      password = '1234567890',
       eventYear = 2026,
     } = await req.json();
 
     let rawEmployees: any[] = [];
 
-    // 1. Fetch all active employees from ABAS-API
+    // 1. Authenticate with HRIS V2 to obtain accessToken cookie
+    let authCookie = '';
     try {
-      const urlObj = new URL(apiUrl);
-      if (apiKey && !urlObj.searchParams.has('key')) {
-        urlObj.searchParams.set('key', apiKey);
-      }
-      if (!urlObj.searchParams.has('status')) {
-        urlObj.searchParams.set('status', 'Active');
-      }
-      if (!urlObj.searchParams.has('limit')) {
-        urlObj.searchParams.set('limit', '500');
+      const loginRes = await fetch(loginUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!loginRes.ok) {
+        const errJson = await loginRes.json().catch(() => ({}));
+        return NextResponse.json(
+          { error: `HRIS login failed (${loginRes.status}): ${errJson.message || 'Invalid credentials'}` },
+          { status: 401 }
+        );
       }
 
-      for (let page = 0; page <= 3; page++) {
-        urlObj.searchParams.set('page', String(page));
-        const res = await fetch(urlObj.toString(), {
-          headers: { 'Content-Type': 'application/json' },
+      authCookie = loginRes.headers.get('set-cookie') || '';
+    } catch (authErr) {
+      console.error('HRIS Auth error:', authErr);
+      return NextResponse.json(
+        { error: 'Failed to connect to HRIS Authentication endpoint' },
+        { status: 500 }
+      );
+    }
+
+    // 2. Fetch all active employees with pagination
+    try {
+      let page = 1;
+      const perPage = 100;
+      let totalCount = 0;
+
+      while (true) {
+        const targetUrl = new URL(apiUrl);
+        targetUrl.searchParams.set('page', String(page));
+        targetUrl.searchParams.set('perPage', String(perPage));
+
+        const res = await fetch(targetUrl.toString(), {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authCookie ? { Cookie: authCookie } : {}),
+          },
         });
 
-        if (res.ok) {
-          const json = await res.json();
-          const batch = Array.isArray(json) ? json : (json.data || json.employees || []);
-          if (Array.isArray(batch) && batch.length > 0) {
-            rawEmployees.push(...batch);
-          } else {
+        if (!res.ok) {
+          const errText = await res.text();
+          console.warn(`HRIS Employees fetch error on page ${page}:`, errText);
+          break;
+        }
+
+        const json = await res.json();
+        totalCount = json.count || 0;
+        const batch = json.employees || [];
+
+        if (Array.isArray(batch) && batch.length > 0) {
+          rawEmployees.push(...batch);
+          if (rawEmployees.length >= totalCount || batch.length < perPage) {
             break;
           }
+          page++;
         } else {
           break;
         }
       }
     } catch (e) {
-      console.warn('ABAS-API endpoint error:', e);
+      console.error('HRIS Employees endpoint error:', e);
     }
 
     if (rawEmployees.length === 0) {
       return NextResponse.json(
-        { error: 'No employee records retrieved from ABAS-API' },
+        { error: 'No employee records retrieved from HRIS API' },
         { status: 400 }
       );
     }
@@ -56,14 +91,24 @@ export async function POST(req: NextRequest) {
     let importedCount = 0;
     const validEmployeeIds: string[] = [];
 
-    // 2. Import employees with location = 'ALL' so they appear in both Tayud and Makati
+    // 3. Upsert into database
     for (const emp of rawEmployees) {
       const empId = (emp.employee_id || emp.employeeId || '').trim();
-      const fName = (emp.first_name || emp.firstName || '').trim();
-      const lName = (emp.last_name || emp.lastName || '').trim();
-      const mName = (emp.middle_name || emp.middleName || '').trim() || null;
-      const pos = (emp.position || '').trim();
-      const comp = (emp.company || '').trim();
+      const person = emp.person || {};
+      const fName = (person.first_name || emp.first_name || emp.firstName || '').trim();
+      const lName = (person.last_name || emp.last_name || emp.lastName || '').trim();
+      const mName = (person.middle_name || emp.middle_name || emp.middleName || '').trim() || null;
+      const pos = (emp.position?.name || emp.position || '').trim();
+      const dept = (emp.department?.name || emp.division?.name || emp.company?.name || 'Avega Group').trim();
+
+      // Determine location mapping from user_location or fallback to 'ALL'
+      const rawLoc = (emp.user_location?.name || emp.user_location || '').toUpperCase();
+      let location = 'ALL';
+      if (rawLoc.includes('MAKATI')) {
+        location = 'MAKATI';
+      } else if (rawLoc.includes('TAYUD') || rawLoc.includes('CEBU')) {
+        location = 'TAYUD';
+      }
 
       if (!empId || !fName || !lName) continue;
 
@@ -75,10 +120,10 @@ export async function POST(req: NextRequest) {
           firstName: fName,
           lastName: lName,
           middleName: mName,
-          department: comp || 'Avega Group',
+          department: dept,
           position: pos || null,
-          assigned: 'ALL LOCATIONS',
-          location: 'ALL',
+          assigned: location === 'ALL' ? 'ALL LOCATIONS' : location,
+          location,
           eventYear: parseInt(String(eventYear), 10),
           imagePath: pic ? pic : undefined,
         },
@@ -87,10 +132,10 @@ export async function POST(req: NextRequest) {
           firstName: fName,
           lastName: lName,
           middleName: mName,
-          department: comp || 'Avega Group',
+          department: dept,
           position: pos || null,
-          assigned: 'ALL LOCATIONS',
-          location: 'ALL',
+          assigned: location === 'ALL' ? 'ALL LOCATIONS' : location,
+          location,
           eventYear: parseInt(String(eventYear), 10),
           imagePath: pic || null,
           isRegistered: false,
@@ -105,11 +150,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      importedCount,
-      message: `Successfully imported ${importedCount} employees available for BOTH Tayud & Makati registration desks!`,
+      message: `Successfully synced ${importedCount} employees from HRIS V2 into ${eventYear} roster.`,
+      count: importedCount,
+      employeeIds: validEmployeeIds,
     });
   } catch (error) {
-    console.error('Import error:', error);
-    return NextResponse.json({ error: 'Failed to sync employees from ABAS-API' }, { status: 500 });
+    console.error('HRIS Sync error:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred during HRIS employee sync' },
+      { status: 500 }
+    );
   }
 }

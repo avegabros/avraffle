@@ -10,9 +10,10 @@ export default function AdminArchivePage() {
   const [archiveLoading, setArchiveLoading] = useState(false);
 
   // Import state
-  const [apiUrl, setApiUrl] = useState('http://localhost:8080/api/v1/hr/employees');
-  const [apiKey, setApiKey] = useState('');
-  const [importLocation, setImportLocation] = useState('TAYUD');
+  const [apiUrl, setApiUrl] = useState('https://api.avegabros.net/v2/hris/employees');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('1234567890');
+  const [importLocation, setImportLocation] = useState('ALL');
   const [importYear, setImportYear] = useState(2026);
   const [importMsg, setImportMsg] = useState('');
   const [importLoading, setImportLoading] = useState(false);
@@ -52,7 +53,8 @@ export default function AdminArchivePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           apiUrl,
-          apiKey,
+          username,
+          password,
           location: importLocation,
           eventYear: importYear,
         }),
@@ -127,9 +129,9 @@ export default function AdminArchivePage() {
           <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
             <span className="text-3xl">🔄</span>
             <div>
-              <h2 className="text-xl font-bold">2. Import 2026 Employees from ABAS-API</h2>
+              <h2 className="text-xl font-bold">2. Import / Sync Employees from Avega HRIS V2</h2>
               <p className="text-xs text-slate-400">
-                Connects directly to the HR Employee endpoint to populate attendees for 2026.
+                Connects directly to https://api.avegabros.net/v2/hris/employees with automatic JWT authentication.
               </p>
             </div>
           </div>
@@ -137,28 +139,43 @@ export default function AdminArchivePage() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                ABAS-API Endpoint URL
+                HRIS Employees Endpoint URL
               </label>
               <input
                 type="text"
                 value={apiUrl}
                 onChange={(e) => setApiUrl(e.target.value)}
-                placeholder="http://localhost:8080/api/v1/hr/employees"
+                placeholder="https://api.avegabros.net/v2/hris/employees"
                 className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                Bearer Token / API Key (optional)
-              </label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Bearer token if authentication is enabled"
-                className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                  API Username
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="admin"
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                  API Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -171,6 +188,7 @@ export default function AdminArchivePage() {
                   onChange={(e) => setImportLocation(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
+                  <option value="ALL">All Locations (Unified)</option>
                   <option value="TAYUD">Tayud Land-Based</option>
                   <option value="MAKATI">Makati Land-Based</option>
                 </select>
@@ -194,7 +212,7 @@ export default function AdminArchivePage() {
               disabled={importLoading}
               className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 font-bold rounded-xl text-sm shadow transition disabled:opacity-50 text-white"
             >
-              {importLoading ? 'Syncing...' : 'Sync Employees from ABAS-API'}
+              {importLoading ? 'Syncing...' : 'Sync Employees from HRIS V2'}
             </button>
           </div>
 
