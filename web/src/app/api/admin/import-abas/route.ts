@@ -6,36 +6,52 @@ export async function POST(req: NextRequest) {
     const {
       loginUrl = 'https://api.avegabros.net/v2/auth/login',
       apiUrl = 'https://api.avegabros.net/v2/hris/employees',
+      token,
       username = 'admin',
       password = '1234567890',
       eventYear = 2026,
     } = await req.json();
 
     let rawEmployees: any[] = [];
-
-    // 1. Authenticate with HRIS V2 to obtain accessToken cookie
+    let bearerToken = (token || '').trim();
     let authCookie = '';
-    try {
-      const loginRes = await fetch(loginUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
 
-      if (!loginRes.ok) {
-        const errJson = await loginRes.json().catch(() => ({}));
+    // 1. If bearer token is provided, verify/use it directly.
+    // If no bearer token is provided (or empty), perform login to get JWT token & session cookie.
+    if (!bearerToken && username && password) {
+      try {
+        const loginRes = await fetch(loginUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (!loginRes.ok) {
+          const errJson = await loginRes.json().catch(() => ({}));
+          return NextResponse.json(
+            { error: `HRIS login failed (${loginRes.status}): ${errJson.message || 'Invalid credentials'}` },
+            { status: 401 }
+          );
+        }
+
+        authCookie = loginRes.headers.get('set-cookie') || '';
+        const loginData = await loginRes.json().catch(() => ({}));
+        if (loginData.token) {
+          bearerToken = loginData.token;
+        }
+      } catch (authErr) {
+        console.error('HRIS Auth error:', authErr);
         return NextResponse.json(
-          { error: `HRIS login failed (${loginRes.status}): ${errJson.message || 'Invalid credentials'}` },
-          { status: 401 }
+          { error: 'Failed to connect to HRIS Authentication endpoint' },
+          { status: 500 }
         );
       }
+    }
 
-      authCookie = loginRes.headers.get('set-cookie') || '';
-    } catch (authErr) {
-      console.error('HRIS Auth error:', authErr);
+    if (!bearerToken && !authCookie) {
       return NextResponse.json(
-        { error: 'Failed to connect to HRIS Authentication endpoint' },
-        { status: 500 }
+        { error: 'Authentication required. Please provide a Bearer Token or valid API credentials.' },
+        { status: 401 }
       );
     }
 
@@ -50,11 +66,18 @@ export async function POST(req: NextRequest) {
         targetUrl.searchParams.set('page', String(page));
         targetUrl.searchParams.set('perPage', String(perPage));
 
+        const reqHeaders: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (authCookie) {
+          reqHeaders['Cookie'] = authCookie;
+        } else if (bearerToken) {
+          reqHeaders['Cookie'] = `accessToken=${bearerToken}`;
+          reqHeaders['Authorization'] = `Bearer ${bearerToken}`;
+        }
+
         const res = await fetch(targetUrl.toString(), {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(authCookie ? { Cookie: authCookie } : {}),
-          },
+          headers: reqHeaders,
         });
 
         if (!res.ok) {
@@ -102,7 +125,12 @@ export async function POST(req: NextRequest) {
       const dept = (emp.department?.name || emp.division?.name || emp.company?.name || 'Avega Group').trim();
 
       // Determine location mapping from user_location or fallback to 'ALL'
-      const rawLoc = (emp.user_location?.name || emp.user_location || '').toUpperCase();
+      const locObj = emp.user_location;
+      const rawLoc = (
+        typeof locObj === 'string'
+          ? locObj
+          : locObj?.location_name || locObj?.name || ''
+      ).toUpperCase();
       let location = 'ALL';
       if (rawLoc.includes('MAKATI')) {
         location = 'MAKATI';

@@ -11,6 +11,8 @@ export default function AdminArchivePage() {
 
   // Import state
   const [apiUrl, setApiUrl] = useState('https://api.avegabros.net/v2/hris/employees');
+  const [token, setToken] = useState('');
+  const [loginUrl, setLoginUrl] = useState('https://api.avegabros.net/v2/auth/login');
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('1234567890');
   const [importLocation, setImportLocation] = useState('ALL');
@@ -53,6 +55,8 @@ export default function AdminArchivePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           apiUrl,
+          token: token.trim() || undefined,
+          loginUrl,
           username,
           password,
           location: importLocation,
@@ -66,7 +70,7 @@ export default function AdminArchivePage() {
         setImportMsg(`❌ ${data.error}`);
       }
     } catch {
-      setImportMsg('❌ Failed to connect to ABAS-API');
+      setImportMsg('❌ Failed to connect to HRIS API');
     } finally {
       setImportLoading(false);
     }
@@ -150,31 +154,75 @@ export default function AdminArchivePage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                  API Username
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold uppercase text-slate-400">
+                  Bearer Token (Optional)
                 </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin"
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                <span className="text-[10px] text-slate-500">
+                  {token ? 'Using direct Bearer token' : 'If empty, will automatically login to API below'}
+                </span>
               </div>
+              <input
+                type="password"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Paste Bearer token here (e.g. eyJhbGciOi...)"
+                className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                  API Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+            <div className={`p-4 rounded-2xl border transition-all ${token ? 'bg-slate-900/50 border-slate-800 opacity-60' : 'bg-slate-800/40 border-slate-700'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1.5">
+                  <span>🔐</span> Fallback: Automatic Login Authentication
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Used if no bearer token is supplied
+                </span>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                    Login Endpoint URL
+                  </label>
+                  <input
+                    type="text"
+                    value={loginUrl}
+                    onChange={(e) => setLoginUrl(e.target.value)}
+                    placeholder="https://api.avegabros.net/v2/auth/login"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                      API Username
+                    </label>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="admin"
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                      API Password
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
