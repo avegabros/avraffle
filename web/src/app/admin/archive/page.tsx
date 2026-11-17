@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AdminNav } from '@/components/admin/AdminNav';
 
-type ApiSource = 'production' | 'v2';
+type ApiSource = 'production-live' | 'production-id' | 'v2';
 
 export default function AdminArchivePage() {
   const [year, setYear] = useState(2025);
@@ -12,13 +12,20 @@ export default function AdminArchivePage() {
   const [archiveLoading, setArchiveLoading] = useState(false);
 
   // Import state
-  const [apiSource, setApiSource] = useState<ApiSource>('production');
+  const [apiSource, setApiSource] = useState<ApiSource>('production-live');
   
-  // Production API (ABAS v3) states
+  // 1. Live Production HR Master API (api.avegabros.org/api/hr-employees)
+  const [liveApiUrl, setLiveApiUrl] = useState('https://api.avegabros.org/api/hr-employees');
+  const [liveToken, setLiveToken] = useState('');
+  const [liveLoginUrl, setLiveLoginUrl] = useState('https://api.avegabros.org/api/auth-login');
+  const [liveUsername, setLiveUsername] = useState('');
+  const [livePassword, setLivePassword] = useState('');
+
+  // 2. Legacy Production ID Badges API (api.avegabros.org/website/id-employees)
   const [prodApiUrl, setProdApiUrl] = useState('https://api.avegabros.org/website/id-employees');
   const [prodApiKey, setProdApiKey] = useState('tMxLOAEnad9heg7fpIZWQrm2F');
 
-  // Next Version HRIS V2 states
+  // 3. Next Version HRIS V2 states (api.avegabros.net)
   const [v2ApiUrl, setV2ApiUrl] = useState('https://api.avegabros.net/v2/hris/employees');
   const [v2Token, setV2Token] = useState('');
   const [v2LoginUrl, setV2LoginUrl] = useState('https://api.avegabros.net/v2/auth/login');
@@ -124,25 +131,37 @@ export default function AdminArchivePage() {
     setImportLoading(true);
     setImportMsg('');
 
-    const payload =
-      apiSource === 'production'
-        ? {
-            source: 'production',
-            apiUrl: prodApiUrl,
-            apiKey: prodApiKey,
-            eventYear: importYear,
-            wipeExisting: wipeBeforeSync,
-          }
-        : {
-            source: 'v2',
-            apiUrl: v2ApiUrl,
-            token: v2Token.trim() || undefined,
-            loginUrl: v2LoginUrl,
-            username: v2Username,
-            password: v2Password,
-            eventYear: importYear,
-            wipeExisting: wipeBeforeSync,
-          };
+    let payload: Record<string, unknown> = {
+      source: apiSource,
+      eventYear: importYear,
+      wipeExisting: wipeBeforeSync,
+    };
+
+    if (apiSource === 'production-live') {
+      payload = {
+        ...payload,
+        apiUrl: liveApiUrl,
+        token: liveToken.trim() || undefined,
+        loginUrl: liveLoginUrl,
+        username: liveUsername,
+        password: livePassword,
+      };
+    } else if (apiSource === 'production-id') {
+      payload = {
+        ...payload,
+        apiUrl: prodApiUrl,
+        apiKey: prodApiKey,
+      };
+    } else {
+      payload = {
+        ...payload,
+        apiUrl: v2ApiUrl,
+        token: v2Token.trim() || undefined,
+        loginUrl: v2LoginUrl,
+        username: v2Username,
+        password: v2Password,
+      };
+    }
 
     try {
       const res = await fetch('/api/admin/import-abas', {
@@ -284,12 +303,12 @@ export default function AdminArchivePage() {
               <label className="block text-xs font-bold uppercase text-slate-400 mb-1.5">
                 Select API Source & Environment
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => setApiSource('production')}
+                  onClick={() => setApiSource('production-live')}
                   className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between ${
-                    apiSource === 'production'
+                    apiSource === 'production-live'
                       ? 'bg-amber-500/15 border-amber-500/50 shadow-lg shadow-amber-500/10'
                       : 'bg-slate-800/40 border-slate-700 hover:bg-slate-800'
                   }`}
@@ -297,14 +316,37 @@ export default function AdminArchivePage() {
                   <div className="flex items-center justify-between w-full">
                     <span className="font-bold text-sm text-white flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Production API (ABAS v3)
+                      ABAS v3 Live Master
                     </span>
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                      Live
+                      Recommended
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-2">
-                    api.avegabros.org — Main corporate employee directory (900+ verified active records).
+                    api.avegabros.org/api/hr-employees — Live Core HR master with login/token, real separation dates, group, and location assignment.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setApiSource('production-id')}
+                  className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between ${
+                    apiSource === 'production-id'
+                      ? 'bg-amber-500/15 border-amber-500/50 shadow-lg shadow-amber-500/10'
+                      : 'bg-slate-800/40 border-slate-700 hover:bg-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-bold text-sm text-white flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                      ABAS v3 ID Badges
+                    </span>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                      Legacy Key
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    api.avegabros.org/website/id-employees — Legacy ID printing badge records (uses static API key).
                   </p>
                 </button>
 
@@ -320,7 +362,7 @@ export default function AdminArchivePage() {
                   <div className="flex items-center justify-between w-full">
                     <span className="font-bold text-sm text-white flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-                      HRIS v2 (Next Version)
+                      HRIS v2 (Next Gen)
                     </span>
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300">
                       Development
@@ -333,12 +375,123 @@ export default function AdminArchivePage() {
               </div>
             </div>
 
-            {/* Mode A: Production Inputs */}
-            {apiSource === 'production' && (
+            {/* Mode 1: ABAS v3 Live Master with Login / Token */}
+            {apiSource === 'production-live' && (
+              <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-2">
+                    <span>⚡</span> ABAS v3 Core HR Master (Live Master Table)
+                  </span>
+                  <a
+                    href="https://api.avegabros.org/documentation/hr/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-amber-400 hover:underline"
+                  >
+                    View API Docs ↗
+                  </a>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
+                    Live Employees Endpoint URL
+                  </label>
+                  <input
+                    type="text"
+                    value={liveApiUrl}
+                    onChange={(e) => setLiveApiUrl(e.target.value)}
+                    placeholder="https://api.avegabros.org/api/hr-employees"
+                    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Automatically queries with <code className="text-emerald-400">?action=active</code> to exclude separated and resigned staff.
+                  </span>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase text-slate-400">
+                      Bearer Token (Optional if logging in below)
+                    </label>
+                    <span className="text-[10px] text-slate-500">
+                      {liveToken ? 'Using direct Bearer token' : 'If empty, will use username & password below'}
+                    </span>
+                  </div>
+                  <input
+                    type="password"
+                    value={liveToken}
+                    onChange={(e) => setLiveToken(e.target.value)}
+                    placeholder="Paste Bearer token here..."
+                    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+                  />
+                </div>
+
+                <div
+                  className={`p-4 rounded-2xl border transition-all ${
+                    liveToken ? 'bg-slate-900/50 border-slate-800 opacity-60' : 'bg-slate-800/40 border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1.5">
+                      <span>🔐</span> ABAS v3 API Login Credentials
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Automatically logs in to get fresh Bearer token
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                        Login Endpoint URL
+                      </label>
+                      <input
+                        type="text"
+                        value={liveLoginUrl}
+                        onChange={(e) => setLiveLoginUrl(e.target.value)}
+                        placeholder="https://api.avegabros.org/api/auth-login"
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                          ABAS Username
+                        </label>
+                        <input
+                          type="text"
+                          value={liveUsername}
+                          onChange={(e) => setLiveUsername(e.target.value)}
+                          placeholder="Your ABAS username"
+                          className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
+                          ABAS Password
+                        </label>
+                        <input
+                          type="password"
+                          value={livePassword}
+                          onChange={(e) => setLivePassword(e.target.value)}
+                          placeholder="Your ABAS password"
+                          className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mode 2: Legacy Production ID Badges Inputs */}
+            {apiSource === 'production-id' && (
               <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
                   <span className="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
-                    <span>⚡</span> Production ABAS v3 Configuration
+                    <span>⚡</span> Production ABAS v3 ID Badges (Static Key)
                   </span>
                   <a
                     href="https://api.avegabros.org/documentation/hr/"
@@ -514,8 +667,10 @@ export default function AdminArchivePage() {
               <span>
                 {importLoading
                   ? 'Syncing Employees...'
-                  : apiSource === 'production'
-                  ? 'Sync Employees from Production API (ABAS v3)'
+                  : apiSource === 'production-live'
+                  ? 'Sync Employees from ABAS v3 Live Master'
+                  : apiSource === 'production-id'
+                  ? 'Sync Employees from Legacy ID Badges'
                   : 'Sync Employees from HRIS v2'}
               </span>
             </button>

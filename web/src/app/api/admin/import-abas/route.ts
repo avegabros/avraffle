@@ -17,13 +17,13 @@ const INACTIVE_STATUS_KEYWORDS = [
 export async function POST(req: NextRequest) {
   try {
     const {
-      source = 'production', // 'production' (api.avegabros.org) | 'v2' (api.avegabros.net) | 'custom'
+      source = 'production-live', // 'production-live' | 'production-id' | 'v2'
       apiUrl,
       apiKey = 'tMxLOAEnad9heg7fpIZWQrm2F',
-      loginUrl = 'https://api.avegabros.net/v2/auth/login',
+      loginUrl,
       token,
-      username = 'admin',
-      password = '1234567890',
+      username,
+      password,
       eventYear = 2026,
       wipeExisting = false,
     } = await req.json();
@@ -31,9 +31,99 @@ export async function POST(req: NextRequest) {
     let rawEmployees: any[] = [];
 
     // ==========================================
-    // MODE A: Current Production API (ABAS v3 / api.avegabros.org)
+    // MODE 1: ABAS v3 Core HR Master (api.avegabros.org/api/hr-employees)
     // ==========================================
-    if (source === 'production') {
+    if (source === 'production-live') {
+      const targetEndpoint = apiUrl || 'https://api.avegabros.org/api/hr-employees';
+      const authLoginUrl = loginUrl || 'https://api.avegabros.org/api/auth-login';
+      let bearerToken = (token || '').trim();
+
+      // If no direct token provided, authenticate via /api/auth-login
+      if (!bearerToken && username && password) {
+        try {
+          const loginRes = await fetch(authLoginUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const loginData = await loginRes.json().catch(() => ({}));
+          if (!loginRes.ok || loginData.status === 0) {
+            return NextResponse.json(
+              {
+                error: `ABAS v3 Login failed: ${loginData.message || 'Invalid username or password'}`,
+              },
+              { status: 401 }
+            );
+          }
+
+          bearerToken = loginData.token || loginData.data?.token || '';
+        } catch (authErr) {
+          console.error('ABAS v3 Auth error:', authErr);
+          return NextResponse.json(
+            { error: 'Failed to connect to ABAS v3 Login endpoint' },
+            { status: 500 }
+          );
+        }
+      }
+
+      if (!bearerToken) {
+        return NextResponse.json(
+          { error: 'ABAS v3 Authorization required. Please provide a Bearer Token or valid Username and Password.' },
+          { status: 401 }
+        );
+      }
+
+      // Fetch active employees with pagination
+      try {
+        let page = 0;
+        const limit = 200;
+        let hasMore = true;
+
+        while (hasMore && page <= 25) {
+          const urlObj = new URL(targetEndpoint);
+          urlObj.searchParams.set('action', 'active');
+          urlObj.searchParams.set('page', String(page));
+          urlObj.searchParams.set('limit', String(limit));
+
+          const res = await fetch(urlObj.toString(), {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${bearerToken}`,
+            },
+          });
+
+          if (!res.ok) {
+            const errText = await res.text();
+            console.warn(`ABAS v3 hr-employees fetch error on page ${page}:`, errText);
+            break;
+          }
+
+          const json = await res.json();
+          const batch = Array.isArray(json) ? json : (json.data || json.employees || []);
+
+          if (Array.isArray(batch) && batch.length > 0) {
+            rawEmployees.push(...batch);
+            if (json.count && rawEmployees.length >= json.count) {
+              break;
+            }
+            if (batch.length < limit) {
+              break;
+            }
+            page++;
+          } else {
+            hasMore = false;
+          }
+        }
+      } catch (e) {
+        console.error('ABAS v3 hr-employees error:', e);
+      }
+    }
+
+    // ==========================================
+    // MODE 2: Production ID Badges API (api.avegabros.org/website/id-employees)
+    // ==========================================
+    else if (source === 'production-id' || source === 'production') {
       const targetEndpoint = apiUrl || 'https://api.avegabros.org/website/id-employees';
       try {
         const urlObj = new URL(targetEndpoint);
@@ -76,17 +166,18 @@ export async function POST(req: NextRequest) {
     }
 
     // ==========================================
-    // MODE B: Next Version HRIS V2 (api.avegabros.net) or Custom JWT
+    // MODE 3: Next Version HRIS V2 (api.avegabros.net) or Custom JWT
     // ==========================================
     else {
       const targetEndpoint = apiUrl || 'https://api.avegabros.net/v2/hris/employees';
+      const authLoginUrl = loginUrl || 'https://api.avegabros.net/v2/auth/login';
       let bearerToken = (token || '').trim();
       let authCookie = '';
 
       // Authenticate if no bearer token is supplied
       if (!bearerToken && username && password) {
         try {
-          const loginRes = await fetch(loginUrl, {
+          const loginRes = await fetch(authLoginUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
@@ -224,8 +315,43 @@ export async function POST(req: NextRequest) {
         'Avega Group'
       ).trim();
 
-      // Always assign 'ALL' location so attendees can be checked in at any desk
-      const location = 'ALL';
+      // Determine Location and Group from employee data:
+      // In live HR / ABAS core:
+      // - group / emp.group: "Land-based" vs "-" or "Sea-based"
+      // - assigned_to / designation: e.g. "MAKATI OFFICE (ABISC)", "TAYUD OFFICE", "CEBU OFFICE", "MAINTENANCE", or Vessel name
+      const groupRaw = String(emp.group || emp.employee_group || '').trim().toLowerCase();
+      const assignedRaw = String(
+        emp.assigned_to ||
+        emp.assigned ||
+        emp.designation ||
+        emp.user_location?.location_name ||
+        emp.location ||
+        ''
+      ).trim().toUpperCase();
+
+      // Check if sea-based
+      const isSeaBased =
+        groupRaw === 'sea-based' ||
+        (groupRaw === '-' && !assignedRaw.includes('OFFICE') && !assignedRaw.includes('MAINTENANCE')) ||
+        (assignedRaw && !assignedRaw.includes('OFFICE') && !assignedRaw.includes('MAINTENANCE') && !assignedRaw.includes('MAKATI') && !assignedRaw.includes('CEBU') && !assignedRaw.includes('TAYUD') && assignedRaw.length > 2 && groupRaw !== 'land-based');
+
+      // Exclude Sea-Based if group clearly indicates Sea-based
+      if (groupRaw === 'sea-based') {
+        continue;
+      }
+
+      // Determine location: MAKATI vs TAYUD (Cebu) vs ALL
+      let location = 'ALL';
+      if (
+        assignedRaw.includes('CEBU') ||
+        assignedRaw.includes('TAYUD') ||
+        assignedRaw.includes('MAINTENANCE') ||
+        assignedRaw.includes('NRA')
+      ) {
+        location = 'TAYUD';
+      } else if (assignedRaw.includes('MAKATI')) {
+        location = 'MAKATI';
+      }
 
       // 1. Actual Employee Status (Active vs Resigned/Terminated/AWOL/etc.)
       // In ABAS v3 API:
@@ -266,7 +392,7 @@ export async function POST(req: NextRequest) {
           middleName: mName,
           department: dept,
           position: pos || null,
-          assigned: location === 'ALL' ? 'ALL LOCATIONS' : location,
+          assigned: assignedRaw || (location === 'ALL' ? 'ALL LOCATIONS' : location),
           location,
           eventYear: parseInt(String(eventYear), 10),
           imagePath: pic ? pic : undefined,
@@ -278,7 +404,7 @@ export async function POST(req: NextRequest) {
           middleName: mName,
           department: dept,
           position: pos || null,
-          assigned: location === 'ALL' ? 'ALL LOCATIONS' : location,
+          assigned: assignedRaw || (location === 'ALL' ? 'ALL LOCATIONS' : location),
           location,
           eventYear: parseInt(String(eventYear), 10),
           imagePath: pic || null,
@@ -292,7 +418,12 @@ export async function POST(req: NextRequest) {
       importedCount++;
     }
 
-    const sourceLabel = source === 'production' ? 'Production ABAS API (v3)' : 'HRIS V2 (Development)';
+    const sourceLabel =
+      source === 'production-live'
+        ? 'ABAS v3 Live Master'
+        : source === 'production-id' || source === 'production'
+        ? 'ABAS v3 ID Badges'
+        : 'HRIS V2 (Development)';
 
     return NextResponse.json({
       success: true,
