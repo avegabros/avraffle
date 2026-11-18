@@ -75,12 +75,12 @@ export default function LandingPage() {
               <span className="hidden md:inline">Check Status</span>
             </Link>
 
-            {/* 2. Live Wheel Stage */}
+            {/* 2. Live Wheel Viewer */}
             <Link
-              href="/stage"
+              href="/raffle"
               className="p-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold text-amber-300 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition flex items-center gap-1.5"
-              title="Watch Live Wheel Stage"
-              aria-label="Watch Live Wheel Stage"
+              title="Watch Live Raffle Wheel"
+              aria-label="Watch Live Raffle Wheel"
             >
               <Tv className="w-4 h-4 text-amber-400" />
               <span className="hidden md:inline">Live Wheel</span>

@@ -4,8 +4,8 @@ import type { NextRequest } from 'next/server';
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Protect all /admin routes
-  if (pathname.startsWith('/admin')) {
+  // Protect /admin routes and /stage (master projector)
+  if (pathname.startsWith('/admin') || pathname === '/stage') {
     const sessionCookie = req.cookies.get('av_admin_session')?.value;
 
     if (!sessionCookie) {
@@ -19,6 +19,6 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/stage'],
 };
 

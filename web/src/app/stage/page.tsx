@@ -1,29 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, useRef, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useEffect, useState, useRef } from 'react';
 import { RaffleWheel, WheelSegment, RaffleWheelHandle } from '@/components/wheel/RaffleWheel';
 import { WinnerModal } from '@/components/stage/WinnerModal';
 import { StageControls } from '@/components/stage/StageControls';
 import { soundManager } from '@/lib/sound';
 
 export default function StagePage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Loading Stage...</div>}>
-      <StageContent />
-    </Suspense>
-  );
-}
-
-function StageContent() {
-  const searchParams = useSearchParams();
-  // By default, stage is in View-Only mode unless authenticated as admin/staff
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const explicitViewerParam = searchParams.get('viewer') === 'true' || searchParams.get('view') === 'true';
-
-  // Only allow Interactive Master Mode if user is authenticated AND didn't explicitly request view mode
-  const isViewer = !isAdminLoggedIn || explicitViewerParam;
-
   const wheelRef = useRef<RaffleWheelHandle | null>(null);
   const [segments, setSegments] = useState<WheelSegment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,16 +70,6 @@ function StageContent() {
     let currentLoc = activeLocation;
     let currentYr = activeYear;
 
-    // 0. Verify if staff/admin session cookie exists
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && data?.authenticated) {
-          setIsAdminLoggedIn(true);
-        }
-      })
-      .catch(() => {});
-
     // 1. Initial fetch of settings & attendees
     fetch('/api/settings')
       .then((res) => {
@@ -138,12 +111,12 @@ function StageContent() {
       })
       .catch(console.error);
 
-    // 3. Poll for remote spin triggers & live settings updates (500ms for master stage, 1500ms for viewers to save network)
+    // 3. Poll for remote spin triggers & live settings updates (500ms for master stage)
     let lastSeenTrigger = 0;
     let lastSeenSettingsUpdate = 0;
     let lastSeenReloadGuests = 0;
 
-    const pollInterval = isViewer ? 1500 : 500;
+    const pollInterval = 500;
 
     const interval = setInterval(async () => {
       try {
@@ -202,16 +175,6 @@ function StageContent() {
             if (state.winner === null) {
               setIsModalOpen(false);
               setCurrentWinner(null);
-            } else if (isViewer && state.winner) {
-              // On viewer phones, display the officially broadcast winner
-              setCurrentWinner({
-                id: state.winner.id,
-                employeeId: state.winner.employeeId,
-                name: state.winner.name,
-                department: state.winner.department,
-                imagePath: state.winner.imagePath,
-              });
-              setIsModalOpen(true);
             }
           }
         }
@@ -251,9 +214,6 @@ function StageContent() {
     setCurrentWinner(winner);
     setIsModalOpen(true);
 
-    // Only the master stage reports the winner announcement to avoid 300 phones flooding the backend
-    if (isViewer) return;
-
     try {
       await fetch('/api/wheel/state', {
         method: 'POST',
@@ -272,7 +232,7 @@ function StageContent() {
   };
 
   const handleConfirmWinner = async () => {
-    if (!currentWinner || isViewer) return;
+    if (!currentWinner) return;
     try {
       await fetch('/api/wheel/confirm', {
         method: 'POST',
@@ -283,6 +243,12 @@ function StageContent() {
           grandPrizeId: selectedPrize.id,
         }),
       });
+      // Also clear winner from shared stage state immediately so pollers don't re-trigger it
+      await fetch('/api/wheel/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'CONFIRM_CLAIMED' }),
+      });
       setIsModalOpen(false);
       setCurrentWinner(null);
       loadWheelData();
@@ -291,13 +257,16 @@ function StageContent() {
     }
   };
 
-  const handleRespin = () => {
-    if (isViewer) {
-      setIsModalOpen(false);
-      return;
-    }
+  const handleRespin = async () => {
     setIsModalOpen(false);
     setCurrentWinner(null);
+    try {
+      await fetch('/api/wheel/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'RESPIN' }),
+      });
+    } catch (_) {}
   };
 
   const toggleMute = () => {
@@ -335,7 +304,7 @@ function StageContent() {
         onStopSpin={handleStopSpin}
         activeLocation={activeLocation}
         onLocationChange={handleLocationChange}
-        isViewer={isViewer}
+        isViewer={false}
       />
 
       {/* Stage Header Banner (Hidden by default) */}
@@ -391,7 +360,7 @@ function StageContent() {
                 power={power}
                 fontSize={fontSize}
                 wheelSize={showPrizeCard ? Math.min(wheelSize, 780) : Math.min(wheelSize, 850)}
-                isViewer={isViewer}
+                isViewer={false}
               />
 
               {/* Dynamic Live Attendee Spotlight Banner */}
@@ -447,7 +416,7 @@ function StageContent() {
         winner={currentWinner}
         prizeName={selectedPrize.name}
         isGrandPrize={selectedPrize.isGrand}
-        isViewer={isViewer}
+        isViewer={false}
         onConfirm={handleConfirmWinner}
         onRespin={handleRespin}
       />
