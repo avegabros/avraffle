@@ -21,12 +21,12 @@ function RaffleViewContent() {
   const lockedLocation = searchParams.get('location');
 
   const wheelRef = useRef<RaffleWheelHandle | null>(null);
-  const [segments, setSegments] = useState<WheelSegment[]>([]);
   const segmentsRef = useRef<WheelSegment[]>([]);
   segmentsRef.current = segments;
   const [loading, setLoading] = useState(true);
   const [currentWinner, setCurrentWinner] = useState<WheelSegment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default muted on phones
   const [pointingAttendee, setPointingAttendee] = useState<WheelSegment | null>(null);
 
@@ -156,11 +156,11 @@ function RaffleViewContent() {
               wheelRef.current?.spinToWinner(targetIdx);
             }
 
-            // Sync winner modal
+            // Sync winner modal (only if viewer is not actively spinning)
             if (state.winner === null) {
               setIsModalOpen(false);
               setCurrentWinner(null);
-            } else if (state.winner) {
+            } else if (state.winner && !isSpinning) {
               setCurrentWinner({
                 id: state.winner.id,
                 employeeId: state.winner.employeeId,
@@ -191,7 +191,7 @@ function RaffleViewContent() {
             }
           }
         }
-      } catch (_) {}
+      } catch (_) { }
     }, 1200);
 
     return () => {
@@ -266,6 +266,11 @@ function RaffleViewContent() {
             <RaffleWheel
               ref={wheelRef}
               segments={segments}
+              onSpinEnd={(winner) => {
+                setCurrentWinner(winner);
+                setIsModalOpen(true);
+              }}
+              onSpinStateChange={setIsSpinning}
               onPointingSegmentChange={setPointingAttendee}
               duration={duration}
               power={power}

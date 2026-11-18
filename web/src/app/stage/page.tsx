@@ -210,6 +210,36 @@ export default function StagePage() {
     };
   }, []);
 
+  const handleSpinStart = async () => {
+    if (segments.length === 0 || isSpinning) return;
+    // Pick winner index upfront so all viewer screens (/raffle) and the stage wheel stop on the exact same person
+    const winnerIdx = Math.floor(Math.random() * segments.length);
+    const targetWinner = segments[winnerIdx];
+
+    // 1. Immediately spin local wheel to the selected winner
+    wheelRef.current?.spinToWinner(winnerIdx);
+
+    // 2. Broadcast spin trigger to /api/wheel/state so /raffle viewers spin synchronously
+    try {
+      await fetch('/api/wheel/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SPIN',
+          prizeName: selectedPrize.name,
+          prizeImagePath: selectedPrize.imagePath,
+          isGrand: selectedPrize.isGrand,
+          grandPrizeId: selectedPrize.id,
+          targetWinnerId: targetWinner?.id,
+          location: activeLocation,
+          eventYear: activeYear,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to broadcast spin:', err);
+    }
+  };
+
   const handleSpinEnd = async (winner: WheelSegment) => {
     setCurrentWinner(winner);
     setIsModalOpen(true);
@@ -353,6 +383,7 @@ export default function StagePage() {
               <RaffleWheel
                 ref={wheelRef}
                 segments={segments}
+                onSpinStart={handleSpinStart}
                 onSpinEnd={handleSpinEnd}
                 onSpinStateChange={setIsSpinning}
                 onPointingSegmentChange={setPointingAttendee}
