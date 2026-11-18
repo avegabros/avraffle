@@ -22,6 +22,8 @@ function RaffleViewContent() {
 
   const wheelRef = useRef<RaffleWheelHandle | null>(null);
   const [segments, setSegments] = useState<WheelSegment[]>([]);
+  const segmentsRef = useRef<WheelSegment[]>([]);
+  segmentsRef.current = segments;
   const [loading, setLoading] = useState(true);
   const [currentWinner, setCurrentWinner] = useState<WheelSegment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -148,7 +150,7 @@ function RaffleViewContent() {
 
               let targetIdx: number | undefined = undefined;
               if (state.targetWinnerId) {
-                const foundIdx = segments.findIndex((s) => s.id === state.targetWinnerId);
+                const foundIdx = segmentsRef.current.findIndex((s) => s.id === state.targetWinnerId);
                 if (foundIdx !== -1) targetIdx = foundIdx;
               }
               wheelRef.current?.spinToWinner(targetIdx);
@@ -196,7 +198,7 @@ function RaffleViewContent() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [lockedLocation, segments]);
+  }, [lockedLocation]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
