@@ -21,6 +21,7 @@ function RaffleViewContent() {
   const lockedLocation = searchParams.get('location');
 
   const wheelRef = useRef<RaffleWheelHandle | null>(null);
+  const [segments, setSegments] = useState<WheelSegment[]>([]);
   const segmentsRef = useRef<WheelSegment[]>([]);
   segmentsRef.current = segments;
   const [loading, setLoading] = useState(true);
