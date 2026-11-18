@@ -126,6 +126,47 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
       ctx.restore();
       ctx.restore();
     }
+
+    // Draw Realistic Metallic Pegs (Pins) at every segment junction on the outer edge
+    const pegRadius = numSegments > 80 ? 2.5 : numSegments > 40 ? 3.5 : 4.5;
+    const pegDistanceFromCenter = radius - 4;
+
+    for (let i = 0; i < numSegments; i++) {
+      const pegAngle = i * arc;
+      const pegX = centerX + Math.cos(pegAngle) * pegDistanceFromCenter;
+      const pegY = centerY + Math.sin(pegAngle) * pegDistanceFromCenter;
+
+      ctx.save();
+      // Peg drop shadow
+      ctx.beginPath();
+      ctx.arc(pegX, pegY + 1.5, pegRadius, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fill();
+
+      // Peg metallic gradient
+      ctx.beginPath();
+      ctx.arc(pegX, pegY, pegRadius, 0, 2 * Math.PI);
+      const pegGrad = ctx.createRadialGradient(
+        pegX - pegRadius * 0.3,
+        pegY - pegRadius * 0.3,
+        pegRadius * 0.1,
+        pegX,
+        pegY,
+        pegRadius
+      );
+      pegGrad.addColorStop(0, '#ffffff'); // Glint highlight
+      pegGrad.addColorStop(0.3, '#fef08a'); // Gold metallic shine
+      pegGrad.addColorStop(0.7, '#eab308'); // Brass/gold body
+      pegGrad.addColorStop(1, '#854d0e'); // Outer rim shadow
+      ctx.fillStyle = pegGrad;
+      ctx.fill();
+
+      // Crisp outer stroke
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = '#451a03';
+      ctx.stroke();
+      ctx.restore();
+    }
   }, [segments, wheelSize, fontSize]);
 
   // 2. High-speed render loop
@@ -204,22 +245,51 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
       ctx.restore();
     }
 
-    // Top Pointer Indicator
+    // Top Pointer Indicator (with natural flapper deflection whenever a peg strikes it)
+    const numSegments = segments.length;
+    const arc = numSegments > 0 ? (2 * Math.PI) / numSegments : 0;
+    
+    // Determine pointer flapper deflection based on peg collision angle
+    let pointerDeflection = 0;
+    if (numSegments > 0) {
+      const pointerAngle = (3 * Math.PI) / 2; // 270 deg / Top pointer
+      // Distance of pegs to pointer
+      const pegRelativeAngle = ((pointerAngle - (angle % (2 * Math.PI))) % arc + arc) % arc;
+      const collisionThreshold = arc * 0.25;
+      if (pegRelativeAngle < collisionThreshold) {
+        // Deflect flapper dynamically based on peg passing by
+        const progress = pegRelativeAngle / collisionThreshold;
+        pointerDeflection = Math.sin(progress * Math.PI) * 0.18; // In radians (~10 degrees)
+      }
+    }
+
     ctx.save();
+    ctx.translate(centerX, centerY - radius - 8);
+    ctx.rotate(pointerDeflection);
     ctx.beginPath();
-    ctx.moveTo(centerX - 24, centerY - radius - 8);
-    ctx.lineTo(centerX + 24, centerY - radius - 8);
-    ctx.lineTo(centerX, centerY - radius + 32);
+    ctx.moveTo(-24, 0);
+    ctx.lineTo(24, 0);
+    ctx.lineTo(0, 40);
     ctx.closePath();
     ctx.fillStyle = '#ef4444';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.fill();
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#ffffff';
     ctx.stroke();
+
+    // Pivot rivet on pointer base
+    ctx.beginPath();
+    ctx.arc(0, 4, 4, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fde047';
+    ctx.fill();
+    ctx.strokeStyle = '#854d0e';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
     ctx.restore();
-  }, []);
+  }, [segments]);
 
   // Calculate currently pointed segment
   const updatePointingSegment = useCallback((angle: number) => {
