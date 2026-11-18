@@ -2,6 +2,7 @@
 
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { APP_VERSION } from '@/lib/version';
 
 function LoginForm() {
   const [username, setUsername] = useState('');
@@ -97,6 +98,9 @@ function LoginForm() {
 
         <div className="mt-6 text-center text-xs text-slate-500">
           Default admin: <span className="text-slate-400 font-mono">admin</span> / <span className="text-slate-400 font-mono">admin123</span>
+        </div>
+        <div className="mt-4 text-center text-[11px] text-slate-600 font-mono">
+          AV-Raffle {APP_VERSION.tag}
         </div>
       </div>
     </div>

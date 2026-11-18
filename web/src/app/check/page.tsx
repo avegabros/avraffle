@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { APP_VERSION } from '@/lib/version';
 
 interface GuestStatus {
   employeeId: string;
@@ -151,6 +153,14 @@ export default function CheckRegistrationPage() {
             </div>
           </div>
         )}
+
+        <div className="mt-8 text-center text-xs text-slate-500 flex items-center justify-center gap-3">
+          <Link href="/" className="hover:text-amber-400 transition">← Home</Link>
+          <span>•</span>
+          <Link href="/stage" className="hover:text-amber-400 transition">Live Wheel</Link>
+          <span>•</span>
+          <span className="font-mono text-slate-600">{APP_VERSION.tag}</span>
+        </div>
       </div>
     </div>
   );

@@ -295,6 +295,18 @@ function StageContent() {
     wheelRef.current?.resetWheel();
   };
 
+  const handleLocationChange = async (newLoc: string) => {
+    setActiveLocation(newLoc);
+    loadWheelData(newLoc, activeYear);
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeLocation: newLoc }),
+      });
+    } catch (_) { }
+  };
+
   return (
     <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-indigo-950 to-black text-white flex flex-col items-center justify-between p-4 overflow-hidden relative">
       {/* Top Right Options & Controls */}
@@ -307,6 +319,9 @@ function StageContent() {
         setShowPrizeCard={setShowPrizeCard}
         isSpinning={isSpinning}
         onStopSpin={handleStopSpin}
+        activeLocation={activeLocation}
+        onLocationChange={handleLocationChange}
+        isViewer={isViewer}
       />
 
       {/* Stage Header Banner (Hidden by default) */}

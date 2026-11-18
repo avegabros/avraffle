@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings2, Volume2, VolumeX, Maximize2, Square, X } from 'lucide-react';
+import { Settings2, Volume2, VolumeX, Maximize2, Square, X, MapPin } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 
 interface StageControlsProps {
   isMuted: boolean;
@@ -12,6 +13,9 @@ interface StageControlsProps {
   setShowPrizeCard: (val: boolean) => void;
   isSpinning: boolean;
   onStopSpin?: () => void;
+  activeLocation?: string;
+  onLocationChange?: (loc: string) => void;
+  isViewer?: boolean;
 }
 
 export const StageControls: React.FC<StageControlsProps> = ({
@@ -23,6 +27,9 @@ export const StageControls: React.FC<StageControlsProps> = ({
   setShowPrizeCard,
   isSpinning,
   onStopSpin,
+  activeLocation = 'ALL',
+  onLocationChange,
+  isViewer = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -87,6 +94,31 @@ export const StageControls: React.FC<StageControlsProps> = ({
             <Maximize2 className="w-4 h-4 text-amber-400" />
           </button>
 
+          {/* Location Selector (Available for Master Stage Operator) */}
+          {!isViewer && onLocationChange && (
+            <div className="space-y-1.5 p-2 bg-slate-800/80 rounded-xl border border-slate-700/80">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Raffle Wheel Scope</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {(['ALL', 'TAYUD', 'MAKATI'] as const).map((loc) => (
+                  <button
+                    key={loc}
+                    onClick={() => onLocationChange(loc)}
+                    className={`py-1 text-[11px] font-black rounded-lg transition ${
+                      activeLocation === loc
+                        ? 'bg-amber-500 text-slate-950 shadow'
+                        : 'bg-slate-900 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {loc === 'ALL' ? 'ALL' : loc}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Toggle Top Header Banner */}
           <div className="flex items-center justify-between px-3 py-2 bg-slate-800/80 rounded-xl text-xs font-semibold">
             <span>Show Top Header</span>
@@ -129,10 +161,10 @@ export const StageControls: React.FC<StageControlsProps> = ({
             </a>
           </div>
 
-          <div className="pt-2 border-t border-slate-700/80 text-[11px] text-slate-400 text-center">
-            Wheel physics & size configured in{' '}
-            <a href="/admin" target="_blank" className="text-amber-400 hover:underline">
-              /admin
+          <div className="pt-2 border-t border-slate-700/80 text-[11px] text-slate-400 text-center flex items-center justify-between">
+            <span>AV-Raffle <span className="font-mono text-amber-400 font-bold">{APP_VERSION.tag}</span></span>
+            <a href="/admin" target="_blank" className="text-slate-400 hover:text-white">
+              /admin ↗
             </a>
           </div>
         </div>

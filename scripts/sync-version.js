@@ -44,4 +44,13 @@ export const APP_VERSION = {
 fs.writeFileSync(webVersionPath, webCode, 'utf8');
 console.log(`Updated web/src/lib/version.ts -> ${versionData.version}`);
 
+// 4. Sync web/package.json
+const webPkgPath = path.resolve(__dirname, '../web/package.json');
+if (fs.existsSync(webPkgPath)) {
+  const pkg = JSON.parse(fs.readFileSync(webPkgPath, 'utf8'));
+  pkg.version = versionData.version;
+  fs.writeFileSync(webPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+  console.log(`Updated web/package.json -> version: ${versionData.version}`);
+}
+
 console.log('Version sync completed successfully!');

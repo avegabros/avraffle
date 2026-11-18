@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { APP_VERSION } from '@/lib/version';
 
 interface AdminNavProps {
   badgeTitle?: string;
@@ -27,6 +28,9 @@ export const AdminNav: React.FC<AdminNavProps> = ({ badgeTitle }) => {
         <Link href="/admin" className="text-xl font-black text-amber-500 hover:opacity-90 flex items-center gap-1.5">
           <span>🎡</span> AV-RAFFLE
         </Link>
+        <span className="text-[10px] bg-slate-800 text-amber-400 border border-slate-700 px-2 py-0.5 rounded-full font-mono font-bold">
+          {APP_VERSION.tag}
+        </span>
         {badgeTitle && (
           <span className="text-[11px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
             {badgeTitle}
