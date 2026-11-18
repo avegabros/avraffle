@@ -12,7 +12,9 @@ import {
   CheckCircle2, 
   ChevronRight,
   Flame,
-  ExternalLink
+  ExternalLink,
+  Search,
+  Lock
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
@@ -35,58 +37,89 @@ export default function LandingPage() {
       </div>
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/70 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Official Avega PNG Logo */}
-            <div className="h-12 w-auto flex items-center">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/80 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-2">
+          {/* Brand Logo & Title */}
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0 group">
+            <div className="h-9 sm:h-12 w-auto flex items-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo/logo.png"
                 alt="Avega Bros Integrated Shipping Corp."
-                className="h-11 w-auto object-contain rounded-lg shadow-md"
+                className="h-8 sm:h-11 w-auto object-contain rounded-lg shadow-md group-hover:scale-105 transition-transform"
               />
             </div>
             <div>
-              <div className="text-lg font-black tracking-wider text-white flex items-center gap-2">
+              <div className="text-base sm:text-lg font-black tracking-wider text-white flex items-center gap-1.5 sm:gap-2">
                 <span>AV-RAFFLE</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">
+                <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">
                   {APP_VERSION.tag}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 font-mono tracking-widest uppercase">
-                Avega Bros Integrated Shipping Corp.
+              <div className="hidden xs:block text-[10px] sm:text-[11px] text-slate-400 font-mono tracking-wider sm:tracking-widest uppercase truncate max-w-[150px] sm:max-w-none">
+                Avega Bros
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="flex items-center gap-3">
+          {/* Navigation Action Buttons - Responsive Icons on Mobile, Full Pills on Desktop */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            {/* 1. Attendee Check Portal */}
+            <Link
+              href="/check"
+              className="p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-white/10 hover:border-amber-500/40 transition flex items-center gap-1.5"
+              title="Check Attendance & Status"
+              aria-label="Check Attendance"
+            >
+              <Search className="w-4 h-4 text-emerald-400" />
+              <span className="hidden md:inline">Check Status</span>
+            </Link>
+
+            {/* 2. Live Wheel Stage */}
             <Link
               href="/stage"
-              className="hidden sm:flex px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-white/10 transition items-center gap-1.5"
+              className="p-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold text-amber-300 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition flex items-center gap-1.5"
+              title="Watch Live Wheel Stage"
+              aria-label="Watch Live Wheel Stage"
             >
-              <Tv className="w-4 h-4 text-amber-400" /> Wheel Stage
+              <Tv className="w-4 h-4 text-amber-400" />
+              <span className="hidden md:inline">Live Wheel</span>
             </Link>
+
+            {/* 3. Admin Portal */}
             <Link
               href="/admin"
-              className="hidden md:flex px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-white/10 transition"
+              className="p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-white/10 hover:border-white/25 transition flex items-center gap-1.5"
+              title="Staff / Admin Portal"
+              aria-label="Admin Portal"
             >
-              Admin Portal
+              <Lock className="w-4 h-4 text-slate-400" />
+              <span className="hidden lg:inline">Admin</span>
             </Link>
+
+            {/* 4. Google Play Store */}
             <a
               href={PLAY_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 rounded-xl text-xs font-black text-white bg-slate-800 hover:bg-slate-700 border border-white/20 transition flex items-center gap-1.5"
+              className="p-2 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black text-white bg-slate-800 hover:bg-slate-700 border border-white/20 transition flex items-center gap-1.5"
+              title="Get it on Google Play"
+              aria-label="Google Play Store"
             >
-              <Smartphone className="w-4 h-4 text-emerald-400" /> Google Play
+              <Smartphone className="w-4 h-4 text-emerald-400" />
+              <span className="hidden sm:inline">Play Store</span>
             </a>
+
+            {/* 5. Direct APK Download */}
             <a
               href={GITHUB_APK_DOWNLOAD_URL}
               download={`AV-Raffle-${APP_VERSION.tag}.apk`}
-              className="px-4 py-2 rounded-xl text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 hover:brightness-110 shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5"
+              className="px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 hover:brightness-110 shadow-md shadow-amber-500/20 transition flex items-center gap-1.5"
+              title="Download APK Directly"
+              aria-label="Download APK"
             >
-              <Download className="w-4 h-4" /> APK
+              <Download className="w-4 h-4" />
+              <span className="font-extrabold text-[11px] sm:text-xs">APK</span>
             </a>
           </div>
         </div>
