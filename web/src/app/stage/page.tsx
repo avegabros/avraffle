@@ -124,12 +124,12 @@ function StageContent() {
       })
       .catch(console.error);
 
-    // 3. Poll for remote spin triggers & live settings updates (800ms for master, 1500ms for viewers to save network)
+    // 3. Poll for remote spin triggers & live settings updates (500ms for master stage, 1500ms for viewers to save network)
     let lastSeenTrigger = 0;
     let lastSeenSettingsUpdate = 0;
     let lastSeenReloadGuests = 0;
 
-    const pollInterval = isViewer ? 1500 : 700;
+    const pollInterval = isViewer ? 1500 : 500;
 
     const interval = setInterval(async () => {
       try {

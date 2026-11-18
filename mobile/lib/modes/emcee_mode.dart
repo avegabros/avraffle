@@ -51,7 +51,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(milliseconds: 1000), (_) async {
+    _pollTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
       try {
         final res = await http.get(Uri.parse('${widget.serverUrl}/api/wheel/state')).timeout(const Duration(seconds: 2));
         if (res.statusCode == 200) {
