@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'modes/registration_mode.dart';
 import 'modes/emcee_mode.dart';
 import 'modes/prize_management_mode.dart';
@@ -241,7 +242,6 @@ class _MainGateScreenState extends State<MainGateScreen> {
 
   void _showSettingsDialog() {
     final urlController = TextEditingController(text: _serverUrl);
-    String tempLoc = _location;
 
     showDialog(
       context: context,
@@ -492,6 +492,64 @@ class _MainGateScreenState extends State<MainGateScreen> {
                             builder: (_) => PublicPrizesScreen(serverUrl: _serverUrl, location: _location),
                           ),
                         );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Card 3: Live Wheel Stage Viewer (No login required)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.tv, color: Color(0xFFF59E0B), size: 24),
+                        SizedBox(width: 10),
+                        Text(
+                          'Watch Live Wheel Stage',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'View the live spinning wheel, active prize, and instant winner celebrations right on your phone.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.open_in_browser, color: Colors.black),
+                      label: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0),
+                        child: Text(
+                          'OPEN LIVE WHEEL STAGE',
+                          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black, letterSpacing: 0.5),
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF59E0B),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      onPressed: () async {
+                        final uri = Uri.parse('$_serverUrl/stage');
+                        try {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } catch (_) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Could not open stage URL: $uri')),
+                            );
+                          }
+                        }
                       },
                     ),
                   ],
