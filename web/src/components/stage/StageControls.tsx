@@ -94,28 +94,40 @@ export const StageControls: React.FC<StageControlsProps> = ({
             <Maximize2 className="w-4 h-4 text-amber-400" />
           </button>
 
-          {/* Location Selector (Available for Master Stage Operator) */}
-          {!isViewer && onLocationChange && (
-            <div className="space-y-1.5 p-2 bg-slate-800/80 rounded-xl border border-slate-700/80">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Raffle Wheel Scope</span>
+          {/* Location Dropdown Selector */}
+          {!isViewer && onLocationChange ? (
+            <div className="space-y-1.5 p-2.5 bg-slate-800/90 rounded-xl border border-amber-500/30">
+              <div className="flex items-center justify-between text-xs font-bold text-amber-400">
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Raffle Location Scope</span>
+                </span>
+                <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded">
+                  {activeLocation === 'ALL' ? 'Unified' : activeLocation}
+                </span>
               </div>
-              <div className="grid grid-cols-3 gap-1">
-                {(['ALL', 'TAYUD', 'MAKATI'] as const).map((loc) => (
-                  <button
-                    key={loc}
-                    onClick={() => onLocationChange(loc)}
-                    className={`py-1 text-[11px] font-black rounded-lg transition ${
-                      activeLocation === loc
-                        ? 'bg-amber-500 text-slate-950 shadow'
-                        : 'bg-slate-900 text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {loc === 'ALL' ? 'ALL' : loc}
-                  </button>
-                ))}
-              </div>
+              <select
+                value={activeLocation}
+                onChange={(e) => onLocationChange(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-white font-bold text-xs rounded-lg focus:outline-none focus:border-amber-500 transition cursor-pointer"
+              >
+                <option value="ALL">🎉 All Locations (Unified Grand Wheel)</option>
+                <option value="TAYUD">📍 Tayud (Cebu Office & Yard)</option>
+                <option value="MAKATI">📍 Makati (HQ Office)</option>
+              </select>
+              <p className="text-[10px] text-slate-400 leading-tight">
+                Instantly switches eligible attendees and prizes for this stage.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between px-3 py-2 bg-slate-800/80 rounded-xl text-xs font-semibold">
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                <span>Venue Scope</span>
+              </span>
+              <span className="font-bold text-amber-400 uppercase text-[11px]">
+                {activeLocation === 'ALL' ? 'Unified (All)' : activeLocation}
+              </span>
             </div>
           )}
 
