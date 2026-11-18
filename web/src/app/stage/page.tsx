@@ -37,9 +37,10 @@ export default function StagePage() {
 
   const loadWheelData = async (loc = activeLocation, yr = activeYear) => {
     try {
-      const res = await fetch(`/api/wheel?location=${loc}&year=${yr}`);
+      const res = await fetch(`/api/wheel?location=${encodeURIComponent(loc)}&year=${encodeURIComponent(yr)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (data.segments) {
+      if (Array.isArray(data.segments)) {
         setSegments(data.segments);
       }
       // If no prize currently selected or still in initial state, sync with first prize from database
@@ -58,36 +59,29 @@ export default function StagePage() {
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load wheel data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadSettings = async () => {
-    try {
-      const res = await fetch('/api/settings');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.duration) setDuration(data.duration);
-        if (data.power) setPower(data.power);
-        if (data.fontSize) setFontSize(data.fontSize);
-        if (data.wheelSize) setWheelSize(data.wheelSize);
-        if (data.activeLocation) setActiveLocation(data.activeLocation);
-        if (data.activeYear) setActiveYear(data.activeYear);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   useEffect(() => {
-    // Initial fetch
+    let isMounted = true;
+    let currentLoc = activeLocation;
+    let currentYr = activeYear;
+
+    // 1. Initial fetch of settings & attendees
     fetch('/api/settings')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('settings failed');
+        return res.json();
+      })
       .then((data) => {
+        if (!isMounted) return;
         const loc = data.activeLocation || 'ALL';
         const yr = data.activeYear || 2026;
+        currentLoc = loc;
+        currentYr = yr;
         if (data.duration) setDuration(data.duration);
         if (data.power) setPower(data.power);
         if (data.fontSize) setFontSize(data.fontSize);
@@ -96,12 +90,16 @@ export default function StagePage() {
         setActiveYear(yr);
         loadWheelData(loc, yr);
       })
-      .catch(() => loadWheelData());
+      .catch((err) => {
+        console.warn('Settings load fallback:', err);
+        if (isMounted) loadWheelData(currentLoc, currentYr);
+      });
 
-    // Fetch initial prize from /api/wheel/state
+    // 2. Fetch initial prize from /api/wheel/state
     fetch('/api/wheel/state')
       .then((res) => res.json())
       .then((data) => {
+        if (!isMounted) return;
         if (data?.state?.prizeName) {
           setSelectedPrize({
             id: data.state.grandPrizeId,
@@ -113,12 +111,10 @@ export default function StagePage() {
       })
       .catch(console.error);
 
-    // Poll for remote spin triggers & live settings updates every 600ms
+    // 3. Poll for remote spin triggers & live settings updates every 600ms
     let lastSeenTrigger = 0;
     let lastSeenSettingsUpdate = 0;
     let lastSeenReloadGuests = 0;
-    let currentLoc = activeLocation;
-    let currentYr = activeYear;
 
     const interval = setInterval(async () => {
       try {
@@ -126,6 +122,8 @@ export default function StagePage() {
           fetch('/api/wheel/state'),
           fetch('/api/settings'),
         ]);
+
+        if (!isMounted) return;
 
         if (stateRes.ok) {
           const data = await stateRes.json();
@@ -197,8 +195,11 @@ export default function StagePage() {
       }
     }, 600);
 
-    return () => clearInterval(interval);
-  }, [selectedPrize.name]);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleSpinEnd = async (winner: WheelSegment) => {
     setCurrentWinner(winner);
@@ -218,7 +219,7 @@ export default function StagePage() {
           },
         }),
       });
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const handleConfirmWinner = async () => {
@@ -296,13 +297,11 @@ export default function StagePage() {
       )}
 
       {/* Main Stage Presentation Area */}
-      <div className={`flex-1 flex items-center w-full my-auto z-10 transition-all duration-500 ${
-        showPrizeCard ? 'justify-between px-8 lg:px-16' : 'justify-center'
-      }`}>
-        {/* Left/Center Wheel Container */}
-        <div className={`flex flex-col items-center justify-center transition-all duration-500 -translate-y-4 ${
-          showPrizeCard ? 'lg:-translate-x-6' : ''
+      <div className={`flex-1 flex items-center w-full my-auto z-10 transition-all duration-500 ${showPrizeCard ? 'justify-between px-8 lg:px-16' : 'justify-center'
         }`}>
+        {/* Left/Center Wheel Container */}
+        <div className={`flex flex-col items-center justify-center transition-all duration-500 -translate-y-4 ${showPrizeCard ? 'lg:-translate-x-6' : ''
+          }`}>
           {loading ? (
             <div className="text-xl text-slate-400 animate-pulse font-semibold">
               Loading attendees into wheel...
