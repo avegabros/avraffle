@@ -110,15 +110,12 @@ if (!globalThis.__raffleStageState) {
 // GET: Stage polls or mobile checks status
 export async function GET() {
   const currentState = globalThis.__raffleStageState!;
-  // If prize is still placeholder, load first available prize from DB
-  if (!currentState.prizeName || currentState.prizeName === 'General Raffle Prize' || currentState.prizeName === '1 Sack 5 kl Rice') {
-    const initial = await getInitialPrize(currentState.location, currentState.eventYear);
-    currentState.prizeName = initial.prizeName;
-    currentState.prizeImagePath = initial.prizeImagePath;
-    currentState.isGrand = initial.isGrand;
-    currentState.grandPrizeId = initial.grandPrizeId;
-  }
-  return NextResponse.json({ state: currentState });
+  // Include settings directly in the state payload to cut polling traffic in half!
+  const settings = globalThis.__raffleWheelSettings;
+  return NextResponse.json({
+    state: currentState,
+    settings: settings || null,
+  });
 }
 
 // POST: Mobile app triggers spin, selects prize, or stage updates winner

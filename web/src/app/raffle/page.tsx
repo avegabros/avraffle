@@ -107,16 +107,15 @@ function RaffleViewContent() {
 
     const interval = setInterval(async () => {
       try {
-        const [stateRes, settingsRes] = await Promise.all([
-          fetch('/api/wheel/state'),
-          fetch('/api/settings'),
-        ]);
+        const stateRes = await fetch('/api/wheel/state');
 
         if (!isMounted) return;
 
         if (stateRes.ok) {
           const data = await stateRes.json();
           const state = data.state;
+          const cfg = data.settings;
+
           if (state) {
             // Reload segments if winner claimed or guests updated
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
@@ -172,12 +171,9 @@ function RaffleViewContent() {
               setIsModalOpen(true);
             }
           }
-        }
 
-        // Sync settings
-        if (settingsRes.ok) {
-          const cfg = await settingsRes.json();
-          if (cfg.updatedAt && cfg.updatedAt > lastSeenSettingsUpdate) {
+          // Sync settings bundled directly in /api/wheel/state
+          if (cfg && cfg.updatedAt && cfg.updatedAt > lastSeenSettingsUpdate) {
             lastSeenSettingsUpdate = cfg.updatedAt;
             if (cfg.duration) setDuration(cfg.duration);
             if (cfg.power) setPower(cfg.power);
