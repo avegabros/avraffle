@@ -274,16 +274,16 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
     }
 
     ctx.save();
-    // Pivot mount located just outside the outer rim
+    // Pivot mount raised higher above the outer rim (radius + 28px) so only the bottom 1/4 of the tip touches the pegs
     const pivotX = centerX;
-    const pivotY = centerY - radius - 16;
+    const pivotY = centerY - radius - 28;
     ctx.translate(pivotX, pivotY);
 
     // 1. Sleek Heavy-duty Chrome/Gold Mounting Bracket
     ctx.save();
     ctx.beginPath();
-    ctx.roundRect(-22, -18, 44, 28, 6);
-    const bracketGrad = ctx.createLinearGradient(-22, -18, 22, 10);
+    ctx.roundRect(-20, -16, 40, 24, 6);
+    const bracketGrad = ctx.createLinearGradient(-20, -16, 20, 8);
     bracketGrad.addColorStop(0, '#f8fafc');
     bracketGrad.addColorStop(0.3, '#cbd5e1');
     bracketGrad.addColorStop(0.7, '#64748b');
@@ -297,13 +297,13 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
     ctx.stroke();
 
     // Twin mounting screws on bracket
-    [-12, 12].forEach((sx) => {
+    [-11, 11].forEach((sx) => {
       ctx.beginPath();
-      ctx.arc(sx, -4, 2.8, 0, 2 * Math.PI);
+      ctx.arc(sx, -4, 2.5, 0, 2 * Math.PI);
       ctx.fillStyle = '#0f172a';
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(sx, -4, 1.2, 0, 2 * Math.PI);
+      ctx.arc(sx, -4, 1, 0, 2 * Math.PI);
       ctx.fillStyle = '#94a3b8';
       ctx.fill();
     });
@@ -314,19 +314,19 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
     ctx.rotate(flapperAngle);
 
     // Drop shadow under flapper
-    ctx.shadowBlur = 14;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
 
-    // Needle Blade Contour (Sleek aerodynamic tear-drop/dagger profile with rounded tip)
+    // Needle Blade Contour: Total length 46px (tip reaches exactly 18px below rim, perfectly striking pegs with just the bottom 6-8px tip!)
     ctx.beginPath();
-    ctx.moveTo(-10, 0); // Left shoulder
-    ctx.bezierCurveTo(-14, 22, -7, 45, 0, 62); // Left curved edge down to pointer tip
-    ctx.bezierCurveTo(7, 45, 14, 22, 10, 0); // Right curved edge up to right shoulder
-    ctx.bezierCurveTo(8, -10, -8, -10, -10, 0); // Rounded top heel
+    ctx.moveTo(-8, 0); // Left shoulder
+    ctx.bezierCurveTo(-11, 16, -5, 33, 0, 46); // Left curved edge down to pointer tip
+    ctx.bezierCurveTo(5, 33, 11, 16, 8, 0); // Right curved edge up to right shoulder
+    ctx.bezierCurveTo(6, -8, -6, -8, -8, 0); // Rounded top heel
     ctx.closePath();
 
     // Rich dual-tone ruby/crimson metallic gradient
-    const bladeGrad = ctx.createLinearGradient(-14, 0, 14, 62);
+    const bladeGrad = ctx.createLinearGradient(-11, 0, 11, 46);
     bladeGrad.addColorStop(0, '#ff4d4d');
     bladeGrad.addColorStop(0.4, '#dc2626');
     bladeGrad.addColorStop(0.8, '#991b1b');
@@ -336,21 +336,21 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
 
     // Gleaming white-gold outline
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
     // Inner Spine Crease Highlight for 3D metallic feel
     ctx.beginPath();
-    ctx.moveTo(0, 6);
-    ctx.lineTo(0, 54);
+    ctx.moveTo(0, 4);
+    ctx.lineTo(0, 40);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.2;
     ctx.stroke();
 
     // 3. Brass / Gold Center Pivot Cap
     ctx.beginPath();
-    ctx.arc(0, 0, 7.5, 0, 2 * Math.PI);
-    const pivotGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, 7.5);
+    ctx.arc(0, 0, 6, 0, 2 * Math.PI);
+    const pivotGrad = ctx.createRadialGradient(-1.5, -1.5, 1, 0, 0, 6);
     pivotGrad.addColorStop(0, '#ffffff');
     pivotGrad.addColorStop(0.4, '#fbbf24');
     pivotGrad.addColorStop(0.8, '#d97706');
@@ -358,7 +358,7 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
     ctx.fillStyle = pivotGrad;
     ctx.fill();
     ctx.strokeStyle = '#451a03';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     ctx.restore(); // restore flapper rotation
