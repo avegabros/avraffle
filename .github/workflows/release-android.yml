@@ -52,12 +52,12 @@ jobs:
       - name: Build Release APK
         run: |
           cd mobile
-          flutter build apk --release
+          flutter build apk --release -v
 
       - name: Build Release App Bundle (AAB)
         run: |
           cd mobile
-          flutter build appbundle --release
+          flutter build appbundle --release -v
 
       - name: Automatically Create/Update GitHub Release & Upload Binaries
         uses: softprops/action-gh-release@v2
