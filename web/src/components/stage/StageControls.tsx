@@ -43,8 +43,8 @@ export const StageControls: React.FC<StageControlsProps> = ({
 
   return (
     <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
-      {/* If spinning: Styled Circular STOP button in header */}
-      {isSpinning && onStopSpin && (
+      {/* If spinning: Styled Circular STOP button in header (Only for logged in admin stage) */}
+      {!isViewer && isSpinning && onStopSpin && (
         <button
           onClick={onStopSpin}
           className="p-3 bg-red-600/90 hover:bg-red-500 text-white rounded-full border border-red-400/50 shadow-xl backdrop-blur-md transition-all duration-200 active:scale-95 flex items-center justify-center animate-pulse"

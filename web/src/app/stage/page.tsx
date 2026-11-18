@@ -17,8 +17,12 @@ export default function StagePage() {
 
 function StageContent() {
   const searchParams = useSearchParams();
-  // If ?viewer=true or ?view=true, run in Viewer Mode (read-only, no spin triggers, no winner confirmation posts)
-  const isViewer = searchParams.get('viewer') === 'true' || searchParams.get('view') === 'true';
+  // By default, stage is in View-Only mode unless authenticated as admin/staff
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const explicitViewerParam = searchParams.get('viewer') === 'true' || searchParams.get('view') === 'true';
+
+  // Only allow Interactive Master Mode if user is authenticated AND didn't explicitly request view mode
+  const isViewer = !isAdminLoggedIn || explicitViewerParam;
 
   const wheelRef = useRef<RaffleWheelHandle | null>(null);
   const [segments, setSegments] = useState<WheelSegment[]>([]);
@@ -82,6 +86,16 @@ function StageContent() {
     let isMounted = true;
     let currentLoc = activeLocation;
     let currentYr = activeYear;
+
+    // 0. Verify if staff/admin session cookie exists
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data?.authenticated) {
+          setIsAdminLoggedIn(true);
+        }
+      })
+      .catch(() => {});
 
     // 1. Initial fetch of settings & attendees
     fetch('/api/settings')
