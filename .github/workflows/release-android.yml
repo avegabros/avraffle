@@ -39,6 +39,7 @@ jobs:
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 --decode > mobile/android/app/upload-keystore.jks
+            echo "$KEYSTORE_BASE64" | base64 --decode > mobile/android/upload-keystore.jks
           fi
           if [ -n "$KEY_PROPERTIES" ]; then
             echo "$KEY_PROPERTIES" > mobile/android/key.properties
