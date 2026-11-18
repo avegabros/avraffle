@@ -12,6 +12,7 @@ declare global {
     prizeImagePath?: string | null;
     isGrand: boolean;
     grandPrizeId: number | null;
+    targetWinnerId?: number | null;
     location: string;
     eventYear: number;
     timestamp: number;
@@ -133,6 +134,7 @@ export async function POST(req: NextRequest) {
       currentState.prizeImagePath = body.prizeImagePath !== undefined ? body.prizeImagePath : currentState.prizeImagePath;
       currentState.isGrand = body.isGrand ?? currentState.isGrand;
       currentState.grandPrizeId = body.grandPrizeId ?? currentState.grandPrizeId;
+      currentState.targetWinnerId = body.targetWinnerId ?? null;
       currentState.timestamp = Date.now();
       currentState.winner = null;
     } else if (body.action === 'WINNER_ANNOUNCED') {

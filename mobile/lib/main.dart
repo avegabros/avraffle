@@ -540,7 +540,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       onPressed: () async {
-                        final uri = Uri.parse('$_serverUrl/stage');
+                        final uri = Uri.parse('$_serverUrl/stage?viewer=true');
                         try {
                           await launchUrl(uri, mode: LaunchMode.externalApplication);
                         } catch (_) {

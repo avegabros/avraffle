@@ -1,12 +1,25 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { RaffleWheel, WheelSegment, RaffleWheelHandle } from '@/components/wheel/RaffleWheel';
 import { WinnerModal } from '@/components/stage/WinnerModal';
 import { StageControls } from '@/components/stage/StageControls';
 import { soundManager } from '@/lib/sound';
 
 export default function StagePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Loading Stage...</div>}>
+      <StageContent />
+    </Suspense>
+  );
+}
+
+function StageContent() {
+  const searchParams = useSearchParams();
+  // If ?viewer=true or ?view=true, run in Viewer Mode (read-only, no spin triggers, no winner confirmation posts)
+  const isViewer = searchParams.get('viewer') === 'true' || searchParams.get('view') === 'true';
+
   const wheelRef = useRef<RaffleWheelHandle | null>(null);
   const [segments, setSegments] = useState<WheelSegment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,10 +124,12 @@ export default function StagePage() {
       })
       .catch(console.error);
 
-    // 3. Poll for remote spin triggers & live settings updates every 600ms
+    // 3. Poll for remote spin triggers & live settings updates (800ms for master, 1500ms for viewers to save network)
     let lastSeenTrigger = 0;
     let lastSeenSettingsUpdate = 0;
     let lastSeenReloadGuests = 0;
+
+    const pollInterval = isViewer ? 1500 : 700;
 
     const interval = setInterval(async () => {
       try {
@@ -159,13 +174,30 @@ export default function StagePage() {
               lastSeenTrigger = state.spinTriggerCount;
               setIsModalOpen(false);
               setCurrentWinner(null);
-              wheelRef.current?.spinToWinner();
+              
+              // If target winner segment ID is provided, find its index so all screens stop identically
+              let targetIdx: number | undefined = undefined;
+              if (state.targetWinnerId) {
+                const foundIdx = segments.findIndex((s) => s.id === state.targetWinnerId);
+                if (foundIdx !== -1) targetIdx = foundIdx;
+              }
+              wheelRef.current?.spinToWinner(targetIdx);
             }
 
             // If remote triggered respin or closed modal, dismiss winner dialog immediately!
             if (state.winner === null) {
               setIsModalOpen(false);
               setCurrentWinner(null);
+            } else if (isViewer && state.winner) {
+              // On viewer phones, display the officially broadcast winner
+              setCurrentWinner({
+                id: state.winner.id,
+                employeeId: state.winner.employeeId,
+                name: state.winner.name,
+                department: state.winner.department,
+                imagePath: state.winner.imagePath,
+              });
+              setIsModalOpen(true);
             }
           }
         }
@@ -193,7 +225,7 @@ export default function StagePage() {
       } catch (e) {
         console.error(e);
       }
-    }, 600);
+    }, pollInterval);
 
     return () => {
       isMounted = false;
@@ -204,6 +236,9 @@ export default function StagePage() {
   const handleSpinEnd = async (winner: WheelSegment) => {
     setCurrentWinner(winner);
     setIsModalOpen(true);
+
+    // Only the master stage reports the winner announcement to avoid 300 phones flooding the backend
+    if (isViewer) return;
 
     try {
       await fetch('/api/wheel/state', {
@@ -223,7 +258,7 @@ export default function StagePage() {
   };
 
   const handleConfirmWinner = async () => {
-    if (!currentWinner) return;
+    if (!currentWinner || isViewer) return;
     try {
       await fetch('/api/wheel/confirm', {
         method: 'POST',
@@ -243,6 +278,10 @@ export default function StagePage() {
   };
 
   const handleRespin = () => {
+    if (isViewer) {
+      setIsModalOpen(false);
+      return;
+    }
     setIsModalOpen(false);
     setCurrentWinner(null);
   };
@@ -323,6 +362,7 @@ export default function StagePage() {
                 power={power}
                 fontSize={fontSize}
                 wheelSize={showPrizeCard ? Math.min(wheelSize, 780) : Math.min(wheelSize, 850)}
+                isViewer={isViewer}
               />
 
               {/* Dynamic Live Attendee Spotlight Banner */}
@@ -378,6 +418,7 @@ export default function StagePage() {
         winner={currentWinner}
         prizeName={selectedPrize.name}
         isGrandPrize={selectedPrize.isGrand}
+        isViewer={isViewer}
         onConfirm={handleConfirmWinner}
         onRespin={handleRespin}
       />

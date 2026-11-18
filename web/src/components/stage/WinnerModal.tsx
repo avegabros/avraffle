@@ -9,6 +9,7 @@ interface WinnerModalProps {
   winner: WheelSegment | null;
   prizeName?: string;
   isGrandPrize?: boolean;
+  isViewer?: boolean;
   onConfirm: () => void;
   onRespin: () => void;
 }
@@ -18,6 +19,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
   winner,
   prizeName = 'Regular Prize',
   isGrandPrize = false,
+  isViewer = false,
   onConfirm,
   onRespin,
 }) => {
@@ -98,18 +100,26 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
 
         {/* Action Controls */}
         <div className="mt-8 flex items-center justify-center gap-4">
-          <button
-            onClick={onRespin}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl border border-slate-700 transition"
-          >
-            Absent / Respin
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg transition"
-          >
-            Confirm & Claim Prize
-          </button>
+          {isViewer ? (
+            <div className="px-6 py-2.5 rounded-full bg-slate-800/80 border border-amber-500/30 text-amber-300 text-xs font-bold tracking-wider animate-pulse">
+              🎉 Official Winner Announcement • Live Sync
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={onRespin}
+                className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl border border-slate-700 transition"
+              >
+                Absent / Respin
+              </button>
+              <button
+                onClick={onConfirm}
+                className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg transition"
+              >
+                Confirm & Claim Prize
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

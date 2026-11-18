@@ -31,6 +31,7 @@ export interface RaffleWheelProps {
   duration?: number;
   fontSize?: number;
   wheelSize?: number;
+  isViewer?: boolean;
 }
 
 const PALETTE = [
@@ -48,6 +49,7 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
   duration = 8,
   fontSize = 13,
   wheelSize = 900,
+  isViewer = false,
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -476,12 +478,12 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
         width={wheelSize}
         height={wheelSize}
         style={{ width: `${Math.min(wheelSize, 850)}px`, height: `${Math.min(wheelSize, 850)}px` }}
-        className="drop-shadow-[0_0_40px_rgba(0,0,0,0.8)] cursor-pointer max-w-[92vw] max-h-[82vh]"
-        onClick={() => !isSpinning && spinToWinner()}
+        className={`drop-shadow-[0_0_40px_rgba(0,0,0,0.8)] max-w-[92vw] max-h-[82vh] ${isViewer ? 'cursor-default pointer-events-none' : 'cursor-pointer'}`}
+        onClick={() => !isViewer && !isSpinning && spinToWinner()}
       />
 
-      {/* Floating Center Spin Trigger Button */}
-      {!isSpinning && (
+      {/* Floating Center Spin Trigger Button (Only for Master / Non-Viewer Stage) */}
+      {!isViewer && !isSpinning && (
         <button
           onClick={() => spinToWinner()}
           className="absolute z-10 bottom-6 px-12 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:scale-105 active:scale-95 text-white font-black text-2xl tracking-widest rounded-full shadow-[0_0_30px_rgba(245,158,11,0.5)] border-2 border-white/30 transition-all duration-200"
