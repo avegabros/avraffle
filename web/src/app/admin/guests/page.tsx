@@ -164,9 +164,33 @@ export default function AdminGuestsPage() {
             }}
             className="flex flex-wrap items-center gap-2"
           >
+            <div className="flex bg-slate-900 border border-slate-700 rounded-xl overflow-hidden p-1">
+              {(['ALL', 'TAYUD', 'MAKATI'] as const).map((loc) => (
+                <button
+                  type="button"
+                  key={loc}
+                  onClick={() => {
+                    setSelectedLocation(loc);
+                    fetchGuests(search, loc, selectedYear);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    selectedLocation === loc
+                      ? 'bg-amber-500 text-slate-950 font-black shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {loc === 'ALL' ? 'All Locations' : loc === 'TAYUD' ? 'Tayud (Cebu)' : 'Makati (HQ)'}
+                </button>
+              ))}
+            </div>
+
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+              onChange={(e) => {
+                const yr = parseInt(e.target.value, 10);
+                setSelectedYear(yr);
+                fetchGuests(search, selectedLocation, yr);
+              }}
               className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-amber-400 focus:outline-none"
             >
               <option value={2026}>2026</option>
@@ -238,9 +262,16 @@ export default function AdminGuestsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 border border-slate-700">
-                          {g.department || g.assigned || 'Avega Group'} · {g.eventYear || 2026}
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {g.location || 'ALL'} · {g.eventYear || 2026}
+                          </span>
+                          {g.assigned && g.assigned !== 'ALL LOCATIONS' && (
+                            <span className="text-[10px] font-medium text-slate-400">
+                              {g.assigned}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-400">
                         {g.department || 'N/A'} {g.position ? `• ${g.position}` : ''}
