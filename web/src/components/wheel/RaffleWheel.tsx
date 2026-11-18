@@ -245,50 +245,124 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
       ctx.restore();
     }
 
-    // Top Pointer Indicator (with natural flapper deflection whenever a peg strikes it)
+    // Fancy Wheel of Fortune (WOF) Mechanical Stopper/Flipper
     const numSegments = segments.length;
     const arc = numSegments > 0 ? (2 * Math.PI) / numSegments : 0;
     
-    // Determine pointer flapper deflection based on peg collision angle
-    let pointerDeflection = 0;
+    // Physics-based flapper deflection calculation:
+    // As wheel spins clockwise (increasing angle), pegs hit the flapper from right to left,
+    // pushing the flapper back, and then releasing it to snap forward with damped recoil.
+    let flapperAngle = 0;
     if (numSegments > 0) {
-      const pointerAngle = (3 * Math.PI) / 2; // 270 deg / Top pointer
-      // Distance of pegs to pointer
-      const pegRelativeAngle = ((pointerAngle - (angle % (2 * Math.PI))) % arc + arc) % arc;
-      const collisionThreshold = arc * 0.25;
-      if (pegRelativeAngle < collisionThreshold) {
-        // Deflect flapper dynamically based on peg passing by
-        const progress = pegRelativeAngle / collisionThreshold;
-        pointerDeflection = Math.sin(progress * Math.PI) * 0.18; // In radians (~10 degrees)
+      const pointerAngle = (3 * Math.PI) / 2; // 270 deg (top center)
+      // Modulo within current arc segment
+      const pegPhase = (((angle - pointerAngle) % arc) + arc) % arc;
+      const collisionWidth = Math.min(arc * 0.45, 0.12); // Collision strike window
+
+      if (pegPhase < collisionWidth) {
+        // Linear deflection as peg pushes against the flexible flapper
+        const strikeProgress = pegPhase / collisionWidth;
+        flapperAngle = -0.38 * (1 - strikeProgress); // Deflects back up to ~22 degrees
+      } else {
+        // Quick elastic snap-back oscillation
+        const snapProgress = (pegPhase - collisionWidth) / (arc - collisionWidth);
+        if (snapProgress < 0.25) {
+          const recoil = (snapProgress / 0.25);
+          flapperAngle = Math.sin(recoil * Math.PI * 2) * 0.12 * (1 - recoil);
+        }
       }
     }
 
     ctx.save();
-    ctx.translate(centerX, centerY - radius - 8);
-    ctx.rotate(pointerDeflection);
+    // Pivot mount located just outside the outer rim
+    const pivotX = centerX;
+    const pivotY = centerY - radius - 16;
+    ctx.translate(pivotX, pivotY);
+
+    // 1. Sleek Heavy-duty Chrome/Gold Mounting Bracket
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(-24, 0);
-    ctx.lineTo(24, 0);
-    ctx.lineTo(0, 40);
-    ctx.closePath();
-    ctx.fillStyle = '#ef4444';
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.roundRect(-22, -18, 44, 28, 6);
+    const bracketGrad = ctx.createLinearGradient(-22, -18, 22, 10);
+    bracketGrad.addColorStop(0, '#f8fafc');
+    bracketGrad.addColorStop(0.3, '#cbd5e1');
+    bracketGrad.addColorStop(0.7, '#64748b');
+    bracketGrad.addColorStop(1, '#334155');
+    ctx.fillStyle = bracketGrad;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Pivot rivet on pointer base
-    ctx.beginPath();
-    ctx.arc(0, 4, 4, 0, 2 * Math.PI);
-    ctx.fillStyle = '#fde047';
-    ctx.fill();
-    ctx.strokeStyle = '#854d0e';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
+    // Twin mounting screws on bracket
+    [-12, 12].forEach((sx) => {
+      ctx.beginPath();
+      ctx.arc(sx, -4, 2.8, 0, 2 * Math.PI);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(sx, -4, 1.2, 0, 2 * Math.PI);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fill();
+    });
     ctx.restore();
+
+    // 2. The Dynamic Flexible WOF Flapper Blade (rotates around pivot)
+    ctx.save();
+    ctx.rotate(flapperAngle);
+
+    // Drop shadow under flapper
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+
+    // Needle Blade Contour (Sleek aerodynamic tear-drop/dagger profile with rounded tip)
+    ctx.beginPath();
+    ctx.moveTo(-10, 0); // Left shoulder
+    ctx.bezierCurveTo(-14, 22, -7, 45, 0, 62); // Left curved edge down to pointer tip
+    ctx.bezierCurveTo(7, 45, 14, 22, 10, 0); // Right curved edge up to right shoulder
+    ctx.bezierCurveTo(8, -10, -8, -10, -10, 0); // Rounded top heel
+    ctx.closePath();
+
+    // Rich dual-tone ruby/crimson metallic gradient
+    const bladeGrad = ctx.createLinearGradient(-14, 0, 14, 62);
+    bladeGrad.addColorStop(0, '#ff4d4d');
+    bladeGrad.addColorStop(0.4, '#dc2626');
+    bladeGrad.addColorStop(0.8, '#991b1b');
+    bladeGrad.addColorStop(1, '#7f1d1d');
+    ctx.fillStyle = bladeGrad;
+    ctx.fill();
+
+    // Gleaming white-gold outline
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Inner Spine Crease Highlight for 3D metallic feel
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.lineTo(0, 54);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 3. Brass / Gold Center Pivot Cap
+    ctx.beginPath();
+    ctx.arc(0, 0, 7.5, 0, 2 * Math.PI);
+    const pivotGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, 7.5);
+    pivotGrad.addColorStop(0, '#ffffff');
+    pivotGrad.addColorStop(0.4, '#fbbf24');
+    pivotGrad.addColorStop(0.8, '#d97706');
+    pivotGrad.addColorStop(1, '#78350f');
+    ctx.fillStyle = pivotGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#451a03';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.restore(); // restore flapper rotation
+    ctx.restore(); // restore bracket translate
   }, [segments]);
 
   // Calculate currently pointed segment
