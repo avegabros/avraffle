@@ -51,6 +51,13 @@ export async function POST(req: NextRequest) {
       where: eventYear ? { eventYear } : undefined,
     });
 
+    // 3. Notify Stage in real-time to reload/clear the wheel segments immediately!
+    if (globalThis.__raffleStageState) {
+      globalThis.__raffleStageState.reloadGuestsCount =
+        (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+      globalThis.__raffleStageState.timestamp = Date.now();
+    }
+
     return NextResponse.json({
       success: true,
       deletedCount: deleted.count,
