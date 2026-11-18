@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       eventYear,
     };
     if (location) {
-      guestWhere.location = location;
+      guestWhere.OR = [{ location }, { location: 'ALL' }];
     }
 
     const prizeWhere: Record<string, unknown> = {
