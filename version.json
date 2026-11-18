@@ -1,6 +1,6 @@
 {
-  "version": "1.0.4",
-  "buildNumber": 5,
+  "version": "1.0.5",
+  "buildNumber": 6,
   "releaseDate": "2026-11-18",
   "name": "AV-Raffle",
   "package": "ph.avegabros.avraffle"
