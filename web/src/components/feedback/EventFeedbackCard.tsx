@@ -1,25 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface FeedbackProps {
   employeeId?: string;
   name?: string;
   location?: string;
-  onSubmitted?: () => void;
 }
 
 export const EventFeedbackCard: React.FC<FeedbackProps> = ({
   employeeId,
   name,
   location = 'ALL',
-  onSubmitted,
 }) => {
   const [overallRating, setOverallRating] = useState<number>(5);
-  const [showDetails, setShowDetails] = useState<boolean>(false);
   const [comment, setComment] = useState<string>('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  // The 8 requested categories
+  // The 8 requested categories - all listed by default
   const [categories, setCategories] = useState<{
     food: number;
     drinks: number;
@@ -40,9 +38,6 @@ export const EventFeedbackCard: React.FC<FeedbackProps> = ({
     presentations: 5,
   });
 
-  const [loading, setLoading] = useState<boolean>(false);
-  const [submitted, setSubmitted] = useState<boolean>(false);
-
   const categoryLabels: { key: keyof typeof categories; label: string; icon: string }[] = [
     { key: 'food', label: 'Food', icon: '🍲' },
     { key: 'drinks', label: 'Drinks', icon: '🍹' },
@@ -54,143 +49,171 @@ export const EventFeedbackCard: React.FC<FeedbackProps> = ({
     { key: 'presentations', label: 'Presentations', icon: '📊' },
   ];
 
-  const handleRatingChange = (key: keyof typeof categories, val: number) => {
-    setCategories((prev) => ({ ...prev, [key]: val }));
-  };
+  // Auto-save logic with debounce
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rating: overallRating,
-          employeeId,
-          name,
-          location,
-          foodRating: categories.food,
-          drinksRating: categories.drinks,
-          programRating: categories.program,
-          venueRating: categories.venue,
-          raffleRating: categories.raffle,
-          decorRating: categories.decor,
-          gamesRating: categories.games,
-          presentationsRating: categories.presentations,
-          comment,
-        }),
-      });
+  const triggerAutoSave = (updatedOverall?: number, updatedCats?: typeof categories, updatedComment?: string) => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
-      if (res.ok) {
-        setSubmitted(true);
-        onSubmitted?.();
+    setSaveStatus('saving');
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        const curOverall = updatedOverall !== undefined ? updatedOverall : overallRating;
+        const curCats = updatedCats || categories;
+        const curComment = updatedComment !== undefined ? updatedComment : comment;
+
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: curOverall,
+            employeeId,
+            name,
+            location,
+            foodRating: curCats.food,
+            drinksRating: curCats.drinks,
+            programRating: curCats.program,
+            venueRating: curCats.venue,
+            raffleRating: curCats.raffle,
+            decorRating: curCats.decor,
+            gamesRating: curCats.games,
+            presentationsRating: curCats.presentations,
+            comment: curComment,
+          }),
+        });
+
+        if (res.ok) {
+          setSaveStatus('saved');
+          setTimeout(() => setSaveStatus('idle'), 3000);
+        } else {
+          setSaveStatus('idle');
+        }
+      } catch {
+        setSaveStatus('idle');
       }
-    } catch (e) {
-      console.error('Feedback submit error:', e);
-    } finally {
-      setLoading(false);
-    }
+    }, 600); // 600ms debounce
   };
 
-  if (submitted) {
-    return (
-      <div className="mt-4 p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-teal-950/40 border border-emerald-500/40 text-center animate-in fade-in zoom-in-95 duration-300">
-        <div className="text-3xl mb-1">🎉🌟</div>
-        <h4 className="text-sm font-bold text-emerald-300">Thank you for your feedback!</h4>
-        <p className="text-xs text-slate-400 mt-1">Your ratings help make future Avega events even better.</p>
-      </div>
-    );
-  }
+  const handleOverallChange = (val: number) => {
+    setOverallRating(val);
+    triggerAutoSave(val);
+  };
+
+  const handleCategoryChange = (key: keyof typeof categories, val: number) => {
+    const updated = { ...categories, [key]: val };
+    setCategories(updated);
+    triggerAutoSave(undefined, updated);
+  };
+
+  const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setComment(val);
+    triggerAutoSave(undefined, undefined, val);
+  };
 
   return (
-    <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-amber-500/30 shadow-lg text-white animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex items-center justify-between gap-2 mb-2">
+    <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-slate-900/95 border border-amber-500/30 shadow-xl text-white">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-lg">⭐</span>
+          <span className="text-xl">⭐</span>
           <span className="text-xs font-black uppercase tracking-wider text-amber-400">
             Event Feedback
           </span>
         </div>
-        <span className="text-[10px] text-slate-400">10-sec review</span>
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold">
+          {saveStatus === 'saving' && (
+            <span className="text-amber-400 flex items-center gap-1 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Saving...
+            </span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className="text-emerald-400 flex items-center gap-1">
+              ✓ Saved!
+            </span>
+          )}
+          {saveStatus === 'idle' && (
+            <span className="text-slate-400">⚡ Auto-saves instantly</span>
+          )}
+        </div>
       </div>
 
       <p className="text-xs text-slate-300 font-medium mb-3">
-        How is your experience at the event so far?
+        Tap the stars below to rate the event. Ratings save automatically!
       </p>
 
-      {/* Quick 5-Star / Emoji Bar */}
-      <div className="flex items-center justify-center gap-2 py-2 mb-3 bg-slate-950/60 rounded-xl border border-white/5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => setOverallRating(star)}
-            className="text-2xl sm:text-3xl p-1 transition-transform hover:scale-125 active:scale-95 cursor-pointer"
-          >
-            {star <= overallRating ? '⭐' : '☆'}
-          </button>
-        ))}
+      {/* Main Overall 5-Star Rating - Responsive & No Overflow */}
+      <div className="py-2.5 px-3 mb-4 bg-slate-950/70 rounded-xl border border-white/5 flex flex-col items-center justify-center">
+        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+          Overall Experience
+        </div>
+        <div className="flex items-center justify-center gap-1.5 sm:gap-3">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => handleOverallChange(star)}
+              className="text-2xl sm:text-3xl p-1 transition-transform hover:scale-125 active:scale-95 cursor-pointer leading-none"
+            >
+              <span className={star <= overallRating ? 'text-amber-400' : 'text-slate-600'}>
+                ★
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Expand/Collapse Detailed Categories Toggle */}
-      <div className="mb-3 text-center">
-        <button
-          type="button"
-          onClick={() => setShowDetails(!showDetails)}
-          className="text-[11px] font-bold text-amber-400/90 hover:text-amber-300 underline underline-offset-4 cursor-pointer"
-        >
-          {showDetails ? 'Hide Category Ratings ▲' : 'Rate Food, Drinks, Games & more (Optional) ▼'}
-        </button>
-      </div>
-
-      {/* Expanded 8 Categories */}
-      {showDetails && (
-        <div className="space-y-2 mb-4 p-3 bg-slate-950/80 rounded-xl border border-white/10 text-xs animate-in fade-in duration-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {categoryLabels.map(({ key, label, icon }) => (
-              <div key={key} className="flex items-center justify-between px-2 py-1 bg-slate-900 rounded-lg">
-                <span className="flex items-center gap-1.5 font-semibold text-slate-300 text-[11px]">
-                  <span>{icon}</span> {label}
-                </span>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handleRatingChange(key, num)}
-                      className={`text-xs px-1.5 py-0.5 rounded transition ${
-                        categories[key] >= num ? 'text-amber-400 font-bold' : 'text-slate-600'
+      {/* All 8 Categories Listed Cleanly */}
+      <div className="space-y-2 mb-4">
+        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+          Category Ratings
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {categoryLabels.map(({ key, label, icon }) => (
+            <div
+              key={key}
+              className="flex items-center justify-between px-3 py-2 bg-slate-950/50 rounded-xl border border-white/5"
+            >
+              <span className="flex items-center gap-2 font-semibold text-slate-300 text-xs">
+                <span>{icon}</span> {label}
+              </span>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => handleCategoryChange(key, num)}
+                    className="p-1 cursor-pointer transition-transform hover:scale-125 active:scale-90"
+                    title={`${num} stars for ${label}`}
+                  >
+                    <span
+                      className={`text-sm sm:text-base leading-none ${
+                        categories[key] >= num ? 'text-amber-400 font-bold' : 'text-slate-700'
                       }`}
                     >
                       ★
-                    </button>
-                  ))}
-                </div>
+                    </span>
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
-
-          <div className="mt-3">
-            <textarea
-              rows={2}
-              placeholder="Any shoutout or suggestion for the committee? (Optional)"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-900 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-            />
-          </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Quick Submit Button */}
-      <button
-        type="button"
-        disabled={loading}
-        onClick={handleSubmit}
-        className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl text-xs tracking-wider uppercase transition shadow-md disabled:opacity-50 cursor-pointer"
-      >
-        {loading ? 'Submitting...' : 'Send Feedback ✨'}
-      </button>
+      {/* Optional Shoutout / Comment Field */}
+      <div>
+        <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+          Suggestions or Shoutouts for the Committee (Optional)
+        </label>
+        <textarea
+          rows={2}
+          placeholder="Write your note here... (automatically saves)"
+          value={comment}
+          onChange={handleCommentChange}
+          className="w-full text-xs p-3 bg-slate-950 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+        />
+      </div>
     </div>
   );
 };

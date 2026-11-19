@@ -107,30 +107,50 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const created = await prisma.feedback.create({
-      data: {
-        rating: Math.max(1, Math.min(5, parseInt(String(rating), 10) || 5)),
-        employeeId: employeeId ? String(employeeId).trim() : null,
-        name: name ? String(name).trim() : null,
-        location: String(location || 'ALL'),
-        eventCode: finalEventCode || null,
-        eventYear: parseInt(String(finalEventYear || 2026), 10),
-        foodRating: foodRating ? Math.max(1, Math.min(5, parseInt(String(foodRating), 10))) : null,
-        drinksRating: drinksRating ? Math.max(1, Math.min(5, parseInt(String(drinksRating), 10))) : null,
-        programRating: programRating ? Math.max(1, Math.min(5, parseInt(String(programRating), 10))) : null,
-        venueRating: venueRating ? Math.max(1, Math.min(5, parseInt(String(venueRating), 10))) : null,
-        raffleRating: raffleRating ? Math.max(1, Math.min(5, parseInt(String(raffleRating), 10))) : null,
-        decorRating: decorRating ? Math.max(1, Math.min(5, parseInt(String(decorRating), 10))) : null,
-        gamesRating: gamesRating ? Math.max(1, Math.min(5, parseInt(String(gamesRating), 10))) : null,
-        presentationsRating: presentationsRating ? Math.max(1, Math.min(5, parseInt(String(presentationsRating), 10))) : null,
-        comment: comment ? String(comment).trim() : null,
-      },
-    });
+    let existing = null;
+    if (employeeId) {
+      existing = await prisma.feedback.findFirst({
+        where: {
+          employeeId: String(employeeId).trim(),
+          eventCode: finalEventCode || null,
+        },
+      });
+    }
+
+    const payload = {
+      rating: Math.max(1, Math.min(5, parseInt(String(rating), 10) || 5)),
+      employeeId: employeeId ? String(employeeId).trim() : null,
+      name: name ? String(name).trim() : null,
+      location: String(location || 'ALL'),
+      eventCode: finalEventCode || null,
+      eventYear: parseInt(String(finalEventYear || 2026), 10),
+      foodRating: foodRating ? Math.max(1, Math.min(5, parseInt(String(foodRating), 10))) : null,
+      drinksRating: drinksRating ? Math.max(1, Math.min(5, parseInt(String(drinksRating), 10))) : null,
+      programRating: programRating ? Math.max(1, Math.min(5, parseInt(String(programRating), 10))) : null,
+      venueRating: venueRating ? Math.max(1, Math.min(5, parseInt(String(venueRating), 10))) : null,
+      raffleRating: raffleRating ? Math.max(1, Math.min(5, parseInt(String(raffleRating), 10))) : null,
+      decorRating: decorRating ? Math.max(1, Math.min(5, parseInt(String(decorRating), 10))) : null,
+      gamesRating: gamesRating ? Math.max(1, Math.min(5, parseInt(String(gamesRating), 10))) : null,
+      presentationsRating: presentationsRating ? Math.max(1, Math.min(5, parseInt(String(presentationsRating), 10))) : null,
+      ...(comment !== undefined ? { comment: comment ? String(comment).trim() : null } : {}),
+    };
+
+    let resultRecord;
+    if (existing) {
+      resultRecord = await prisma.feedback.update({
+        where: { id: existing.id },
+        data: payload,
+      });
+    } else {
+      resultRecord = await prisma.feedback.create({
+        data: payload,
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      feedback: created,
-      message: 'Thank you for your valuable feedback!',
+      feedback: resultRecord,
+      message: 'Feedback saved successfully!',
     });
   } catch (error) {
     console.error('Feedback submission error:', error);
