@@ -272,6 +272,13 @@ export async function POST(req: NextRequest) {
     let importedCount = 0;
     const validEmployeeIds: string[] = [];
 
+    const activeEvent = await prisma.event.findFirst({
+      where: { isActive: true },
+    });
+    const finalEventId = activeEvent ? activeEvent.id : undefined;
+    const finalEventCode = activeEvent ? activeEvent.code : undefined;
+    const finalEventYear = activeEvent ? activeEvent.year : parseInt(String(eventYear), 10);
+
     // If wipeExisting is enabled, clean out old attendees for this eventYear first
     if (wipeExisting) {
       const yearToWipe = parseInt(String(eventYear), 10);
@@ -394,7 +401,8 @@ export async function POST(req: NextRequest) {
           position: pos || null,
           assigned: assignedRaw || (location === 'ALL' ? 'ALL LOCATIONS' : location),
           location,
-          eventYear: parseInt(String(eventYear), 10),
+          eventYear: finalEventYear,
+          ...(finalEventId ? { eventId: finalEventId, eventCode: finalEventCode } : {}),
           imagePath: pic ? pic : undefined,
         },
         create: {
@@ -406,7 +414,9 @@ export async function POST(req: NextRequest) {
           position: pos || null,
           assigned: assignedRaw || (location === 'ALL' ? 'ALL LOCATIONS' : location),
           location,
-          eventYear: parseInt(String(eventYear), 10),
+          eventYear: finalEventYear,
+          eventId: finalEventId,
+          eventCode: finalEventCode,
           imagePath: pic || null,
           isRegistered: false,
           inWheel: false,

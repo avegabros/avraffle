@@ -71,6 +71,13 @@ export async function POST(req: NextRequest) {
       imagePath = processed.imagePath;
     }
 
+    const activeEvent = await prisma.event.findFirst({
+      where: { isActive: true },
+    });
+    const finalEventId = activeEvent ? activeEvent.id : undefined;
+    const finalEventCode = activeEvent ? activeEvent.code : undefined;
+    const finalEventYear = activeEvent ? activeEvent.year : eventYear;
+
     const prize = await prisma.prize.create({
       data: {
         name,
@@ -80,7 +87,9 @@ export async function POST(req: NextRequest) {
         quantity,
         priority,
         location,
-        eventYear,
+        eventYear: finalEventYear,
+        eventId: finalEventId,
+        eventCode: finalEventCode,
         imagePath,
       },
     });

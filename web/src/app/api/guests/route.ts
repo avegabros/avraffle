@@ -77,6 +77,13 @@ export async function POST(req: NextRequest) {
       thumbPath = processed.thumbPath;
     }
 
+    const activeEvent = await prisma.event.findFirst({
+      where: { isActive: true },
+    });
+    const finalEventId = activeEvent ? activeEvent.id : undefined;
+    const finalEventCode = activeEvent ? activeEvent.code : undefined;
+    const finalEventYear = activeEvent ? activeEvent.year : eventYear;
+
     const guest = await prisma.guest.upsert({
       where: { employeeId },
       update: {
@@ -85,7 +92,8 @@ export async function POST(req: NextRequest) {
         department,
         assigned,
         location,
-        eventYear,
+        eventYear: finalEventYear,
+        ...(finalEventId ? { eventId: finalEventId, eventCode: finalEventCode } : {}),
         isRegistered: true,
         inWheel: true,
         ...(imagePath ? { imagePath, thumbPath } : {}),
@@ -97,7 +105,9 @@ export async function POST(req: NextRequest) {
         department,
         assigned,
         location,
-        eventYear,
+        eventYear: finalEventYear,
+        eventId: finalEventId,
+        eventCode: finalEventCode,
         isRegistered: true,
         inWheel: true,
         imagePath,

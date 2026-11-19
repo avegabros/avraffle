@@ -71,6 +71,30 @@ export default function EventsAdminPage() {
     }
   };
 
+  const handleArchiveEvent = async (eventCode: string, eventName: string) => {
+    if (!confirm(`Are you sure you want to archive "${eventName}" (${eventCode})?\n\nThis will freeze all winners and prizes into a permanent snapshot and mark the event archived.`)) {
+      return;
+    }
+
+    try {
+      setMessage(`Archiving ${eventName}...`);
+      const res = await fetch('/api/admin/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventCode }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(`✅ ${data.message || 'Event archived successfully!'}`);
+        fetchEvents();
+      } else {
+        setMessage(`❌ ${data.error || 'Failed to archive event'}`);
+      }
+    } catch {
+      setMessage('❌ Network error while archiving event');
+    }
+  };
+
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !code.trim()) {
@@ -281,7 +305,7 @@ export default function EventsAdminPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
                       {ev.isActive ? (
                         <span className="text-xs font-bold text-amber-400 px-3 py-1.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
                           Active Target
@@ -291,8 +315,25 @@ export default function EventsAdminPage() {
                           onClick={() => handleSetActive(ev.id)}
                           className="px-3 py-1.5 bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-white font-bold text-xs rounded-xl border border-white/10 transition"
                         >
-                          🎯 Set as Active Event
+                          🎯 Set as Active
                         </button>
+                      )}
+
+                      {!ev.isArchived ? (
+                        <button
+                          onClick={() => handleArchiveEvent(ev.code, ev.name)}
+                          className="px-3 py-1.5 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white font-bold text-xs rounded-xl border border-white/10 transition flex items-center gap-1"
+                          title="Archive winners and prizes to static snapshot"
+                        >
+                          <span>📦</span> Archive
+                        </button>
+                      ) : (
+                        <Link
+                          href={`/history`}
+                          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-400 font-bold text-xs rounded-xl border border-white/10 transition"
+                        >
+                          View Archive
+                        </Link>
                       )}
                     </div>
                   </div>
