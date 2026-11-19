@@ -126,8 +126,19 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-16 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide mb-8 shadow-xl">
+      <section className="relative z-10 pt-12 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
+        {/* 3D App Icon Visual */}
+        <div className="relative mb-8 group">
+          <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/30 to-red-500/30 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-300" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo/app-icon.png"
+            alt="AV-Raffle 3D Lucky Wheel"
+            className="relative w-36 h-36 sm:w-44 sm:h-44 object-cover rounded-3xl border-2 border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-all duration-300"
+          />
+        </div>
+
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide mb-6 shadow-xl">
           <Flame className="w-4 h-4 text-amber-400 animate-pulse" />
           <span>Official Android Companion for Avega Year-End Raffle ({APP_VERSION.tag})</span>
         </div>

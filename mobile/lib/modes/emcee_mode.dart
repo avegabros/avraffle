@@ -27,6 +27,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
   Timer? _pollTimer;
   Map<String, dynamic>? _lastWinner;
   bool _allPrizesClaimed = false;
+  bool _isButtonPressed = false;
 
   // Spin Settings
   int _duration = 8;
@@ -671,64 +672,194 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
 
                 const SizedBox(height: 24),
 
-                // Giant Spin Trigger Button (Disabled while spinning, awaiting claim, or when all prizes claimed)
+                // Giant 3D Physical Arcade Spin Trigger Button
                 Center(
-                  child: GestureDetector(
-                    onTap: (_isSpinning || _lastWinner != null || _allPrizesClaimed) ? null : _triggerSpin,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      width: 220,
-                      height: 220,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: (_isSpinning || _lastWinner != null || _allPrizesClaimed)
-                              ? [Colors.grey.shade800, Colors.grey.shade900]
-                              : [const Color(0xFF10B981), const Color(0xFF047857)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (_isSpinning || _lastWinner != null || _allPrizesClaimed)
-                                ? Colors.transparent
-                                : const Color(0xFF10B981).withValues(alpha: 0.4),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          )
-                        ],
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _allPrizesClaimed
-                                  ? Icons.emoji_events
-                                  : _isSpinning
-                                      ? Icons.hourglass_top
-                                      : (_lastWinner != null ? Icons.lock : Icons.play_arrow),
-                              size: 64,
-                              color: (_isSpinning || _lastWinner != null || _allPrizesClaimed) ? Colors.grey.shade500 : Colors.white,
+                  child: Builder(
+                    builder: (context) {
+                      final bool isDisabled = _isSpinning || _lastWinner != null || _allPrizesClaimed;
+                      final double buttonSize = 220;
+
+                      return GestureDetector(
+                        onTapDown: isDisabled ? null : (_) => setState(() => _isButtonPressed = true),
+                        onTapUp: isDisabled ? null : (_) {
+                          setState(() => _isButtonPressed = false);
+                          _triggerSpin();
+                        },
+                        onTapCancel: isDisabled ? null : () => setState(() => _isButtonPressed = false),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 120),
+                          curve: Curves.easeOut,
+                          width: buttonSize,
+                          height: buttonSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            // Metallic Outer Collar / Bezel
+                            gradient: LinearGradient(
+                              colors: isDisabled
+                                  ? [const Color(0xFF2A2D34), const Color(0xFF1E2024)]
+                                  : [const Color(0xFF4B5563), const Color(0xFF1F2937), const Color(0xFF111827)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _allPrizesClaimed
-                                  ? 'ALL CLAIMED'
-                                  : _isSpinning
-                                      ? 'SPINNING...'
-                                      : (_lastWinner != null ? 'AWAITING CLAIM' : 'SPIN!'),
-                              style: TextStyle(
-                                fontSize: (_lastWinner != null || _allPrizesClaimed) ? 14 : 24,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 2,
-                                color: (_isSpinning || _lastWinner != null || _allPrizesClaimed) ? Colors.grey.shade500 : Colors.white,
+                            boxShadow: [
+                              // Outer drop shadow on surface
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.6),
+                                blurRadius: 25,
+                                offset: const Offset(0, 15),
+                              ),
+                              // Neon ambient underglow when active
+                              if (!isDisabled)
+                                BoxShadow(
+                                  color: const Color(0xFF10B981).withValues(alpha: _isButtonPressed ? 0.6 : 0.35),
+                                  blurRadius: _isButtonPressed ? 35 : 25,
+                                  spreadRadius: _isButtonPressed ? 4 : 2,
+                                  offset: const Offset(0, 4),
+                                ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(12), // Thickness of bezel collar
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              // Inner Bevel Socket Rim
+                              gradient: LinearGradient(
+                                colors: isDisabled
+                                    ? [const Color(0xFF15171A), const Color(0xFF23272E)]
+                                    : [const Color(0xFF0F172A), const Color(0xFF334155)],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                              border: Border.all(
+                                color: isDisabled ? Colors.white10 : Colors.white24,
+                                width: 2,
                               ),
                             ),
-                          ],
+                            padding: const EdgeInsets.all(6),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 90),
+                              transform: Matrix4.translationValues(
+                                0,
+                                _isButtonPressed ? 8.0 : (isDisabled ? 3.0 : 0.0),
+                                0,
+                              ),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                // Physical Button Face Gradient
+                                gradient: RadialGradient(
+                                  center: const Alignment(-0.2, -0.4),
+                                  radius: 0.85,
+                                  colors: isDisabled
+                                      ? [
+                                          const Color(0xFF4B5563),
+                                          const Color(0xFF374151),
+                                          const Color(0xFF1F2937),
+                                        ]
+                                      : [
+                                          const Color(0xFF34D399), // Emerald highlight
+                                          const Color(0xFF10B981), // Core emerald
+                                          const Color(0xFF047857), // Deep shade
+                                          const Color(0xFF064E3B), // Edge bottom
+                                        ],
+                                  stops: const [0.0, 0.4, 0.8, 1.0],
+                                ),
+                                boxShadow: [
+                                  // Bottom 3D Cylinder Extrusion Edge (flattens when pressed)
+                                  if (!_isButtonPressed && !isDisabled)
+                                    BoxShadow(
+                                      color: const Color(0xFF022C22),
+                                      offset: const Offset(0, 8),
+                                      blurRadius: 0,
+                                    ),
+                                  if (!_isButtonPressed && isDisabled)
+                                    BoxShadow(
+                                      color: const Color(0xFF111827),
+                                      offset: const Offset(0, 4),
+                                      blurRadius: 0,
+                                    ),
+                                  // Top glossy lens reflection
+                                  BoxShadow(
+                                    color: Colors.white.withValues(alpha: isDisabled ? 0.05 : 0.35),
+                                    offset: const Offset(0, -3),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: Stack(
+                                children: [
+                                  // 3D Glass Arc Highlight across top rim
+                                  Positioned(
+                                    top: 10,
+                                    left: 25,
+                                    right: 25,
+                                    height: 55,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(80)),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.white.withValues(alpha: isDisabled ? 0.08 : 0.4),
+                                            Colors.white.withValues(alpha: 0.0),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Button Label & Icon
+                                  Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          _allPrizesClaimed
+                                              ? Icons.emoji_events
+                                              : _isSpinning
+                                                  ? Icons.hourglass_top
+                                                  : (_lastWinner != null ? Icons.lock : Icons.touch_app),
+                                          size: 58,
+                                          color: isDisabled ? Colors.grey.shade400 : Colors.white,
+                                          shadows: [
+                                            Shadow(
+                                              color: Colors.black.withValues(alpha: 0.7),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _allPrizesClaimed
+                                              ? 'ALL CLAIMED'
+                                              : _isSpinning
+                                                  ? 'SPINNING...'
+                                                  : (_lastWinner != null ? 'AWAITING CLAIM' : 'SPIN!'),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: (_lastWinner != null || _allPrizesClaimed) ? 14 : 24,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 2,
+                                            color: isDisabled ? Colors.grey.shade400 : Colors.white,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withValues(alpha: 0.8),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 32),

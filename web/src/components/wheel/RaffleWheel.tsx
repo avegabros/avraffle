@@ -496,17 +496,23 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
         }}
       />
 
-      {/* Floating Center Spin Trigger Button (Only for Master / Non-Viewer Stage) */}
+      {/* Floating Center 3D Arcade Spin Trigger Button (Only for Master / Non-Viewer Stage) */}
       {!isViewer && !isSpinning && (
-        <button
-          onClick={() => {
-            if (onSpinStart) onSpinStart();
-            else spinToWinner();
-          }}
-          className="absolute z-10 bottom-6 px-12 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:scale-105 active:scale-95 text-white font-black text-2xl tracking-widest rounded-full shadow-[0_0_30px_rgba(245,158,11,0.5)] border-2 border-white/30 transition-all duration-200"
-        >
-          SPIN WHEEL
-        </button>
+        <div className="absolute z-10 bottom-6 p-1.5 rounded-full bg-gradient-to-b from-slate-600 via-slate-800 to-black shadow-[0_15px_35px_rgba(0,0,0,0.8),0_0_40px_rgba(245,158,11,0.35)] border-2 border-white/20">
+          <button
+            onClick={() => {
+              if (onSpinStart) onSpinStart();
+              else spinToWinner();
+            }}
+            className="group relative px-12 py-4 rounded-full bg-gradient-to-b from-amber-400 via-orange-500 to-red-600 active:translate-y-2 text-white font-black text-2xl tracking-widest transition-all duration-100 shadow-[0_8px_0_#991b1b,0_15px_20px_rgba(0,0,0,0.5)] active:shadow-[0_0_0_#991b1b,0_5px_10px_rgba(0,0,0,0.4)] border border-amber-300/60 overflow-hidden flex items-center justify-center gap-3 cursor-pointer select-none"
+          >
+            {/* Top Gloss Arc Highlight */}
+            <span className="absolute top-0 left-4 right-4 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-full pointer-events-none" />
+            <span className="relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-center gap-2">
+              <span className="text-2xl animate-pulse">✨</span> SPIN WHEEL <span className="text-2xl animate-pulse">✨</span>
+            </span>
+          </button>
+        </div>
       )}
     </div>
   );
