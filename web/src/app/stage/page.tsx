@@ -389,8 +389,16 @@ export default function StagePage() {
     setIsMuted(muted);
   };
 
-  const handleStopSpin = () => {
+  const handleStopSpin = async () => {
     wheelRef.current?.resetWheel();
+    setIsSpinning(false);
+    try {
+      await fetch('/api/wheel/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'STOP_SPIN', sessionId }),
+      });
+    } catch (_) {}
   };
 
   const handleLocationChange = async (newLoc: string) => {

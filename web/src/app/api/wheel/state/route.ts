@@ -231,6 +231,10 @@ export async function POST(req: NextRequest) {
       }
       currentState.timestamp = now;
       currentState.winner = null;
+    } else if (body.action === 'STOP_SPIN') {
+      currentState.status = 'IDLE';
+      currentState.winner = null;
+      currentState.timestamp = Date.now();
     } else if (body.action === 'WINNER_ANNOUNCED') {
       currentState.status = 'IDLE';
       currentState.winner = body.winner || null;

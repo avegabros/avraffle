@@ -62,11 +62,15 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
             setState(() {
               _isConnected = true;
               final serverStatus = state['status'];
-              if (serverStatus == 'IDLE' && _isSpinning) {
-                _isSpinning = false;
-                if (state['winner'] != null) {
-                  _lastWinner = state['winner'];
-                  Vibration.vibrate(duration: 400);
+              if (serverStatus == 'SPINNING') {
+                _isSpinning = true;
+              } else if (serverStatus == 'IDLE') {
+                if (_isSpinning) {
+                  _isSpinning = false;
+                  if (state['winner'] != null) {
+                    _lastWinner = state['winner'];
+                    Vibration.vibrate(duration: 400);
+                  }
                 }
               }
 
@@ -179,11 +183,18 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
           'grandPrizeId': _grandPrizeId,
           'location': widget.location,
         }),
-      );
+      ).timeout(const Duration(seconds: 4));
 
-      if (res.statusCode == 409) {
+      if (res.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _isSpinning = true;
+          });
+        }
+      } else if (res.statusCode == 409) {
         // Another APK or remote already triggered the spin!
         if (mounted) {
+          setState(() => _isSpinning = true);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('⚠️ Wheel is already in motion! Synchronizing...'),
@@ -192,7 +203,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
             ),
           );
         }
-      } else if (res.statusCode != 200) {
+      } else {
         if (mounted) {
           setState(() => _isSpinning = false);
         }
