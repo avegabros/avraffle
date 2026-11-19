@@ -17,6 +17,7 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
   bool _isLoading = false;
   Map<String, dynamic>? _guestResult;
   String? _errorMessage;
+  bool _isFormCollapsed = false;
 
   // Feedback states
   int _currentStep = 0; // 0 to _categorySteps.length - 1 (ratings), _categorySteps.length = comment, > length = complete
@@ -197,6 +198,7 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
           _guestResult = data['guest'];
           _errorMessage = null;
           _saveStatus = 'idle';
+          _isFormCollapsed = true;
         });
       } else {
         setState(() {
@@ -257,50 +259,86 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Form inputs
-            TextField(
-              controller: _empIdController,
-              textCapitalization: TextCapitalization.characters,
-              decoration: InputDecoration(
-                labelText: 'Employee ID (e.g. ABMCI-251102)',
-                prefixIcon: const Icon(Icons.badge, color: Color(0xFFF59E0B)),
-                filled: true,
-                fillColor: const Color(0xFF1E293B),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _lastNameController,
-              decoration: InputDecoration(
-                labelText: 'Last Name / Surname',
-                prefixIcon: const Icon(Icons.person, color: Color(0xFFF59E0B)),
-                filled: true,
-                fillColor: const Color(0xFF1E293B),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            ElevatedButton.icon(
-              icon: _isLoading
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                  : const Icon(Icons.search, color: Colors.black),
-              label: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14.0),
-                child: Text(
-                  _isLoading ? 'VERIFYING...' : 'CHECK MY STATUS',
-                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+            // Collapsible Form Inputs
+            if (_isFormCollapsed && _guestResult != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.person, size: 16, color: Color(0xFFF59E0B)),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_empIdController.text} • ${_lastNameController.text}',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => setState(() => _isFormCollapsed = false),
+                      child: const Text('Change ID ↻', style: TextStyle(color: Color(0xFFF59E0B), fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              TextField(
+                controller: _empIdController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: 'Employee ID (e.g. ABMCI-251102)',
+                  prefixIcon: const Icon(Icons.badge, color: Color(0xFFF59E0B)),
+                  filled: true,
+                  fillColor: const Color(0xFF1E293B),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF59E0B),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              const SizedBox(height: 16),
+
+              TextField(
+                controller: _lastNameController,
+                decoration: InputDecoration(
+                  labelText: 'Last Name / Surname',
+                  prefixIcon: const Icon(Icons.person, color: Color(0xFFF59E0B)),
+                  filled: true,
+                  fillColor: const Color(0xFF1E293B),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
               ),
-              onPressed: _isLoading ? null : _checkStatus,
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 20),
+
+              ElevatedButton.icon(
+                icon: _isLoading
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                    : const Icon(Icons.search, color: Colors.black),
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                  child: Text(
+                    _isLoading ? 'VERIFYING...' : 'CHECK MY STATUS',
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF59E0B),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: _isLoading ? null : _checkStatus,
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Error Message
             if (_errorMessage != null)

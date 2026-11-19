@@ -25,6 +25,7 @@ export default function CheckRegistrationPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<GuestStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isFormCollapsed, setIsFormCollapsed] = useState(false);
 
   const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +45,7 @@ export default function CheckRegistrationPage() {
         setErrorMessage(data.message || 'Attendee not found.');
       } else {
         setStatus(data.guest);
+        setIsFormCollapsed(true); // Automatically collapse input form so feedback & status take center stage
       }
     } catch {
       setErrorMessage('Network error. Please try again.');
@@ -65,43 +67,61 @@ export default function CheckRegistrationPage() {
           </p>
         </div>
 
-        <form onSubmit={handleCheck} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Employee ID
-            </label>
-            <input
-              type="text"
-              required
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-              placeholder="e.g. EMP-001"
-              className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
+        {/* Collapsible Search Form */}
+        {isFormCollapsed && status ? (
+          <div className="mb-4 p-3 rounded-2xl bg-slate-800/60 border border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-slate-300">
+              <span className="text-amber-400 font-mono font-bold">{employeeId}</span>
+              <span className="text-slate-500">•</span>
+              <span className="text-white font-semibold">{lastName}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsFormCollapsed(false)}
+              className="text-xs font-bold text-amber-400 hover:text-amber-300 px-3 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition cursor-pointer"
+            >
+              Check Another ID ↻
+            </button>
           </div>
+        ) : (
+          <form onSubmit={handleCheck} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Employee ID
+              </label>
+              <input
+                type="text"
+                required
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+                placeholder="e.g. EMP-001"
+                className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Last Name
-            </label>
-            <input
-              type="text"
-              required
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="e.g. Dela Cruz"
-              className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="e.g. Dela Cruz"
+                className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 font-bold rounded-xl shadow-lg transition active:scale-95 disabled:opacity-50"
-          >
-            {loading ? 'Verifying...' : 'Check My Status'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 font-bold rounded-xl shadow-lg transition active:scale-95 disabled:opacity-50 cursor-pointer"
+            >
+              {loading ? 'Verifying...' : 'Check My Status'}
+            </button>
+          </form>
+        )}
 
         {errorMessage && (
           <div className="mt-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-200 text-xs text-center">
