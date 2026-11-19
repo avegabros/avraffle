@@ -183,6 +183,7 @@ function RaffleViewContent() {
             if (state.winner === null) {
               setIsModalOpen(false);
               setCurrentWinner(null);
+              setLockedSpotlightName(null);
             } else if (state.winner && !isSpinning) {
               setCurrentWinner({
                 id: state.winner.id,

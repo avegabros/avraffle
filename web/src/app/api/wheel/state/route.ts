@@ -241,13 +241,54 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // If targetWinnerId was not passed (e.g. mobile triggered spin), pick one randomly from DB guests in wheel!
+      let resolvedWinnerId = body.targetWinnerId ?? null;
+      if (!resolvedWinnerId) {
+        try {
+          const spinLoc = body.location || currentState.location || globalThis.__raffleWheelSettings?.activeLocation || 'TAYUD';
+          const spinYear = body.eventYear || currentState.eventYear || globalThis.__raffleWheelSettings?.activeYear || 2026;
+          const spinCode = body.eventCode || currentState.eventCode || globalThis.__raffleWheelSettings?.activeEventCode;
+
+          const gWhere: any = {
+            inWheel: true,
+            isWinner: false,
+          };
+          if (spinCode) {
+            gWhere.OR = [
+              { eventCode: spinCode },
+              { eventCode: null, eventYear: spinYear },
+            ];
+          } else {
+            gWhere.eventYear = spinYear;
+          }
+          if (spinLoc && spinLoc !== 'ALL') {
+            const lCond = [{ location: spinLoc }, { location: 'ALL' }];
+            if (gWhere.OR) gWhere.AND = [{ OR: lCond }];
+            else gWhere.OR = lCond;
+          }
+
+          const eligibleGuests = await prisma.guest.findMany({
+            where: gWhere,
+            select: { id: true },
+            orderBy: { id: 'asc' },
+          });
+
+          if (eligibleGuests.length > 0) {
+            const randomGuest = eligibleGuests[Math.floor(Math.random() * eligibleGuests.length)];
+            resolvedWinnerId = randomGuest.id;
+          }
+        } catch (e) {
+          console.warn('Failed to resolve target winner on spin:', e);
+        }
+      }
+
       currentState.status = 'SPINNING';
       currentState.spinTriggerCount += 1;
       currentState.prizeName = body.prizeName || currentState.prizeName;
       currentState.prizeImagePath = body.prizeImagePath !== undefined ? body.prizeImagePath : currentState.prizeImagePath;
       currentState.isGrand = body.isGrand ?? currentState.isGrand;
       currentState.grandPrizeId = body.grandPrizeId ?? currentState.grandPrizeId;
-      currentState.targetWinnerId = body.targetWinnerId ?? null;
+      currentState.targetWinnerId = resolvedWinnerId;
       if (body.allPrizesClaimed !== undefined) {
         currentState.allPrizesClaimed = body.allPrizesClaimed;
       }

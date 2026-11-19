@@ -31,6 +31,8 @@ export default function StagePage() {
   }, []);
 
   const [segments, setSegments] = useState<WheelSegment[]>([]);
+  const segmentsRef = useRef<WheelSegment[]>([]);
+  segmentsRef.current = segments;
   const [loading, setLoading] = useState(true);
   const [currentWinner, setCurrentWinner] = useState<WheelSegment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,6 +63,30 @@ export default function StagePage() {
   const [activeLocation, setActiveLocation] = useState<string>('ALL');
   const [activeYear, setActiveYear] = useState<number>(2026);
   const [activeEventName, setActiveEventName] = useState<string>('Unified Event');
+
+  const loadSettingsAndWheel = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        const loc = data.activeLocation || 'ALL';
+        const yr = data.activeYear || 2026;
+        const evName = data.activeEventName || 'Unified Event';
+        if (data.duration) setDuration(data.duration);
+        if (data.power) setPower(data.power);
+        if (data.fontSize) setFontSize(data.fontSize);
+        if (data.wheelSize) setWheelSize(data.wheelSize);
+        setActiveLocation(loc);
+        setActiveYear(yr);
+        setActiveEventName(evName);
+        loadWheelData(loc, yr);
+        return;
+      }
+    } catch (e) {
+      console.warn('Failed to load settings:', e);
+    }
+    loadWheelData();
+  };
 
   const loadWheelData = async (loc = activeLocation, yr = activeYear) => {
     try {
@@ -228,7 +254,7 @@ export default function StagePage() {
               // If target winner segment ID is provided, find its index so all screens stop identically
               let targetIdx: number | undefined = undefined;
               if (state.targetWinnerId) {
-                const foundIdx = segments.findIndex((s) => s.id === state.targetWinnerId);
+                const foundIdx = segmentsRef.current.findIndex((s) => s.id === state.targetWinnerId);
                 if (foundIdx !== -1) targetIdx = foundIdx;
               }
               wheelRef.current?.spinToWinner(targetIdx);
@@ -238,6 +264,7 @@ export default function StagePage() {
             if (state.winner === null) {
               setIsModalOpen(false);
               setCurrentWinner(null);
+              setLockedSpotlightName(null);
             }
           }
         }
@@ -366,6 +393,7 @@ export default function StagePage() {
       });
       setIsModalOpen(false);
       setCurrentWinner(null);
+      setLockedSpotlightName(null);
       loadWheelData();
     } catch (err) {
       console.error('Failed to confirm winner:', err);
@@ -440,8 +468,7 @@ export default function StagePage() {
         isSpinning={isSpinning}
         onStopSpin={isMaster ? handleStopSpin : undefined}
         onRefresh={() => {
-          loadSettings();
-          loadWheelData();
+          loadSettingsAndWheel();
         }}
         activeLocation={activeLocation}
         onLocationChange={handleLocationChange}
