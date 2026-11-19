@@ -65,20 +65,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
 
     if (pickedFile == null) {
-      // User cancelled camera; ask if they want quick check-in without mugshot
+      // User cancelled camera without taking a photo
       if (!mounted) return;
-      final proceed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('No Photo Taken'),
-          content: Text('Do you want to check in ${guest['firstName']} without a mugshot portrait?'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Check In Anyway')),
-          ],
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('⚠️ Mugshot is required for ${guest['firstName']} to register into the raffle.'),
+          backgroundColor: Colors.amber.shade800,
+          duration: const Duration(seconds: 3),
         ),
       );
-      if (proceed != true) return;
+      return;
     }
 
     try {
@@ -94,9 +90,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       }
       req.fields['location'] = widget.location == 'ALL' ? (guest['location'] ?? 'TAYUD') : widget.location;
 
-      if (pickedFile != null) {
-        req.files.add(await http.MultipartFile.fromPath('photo', pickedFile.path));
-      }
+      req.files.add(await http.MultipartFile.fromPath('photo', pickedFile.path));
 
       final streamedRes = await req.send();
       if (!mounted) return;
@@ -110,9 +104,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    pickedFile != null
-                      ? '📸 Checked in with Mugshot: ${guest['firstName']} ${guest['lastName']}!'
-                      : '✅ Checked in: ${guest['firstName']} ${guest['lastName']}!',
+                    '📸 Checked in with Mugshot: ${guest['firstName']} ${guest['lastName']}!',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
