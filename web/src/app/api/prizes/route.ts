@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { processAndSavePhoto } from '@/lib/sharp';
+import { getNextAvailablePrize } from '@/app/api/wheel/state/route';
+
+async function refreshWheelStageState(location?: string, eventYear?: number, eventCode?: string) {
+  if (!globalThis.__raffleStageState) return;
+  try {
+    const activeLoc = location || globalThis.__raffleStageState.location || globalThis.__raffleWheelSettings?.activeLocation || 'TAYUD';
+    const activeYr = eventYear || globalThis.__raffleStageState.eventYear || globalThis.__raffleWheelSettings?.activeYear || 2026;
+    const activeCode = eventCode || globalThis.__raffleStageState.eventCode || globalThis.__raffleWheelSettings?.activeEventCode;
+    const next = await getNextAvailablePrize(activeLoc, activeYr, activeCode);
+    
+    // Automatically update stage state to the available prize and clear allPrizesClaimed
+    globalThis.__raffleStageState.prizeName = next.prizeName;
+    globalThis.__raffleStageState.prizeImagePath = next.prizeImagePath;
+    globalThis.__raffleStageState.isGrand = next.isGrand;
+    globalThis.__raffleStageState.grandPrizeId = next.grandPrizeId;
+    globalThis.__raffleStageState.allPrizesClaimed = next.allPrizesClaimed;
+    globalThis.__raffleStageState.reloadGuestsCount = (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+    globalThis.__raffleStageState.timestamp = Date.now();
+  } catch (err) {
+    console.warn('Failed to auto-refresh wheel stage state after prize change:', err);
+  }
+}
 
 // GET all prizes (with optional ?location=TAYUD&year=2026 filters)
 export async function GET(req: NextRequest) {
@@ -94,6 +116,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Auto-refresh wheel stage state so newly added prizes wake up the stage immediately
+    refreshWheelStageState(location, finalEventYear, finalEventCode);
+
     return NextResponse.json({ success: true, prize });
   } catch (error) {
     console.error('Failed to create prize:', error);
@@ -145,6 +170,9 @@ export async function PUT(req: NextRequest) {
         ...(imagePath ? { imagePath } : {}),
       },
     });
+
+    // Auto-refresh wheel stage state so edited prizes or un-won prizes wake up the stage immediately
+    refreshWheelStageState(updated.location, updated.eventYear, updated.eventCode || undefined);
 
     return NextResponse.json({ success: true, prize: updated });
   } catch (error) {

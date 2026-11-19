@@ -152,6 +152,28 @@ export async function GET(req: NextRequest) {
     currentState.masterSessionId = null;
   }
 
+  // AUTO-RECOVERY CHECK:
+  // If stage state is marked as allPrizesClaimed, verify if new or unclaimed prizes exist in the DB!
+  if (currentState.allPrizesClaimed) {
+    try {
+      const activeLoc = currentState.location || globalThis.__raffleWheelSettings?.activeLocation || 'TAYUD';
+      const activeYr = currentState.eventYear || globalThis.__raffleWheelSettings?.activeYear || 2026;
+      const activeCode = currentState.eventCode || globalThis.__raffleWheelSettings?.activeEventCode;
+      const next = await getNextAvailablePrize(activeLoc, activeYr, activeCode);
+      if (!next.allPrizesClaimed) {
+        currentState.prizeName = next.prizeName;
+        currentState.prizeImagePath = next.prizeImagePath;
+        currentState.isGrand = next.isGrand;
+        currentState.grandPrizeId = next.grandPrizeId;
+        currentState.allPrizesClaimed = false;
+        currentState.reloadGuestsCount = (currentState.reloadGuestsCount || 0) + 1;
+        currentState.timestamp = now;
+      }
+    } catch (e) {
+      console.warn('Auto-recovery prize check error:', e);
+    }
+  }
+
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get('sessionId');
 
