@@ -26,6 +26,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
   List<dynamic> _regularPrizes = [];
   Timer? _pollTimer;
   Map<String, dynamic>? _lastWinner;
+  bool _allPrizesClaimed = false;
 
   // Spin Settings
   int _duration = 8;
@@ -70,6 +71,12 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
               }
 
               // Sync current prize from server if updated or auto-advanced
+              if (state['allPrizesClaimed'] != null) {
+                _allPrizesClaimed = state['allPrizesClaimed'] == true;
+              } else if (state['prizeName'] == 'All Prizes Claimed!') {
+                _allPrizesClaimed = true;
+              }
+
               if (state['prizeName'] != null && !_isSpinning) {
                 if (_currentPrize != state['prizeName']) {
                   _currentPrize = state['prizeName'];
@@ -96,6 +103,11 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
         setState(() {
           _grandPrizes = data['grandPrizes'] ?? [];
           _regularPrizes = data['regularPrizes'] ?? [];
+          if (data['allPrizesClaimed'] != null) {
+            _allPrizesClaimed = data['allPrizesClaimed'] == true;
+          } else {
+            _allPrizesClaimed = _grandPrizes.isEmpty && _regularPrizes.isEmpty;
+          }
           // Pick first regular prize or grand prize from DB
           if (_currentPrize == 'Loading Prize...' || _currentPrize == '1 Sack 5 kl Rice' || _currentPrize == 'General Raffle Prize') {
             if (_regularPrizes.isNotEmpty) {
@@ -147,7 +159,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
   }
 
   Future<void> _triggerSpin() async {
-    if (_isSpinning) return;
+    if (_isSpinning || _allPrizesClaimed) return;
     Vibration.vibrate(duration: 80);
 
     setState(() {
@@ -624,10 +636,10 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
 
                 const SizedBox(height: 24),
 
-                // Giant Spin Trigger Button (Disabled while a winner is awaiting confirmation)
+                // Giant Spin Trigger Button (Disabled while spinning, awaiting claim, or when all prizes claimed)
                 Center(
                   child: GestureDetector(
-                    onTap: (_isSpinning || _lastWinner != null) ? null : _triggerSpin,
+                    onTap: (_isSpinning || _lastWinner != null || _allPrizesClaimed) ? null : _triggerSpin,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       width: 220,
@@ -635,7 +647,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: (_isSpinning || _lastWinner != null)
+                          colors: (_isSpinning || _lastWinner != null || _allPrizesClaimed)
                               ? [Colors.grey.shade800, Colors.grey.shade900]
                               : [const Color(0xFF10B981), const Color(0xFF047857)],
                           begin: Alignment.topLeft,
@@ -643,7 +655,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: (_isSpinning || _lastWinner != null)
+                            color: (_isSpinning || _lastWinner != null || _allPrizesClaimed)
                                 ? Colors.transparent
                                 : const Color(0xFF10B981).withValues(alpha: 0.4),
                             blurRadius: 30,
@@ -656,22 +668,26 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              _isSpinning
-                                  ? Icons.hourglass_top
-                                  : (_lastWinner != null ? Icons.lock : Icons.play_arrow),
+                              _allPrizesClaimed
+                                  ? Icons.emoji_events
+                                  : _isSpinning
+                                      ? Icons.hourglass_top
+                                      : (_lastWinner != null ? Icons.lock : Icons.play_arrow),
                               size: 64,
-                              color: (_isSpinning || _lastWinner != null) ? Colors.grey.shade500 : Colors.white,
+                              color: (_isSpinning || _lastWinner != null || _allPrizesClaimed) ? Colors.grey.shade500 : Colors.white,
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              _isSpinning
-                                  ? 'SPINNING...'
-                                  : (_lastWinner != null ? 'AWAITING CLAIM' : 'SPIN!'),
+                              _allPrizesClaimed
+                                  ? 'ALL CLAIMED'
+                                  : _isSpinning
+                                      ? 'SPINNING...'
+                                      : (_lastWinner != null ? 'AWAITING CLAIM' : 'SPIN!'),
                               style: TextStyle(
-                                fontSize: _lastWinner != null ? 14 : 24,
+                                fontSize: (_lastWinner != null || _allPrizesClaimed) ? 14 : 24,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 2,
-                                color: (_isSpinning || _lastWinner != null) ? Colors.grey.shade500 : Colors.white,
+                                color: (_isSpinning || _lastWinner != null || _allPrizesClaimed) ? Colors.grey.shade500 : Colors.white,
                               ),
                             ),
                           ],

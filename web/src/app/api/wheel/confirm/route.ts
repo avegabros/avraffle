@@ -118,6 +118,7 @@ export async function POST(req: NextRequest) {
         globalThis.__raffleStageState.prizeImagePath = nextPrize.prizeImagePath;
         globalThis.__raffleStageState.isGrand = nextPrize.isGrand;
         globalThis.__raffleStageState.grandPrizeId = nextPrize.grandPrizeId;
+        globalThis.__raffleStageState.allPrizesClaimed = nextPrize.allPrizesClaimed;
       }
       globalThis.__raffleStageState.timestamp = Date.now();
     }

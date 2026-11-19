@@ -32,6 +32,8 @@ function RaffleViewContent() {
   const [pointingAttendee, setPointingAttendee] = useState<WheelSegment | null>(null);
   const [isStageActive, setIsStageActive] = useState(false);
 
+  const [allPrizesClaimed, setAllPrizesClaimed] = useState(false);
+
   // Settings synced from server
   const [duration, setDuration] = useState(8);
   const [power, setPower] = useState<'low' | 'medium' | 'high'>('high');
@@ -54,6 +56,9 @@ function RaffleViewContent() {
       const data = await res.json();
       if (Array.isArray(data.segments)) {
         setSegments(data.segments);
+      }
+      if (typeof data.allPrizesClaimed === 'boolean') {
+        setAllPrizesClaimed(data.allPrizesClaimed);
       }
       if (data.regularPrizes?.length > 0 || data.grandPrizes?.length > 0) {
         const firstPrize = data.regularPrizes?.[0] || data.grandPrizes?.[0];
@@ -130,6 +135,13 @@ function RaffleViewContent() {
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
               loadWheelData(currentLoc, currentYr);
+            }
+
+            // Sync allPrizesClaimed
+            if (state.allPrizesClaimed !== undefined) {
+              setAllPrizesClaimed(Boolean(state.allPrizesClaimed));
+            } else if (state.prizeName === 'All Prizes Claimed!') {
+              setAllPrizesClaimed(true);
             }
 
             // Sync current prize
@@ -271,6 +283,19 @@ function RaffleViewContent() {
           <div className="text-lg text-slate-400 animate-pulse font-semibold">
             Loading attendees into wheel...
           </div>
+        ) : allPrizesClaimed ? (
+          <div className="text-center p-8 max-w-md bg-slate-900/80 rounded-3xl border border-amber-500/40 shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-500">
+            <div className="text-5xl mb-3">🏆🎉</div>
+            <h2 className="text-2xl font-black text-amber-400 mb-2 tracking-wide">
+              All Prizes Claimed!
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
+              Thank you for celebrating with us! All raffle prizes have been officially awarded.
+            </p>
+            <div className="mt-5 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
+              ✨ Raffle Complete ✨
+            </div>
+          </div>
         ) : segments.length === 0 ? (
           <div className="text-center p-6 bg-slate-900/60 rounded-2xl border border-white/10">
             <h2 className="text-xl font-bold mb-1">No Active Attendees</h2>
@@ -304,12 +329,14 @@ function RaffleViewContent() {
         )}
 
         {/* Current Prize Bar Below Wheel */}
-        <div className="mt-4 px-4 py-2 bg-slate-900/80 border border-white/10 rounded-xl text-center max-w-md w-full">
-          <div className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Current Prize Draw</div>
-          <div className="text-base sm:text-lg font-black text-amber-300 truncate">
-            {selectedPrize.name}
+        {!allPrizesClaimed && (
+          <div className="mt-4 px-4 py-2 bg-slate-900/80 border border-white/10 rounded-xl text-center max-w-md w-full">
+            <div className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Current Prize Draw</div>
+            <div className="text-base sm:text-lg font-black text-amber-300 truncate">
+              {selectedPrize.name}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Bottom Footer Info */}

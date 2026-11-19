@@ -21,6 +21,7 @@ declare global {
     stageHeartbeat?: number;
     masterSessionId?: string | null;
     masterHeartbeat?: number;
+    allPrizesClaimed?: boolean;
     winner: {
       id: number;
       employeeId: string;
@@ -70,6 +71,7 @@ export async function getNextAvailablePrize(location = 'TAYUD', eventYear = 2026
         prizeImagePath: regularPrize.imagePath,
         isGrand: false,
         grandPrizeId: null,
+        allPrizesClaimed: false,
       };
     }
 
@@ -91,6 +93,7 @@ export async function getNextAvailablePrize(location = 'TAYUD', eventYear = 2026
         prizeImagePath: grandPrize.imagePath,
         isGrand: true,
         grandPrizeId: grandPrize.id,
+        allPrizesClaimed: false,
       };
     }
   } catch (err) {
@@ -101,6 +104,7 @@ export async function getNextAvailablePrize(location = 'TAYUD', eventYear = 2026
     prizeImagePath: null,
     isGrand: false,
     grandPrizeId: null,
+    allPrizesClaimed: true,
   };
 }
 
@@ -222,6 +226,9 @@ export async function POST(req: NextRequest) {
       currentState.isGrand = body.isGrand ?? currentState.isGrand;
       currentState.grandPrizeId = body.grandPrizeId ?? currentState.grandPrizeId;
       currentState.targetWinnerId = body.targetWinnerId ?? null;
+      if (body.allPrizesClaimed !== undefined) {
+        currentState.allPrizesClaimed = body.allPrizesClaimed;
+      }
       currentState.timestamp = now;
       currentState.winner = null;
     } else if (body.action === 'WINNER_ANNOUNCED') {
@@ -233,6 +240,7 @@ export async function POST(req: NextRequest) {
       currentState.prizeImagePath = body.prizeImagePath !== undefined ? body.prizeImagePath : null;
       currentState.isGrand = body.isGrand ?? false;
       currentState.grandPrizeId = body.grandPrizeId ?? null;
+      currentState.allPrizesClaimed = false;
       if (body.location) currentState.location = body.location;
       if (body.eventYear) currentState.eventYear = body.eventYear;
       if (body.eventCode) currentState.eventCode = body.eventCode;
@@ -246,6 +254,7 @@ export async function POST(req: NextRequest) {
       currentState.prizeImagePath = next.prizeImagePath;
       currentState.isGrand = next.isGrand;
       currentState.grandPrizeId = next.grandPrizeId;
+      currentState.allPrizesClaimed = next.allPrizesClaimed;
       currentState.timestamp = Date.now();
     } else if (body.action === 'SET_LOCATION') {
       if (body.location) currentState.location = body.location;

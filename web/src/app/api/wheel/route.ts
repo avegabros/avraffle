@@ -103,10 +103,13 @@ export async function GET(req: NextRequest) {
       ],
     });
 
+    const totalPrizesCount = availableGrandPrizes.length + availableRegularPrizes.length;
+
     return NextResponse.json({
       segments,
       grandPrizes: availableGrandPrizes,
       regularPrizes: availableRegularPrizes,
+      allPrizesClaimed: totalPrizesCount === 0,
     });
   } catch (error) {
     console.error('Failed to fetch wheel guests:', error);

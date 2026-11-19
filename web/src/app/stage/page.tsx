@@ -49,6 +49,8 @@ export default function StagePage() {
   const [wheelSize, setWheelSize] = useState(900);
   const [allowManualSpin, setAllowManualSpin] = useState(false);
 
+  const [allPrizesClaimed, setAllPrizesClaimed] = useState(false);
+
   const [selectedPrize, setSelectedPrize] = useState<{ id?: number; name: string; isGrand: boolean; imagePath?: string | null }>({
     name: 'Loading Prize...',
     isGrand: false,
@@ -66,6 +68,9 @@ export default function StagePage() {
       const data = await res.json();
       if (Array.isArray(data.segments)) {
         setSegments(data.segments);
+      }
+      if (typeof data.allPrizesClaimed === 'boolean') {
+        setAllPrizesClaimed(data.allPrizesClaimed);
       }
       // If no prize currently selected or still in initial state, sync with first prize from database
       if (data.regularPrizes?.length > 0 || data.grandPrizes?.length > 0) {
@@ -184,6 +189,13 @@ export default function StagePage() {
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
               loadWheelData(currentLoc, currentYr);
+            }
+
+            // Sync allPrizesClaimed from state
+            if (state.allPrizesClaimed !== undefined) {
+              setAllPrizesClaimed(Boolean(state.allPrizesClaimed));
+            } else if (state.prizeName === 'All Prizes Claimed!') {
+              setAllPrizesClaimed(true);
             }
 
             // Sync selected prize from remote
@@ -458,6 +470,19 @@ export default function StagePage() {
             <div className="text-xl text-slate-400 animate-pulse font-semibold">
               Loading attendees into wheel...
             </div>
+          ) : allPrizesClaimed ? (
+            <div className="text-center p-10 max-w-xl bg-slate-900/80 rounded-3xl border-2 border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.25)] backdrop-blur-xl animate-in zoom-in-95 duration-500">
+              <div className="text-6xl mb-4">🏆🎉</div>
+              <h2 className="text-3xl font-black text-amber-400 mb-3 tracking-wide">
+                All Prizes Claimed!
+              </h2>
+              <p className="text-base text-slate-300 font-medium leading-relaxed">
+                Thank you for participating! All raffle prizes for this event have been officially drawn and awarded.
+              </p>
+              <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
+                ✨ Raffle Complete ✨
+              </div>
+            </div>
           ) : segments.length === 0 ? (
             <div className="text-center p-8 bg-slate-900/60 rounded-2xl border border-white/10">
               <h2 className="text-2xl font-bold mb-2">No Attendees in Active Wheel</h2>
@@ -490,7 +515,7 @@ export default function StagePage() {
         </div>
 
         {/* Right Prize Spotlight Panel */}
-        {showPrizeCard && (
+        {showPrizeCard && !allPrizesClaimed && (
           <div className="hidden md:flex flex-col items-center justify-center w-80 lg:w-96 p-6 rounded-3xl bg-slate-900/80 border-2 border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.2)] backdrop-blur-xl animate-in fade-in slide-in-from-right-6 transition-all duration-300">
             <div className="px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-widest bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow mb-4">
               {selectedPrize.isGrand ? '🌟 GRAND PRIZE DRAW 🌟' : '🎁 REGULAR DRAW PRIZE'}
