@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings2, Volume2, VolumeX, Maximize2, Square, X, MapPin } from 'lucide-react';
+import { Settings2, Volume2, VolumeX, Maximize2, Square, X, MapPin, Lock, Unlock } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
 interface StageControlsProps {
@@ -16,6 +16,8 @@ interface StageControlsProps {
   activeLocation?: string;
   onLocationChange?: (loc: string) => void;
   isViewer?: boolean;
+  allowManualSpin?: boolean;
+  onToggleManualSpin?: (val: boolean) => void;
 }
 
 export const StageControls: React.FC<StageControlsProps> = ({
@@ -30,6 +32,8 @@ export const StageControls: React.FC<StageControlsProps> = ({
   activeLocation = 'ALL',
   onLocationChange,
   isViewer = false,
+  allowManualSpin = false,
+  onToggleManualSpin,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -128,6 +132,26 @@ export const StageControls: React.FC<StageControlsProps> = ({
               <span className="font-bold text-amber-400 uppercase text-[11px]">
                 {activeLocation === 'ALL' ? 'Unified (All)' : activeLocation}
               </span>
+            </div>
+          )}
+
+          {/* Stage Manual Click-to-Spin Guard */}
+          {!isViewer && onToggleManualSpin && (
+            <div className="flex items-center justify-between px-3 py-2 bg-slate-800/80 rounded-xl text-xs font-semibold">
+              <span className="flex items-center gap-1.5">
+                {allowManualSpin ? (
+                  <Unlock className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                )}
+                <span>Allow Stage Spin Button</span>
+              </span>
+              <input
+                type="checkbox"
+                checked={allowManualSpin}
+                onChange={(e) => onToggleManualSpin(e.target.checked)}
+                className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+              />
             </div>
           )}
 

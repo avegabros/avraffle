@@ -187,6 +187,21 @@ export async function POST(req: NextRequest) {
         currentState.masterHeartbeat = 0;
       }
     } else if (body.action === 'SPIN') {
+      // ATOMIC SPIN GUARD: Reject if wheel is already spinning or within minimum lock window
+      const isAlreadySpinning = currentState.status === 'SPINNING';
+      const timeSinceLastSpin = now - (currentState.timestamp || 0);
+
+      if (isAlreadySpinning && timeSinceLastSpin < 12000) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Wheel is already spinning! Please wait for the current draw to finish.',
+            state: currentState,
+          },
+          { status: 409 }
+        );
+      }
+
       currentState.status = 'SPINNING';
       currentState.spinTriggerCount += 1;
       currentState.prizeName = body.prizeName || currentState.prizeName;
@@ -194,7 +209,7 @@ export async function POST(req: NextRequest) {
       currentState.isGrand = body.isGrand ?? currentState.isGrand;
       currentState.grandPrizeId = body.grandPrizeId ?? currentState.grandPrizeId;
       currentState.targetWinnerId = body.targetWinnerId ?? null;
-      currentState.timestamp = Date.now();
+      currentState.timestamp = now;
       currentState.winner = null;
     } else if (body.action === 'WINNER_ANNOUNCED') {
       currentState.status = 'IDLE';

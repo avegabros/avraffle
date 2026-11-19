@@ -169,7 +169,18 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
         }),
       );
 
-      if (res.statusCode != 200) {
+      if (res.statusCode == 409) {
+        // Another APK or remote already triggered the spin!
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ Wheel is already in motion! Synchronizing...'),
+              backgroundColor: Colors.amber,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else if (res.statusCode != 200) {
         if (mounted) {
           setState(() => _isSpinning = false);
         }

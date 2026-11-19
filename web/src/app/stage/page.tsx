@@ -47,6 +47,7 @@ export default function StagePage() {
   const [power, setPower] = useState<'low' | 'medium' | 'high'>('high');
   const [fontSize, setFontSize] = useState(13);
   const [wheelSize, setWheelSize] = useState(900);
+  const [allowManualSpin, setAllowManualSpin] = useState(false);
 
   const [selectedPrize, setSelectedPrize] = useState<{ id?: number; name: string; isGrand: boolean; imagePath?: string | null }>({
     name: 'Loading Prize...',
@@ -409,6 +410,8 @@ export default function StagePage() {
         activeLocation={activeLocation}
         onLocationChange={handleLocationChange}
         isViewer={false}
+        allowManualSpin={allowManualSpin}
+        onToggleManualSpin={setAllowManualSpin}
       />
 
       {/* Stage Header Banner (Hidden by default) */}
@@ -457,7 +460,7 @@ export default function StagePage() {
               <RaffleWheel
                 ref={wheelRef}
                 segments={segments}
-                onSpinStart={isMaster ? handleSpinStart : undefined}
+                onSpinStart={isMaster && allowManualSpin ? handleSpinStart : undefined}
                 onSpinEnd={handleSpinEnd}
                 onSpinStateChange={setIsSpinning}
                 onPointingSegmentChange={setPointingAttendee}
@@ -465,7 +468,7 @@ export default function StagePage() {
                 power={power}
                 fontSize={fontSize}
                 wheelSize={showPrizeCard ? Math.min(wheelSize, 780) : Math.min(wheelSize, 850)}
-                isViewer={!isMaster}
+                isViewer={!isMaster || !allowManualSpin}
               />
 
               {/* Dynamic Live Attendee Spotlight Banner */}
