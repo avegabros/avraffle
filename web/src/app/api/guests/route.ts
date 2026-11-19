@@ -111,3 +111,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to register guest' }, { status: 500 });
   }
 }
+
+// DELETE: Delete a manually added guest entry (e.g. GUEST-*)
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const idStr = searchParams.get('id');
+    if (!idStr) {
+      return NextResponse.json({ error: 'Guest ID is required' }, { status: 400 });
+    }
+
+    const id = parseInt(idStr, 10);
+    const existing = await prisma.guest.findUnique({
+      where: { id },
+      include: { grandPrizeWon: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Guest not found' }, { status: 404 });
+    }
+
+    if (existing.isWinner) {
+      return NextResponse.json(
+        { error: 'Cannot delete an attendee who has already won a prize. Reset winner status first.' },
+        { status: 400 }
+      );
+    }
+
+    await prisma.guest.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, message: 'Guest deleted successfully' });
+  } catch (error) {
+    console.error('Failed to delete guest:', error);
+    return NextResponse.json({ error: 'Failed to delete guest' }, { status: 500 });
+  }
+}

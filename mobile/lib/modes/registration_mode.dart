@@ -131,6 +131,101 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
+  // Toggle Wheel Eligibility (inWheel)
+  Future<void> _toggleWheelEligibility(Map<String, dynamic> guest) async {
+    final currentStatus = guest['inWheel'] == true;
+    final newStatus = !currentStatus;
+
+    try {
+      final res = await http.patch(
+        Uri.parse('${widget.serverUrl}/api/guests/update'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': guest['id'],
+          'inWheel': newStatus,
+        }),
+      );
+
+      if (res.statusCode == 200) {
+        setState(() {
+          guest['inWheel'] = newStatus;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                newStatus
+                    ? '🎯 ${guest['firstName']} is now included in the Raffle Wheel!'
+                    : '🚫 ${guest['firstName']} is now excluded from the Raffle Wheel.',
+              ),
+              backgroundColor: newStatus ? Colors.green.shade700 : Colors.orange.shade800,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update wheel eligibility')),
+        );
+      }
+    }
+  }
+
+  // Delete Guest (Only for GUEST-* tags that haven't won)
+  Future<void> _deleteGuest(Map<String, dynamic> guest) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('Delete Guest Entry?'),
+        content: Text('Are you sure you want to permanently delete "${guest['firstName']} ${guest['lastName']}" (${guest['employeeId']})?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final res = await http.delete(
+        Uri.parse('${widget.serverUrl}/api/guests?id=${guest['id']}'),
+      );
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 200 && data['success'] == true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🗑️ Deleted entry: ${guest['firstName']} ${guest['lastName']}'),
+              backgroundColor: Colors.red.shade700,
+            ),
+          );
+        }
+        _fetchGuests(_searchController.text.trim());
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['error'] ?? 'Failed to delete guest')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error deleting guest')),
+        );
+      }
+    }
+  }
+
   // Dialog to register a new attendee or guest who is not on the employee list
   void _showAddGuestDialog() {
     final formKey = GlobalKey<FormState>();
@@ -235,16 +330,62 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               icon: const Icon(Icons.camera_alt, color: Colors.black, size: 18),
               label: const Text('Save & Mugshot', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
-              onPressed: () {
+              onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
+                final fName = firstNameController.text.trim();
+                final lName = lastNameController.text.trim();
+
+                // Check for potential duplicate against existing guests in system
+                final potentialMatch = _guests.firstWhere(
+                  (g) =>
+                      g['firstName'].toString().trim().toLowerCase() == fName.toLowerCase() &&
+                      g['lastName'].toString().trim().toLowerCase() == lName.toLowerCase(),
+                  orElse: () => null,
+                );
+
+                if (potentialMatch != null) {
+                  final proceed = await showDialog<bool>(
+                    context: ctx,
+                    builder: (alertCtx) => AlertDialog(
+                      backgroundColor: const Color(0xFF0F172A),
+                      title: const Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: Colors.amber),
+                          SizedBox(width: 8),
+                          Text('Possible Duplicate!'),
+                        ],
+                      ),
+                      content: Text(
+                        'Attendee "$fName $lName" already exists in the system:\n\n'
+                        '• ID: ${potentialMatch['employeeId']}\n'
+                        '• Dept: ${potentialMatch['department'] ?? 'N/A'}\n'
+                        '• Status: ${potentialMatch['isRegistered'] == true ? 'Already Registered' : 'Not yet Checked In'}\n\n'
+                        'Are you sure you want to create a SECOND duplicate entry?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(alertCtx, false),
+                          child: const Text('Cancel / Use Existing'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.amber.shade700),
+                          onPressed: () => Navigator.pop(alertCtx, true),
+                          child: const Text('Create Duplicate Anyway', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (proceed != true) return;
+                }
+
                 final newGuest = {
                   'employeeId': idController.text.trim(),
-                  'firstName': firstNameController.text.trim(),
-                  'lastName': lastNameController.text.trim(),
+                  'firstName': fName,
+                  'lastName': lName,
                   'department': deptController.text.trim(),
                   'location': selectedLocation,
                 };
-                Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
                 _checkInWithMugshot(newGuest);
               },
             ),
@@ -361,6 +502,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         itemBuilder: (ctx, idx) {
                       final guest = _guests[idx];
                       final isCheckedIn = guest['isRegistered'] == true;
+                      final inWheel = guest['inWheel'] == true;
+                      final isManualGuest = guest['employeeId'].toString().startsWith('GUEST-');
 
                       return ListTile(
                         leading: CircleAvatar(
@@ -375,23 +518,85 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 )
                               : null,
                         ),
-                        title: Text(
-                          '${guest['firstName']} ${guest['lastName']}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${guest['firstName']} ${guest['lastName']}',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            if (!inWheel)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                                ),
+                                child: const Text(
+                                  'NO WHEEL',
+                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                                ),
+                              ),
+                          ],
                         ),
                         subtitle: Text('${guest['employeeId']} • ${guest['department'] ?? 'No Dept'}'),
-                        trailing: ElevatedButton.icon(
-                          icon: Icon(
-                            isCheckedIn ? Icons.check_circle : Icons.camera_alt,
-                            size: 18,
-                          ),
-                          label: Text(isCheckedIn ? 'Registered' : 'Take Mugshot'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isCheckedIn ? Colors.grey.shade800 : const Color(0xFFF59E0B),
-                            foregroundColor: isCheckedIn ? Colors.grey.shade400 : Colors.black,
-                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          onPressed: () => _checkInWithMugshot(guest),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton.icon(
+                              icon: Icon(
+                                isCheckedIn ? Icons.check_circle : Icons.camera_alt,
+                                size: 16,
+                              ),
+                              label: Text(isCheckedIn ? 'Registered' : 'Mugshot'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isCheckedIn ? Colors.grey.shade800 : const Color(0xFFF59E0B),
+                                foregroundColor: isCheckedIn ? Colors.grey.shade400 : Colors.black,
+                                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              ),
+                              onPressed: () => _checkInWithMugshot(guest),
+                            ),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+                              onSelected: (val) {
+                                if (val == 'toggle_wheel') {
+                                  _toggleWheelEligibility(guest);
+                                } else if (val == 'delete') {
+                                  _deleteGuest(guest);
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'toggle_wheel',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        inWheel ? Icons.block : Icons.replay_circle_filled,
+                                        size: 18,
+                                        color: inWheel ? Colors.orangeAccent : Colors.greenAccent,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(inWheel ? 'Exclude from Wheel' : 'Include in Wheel'),
+                                    ],
+                                  ),
+                                ),
+                                if (isManualGuest && guest['isWinner'] != true)
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.delete_forever, size: 18, color: Colors.redAccent),
+                                        SizedBox(width: 8),
+                                        Text('Delete Guest Entry', style: TextStyle(color: Colors.redAccent)),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ),
                       );
                     },

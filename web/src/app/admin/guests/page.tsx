@@ -97,6 +97,26 @@ export default function AdminGuestsPage() {
     }
   };
 
+  const handleDeleteGuest = async (g: Guest) => {
+    if (!confirm(`Are you sure you want to permanently delete guest entry "${g.firstName} ${g.lastName}" (${g.employeeId})?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/guests?id=${g.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to delete guest');
+        return;
+      }
+      fetchGuests(search, selectedLocation, selectedYear);
+    } catch (e) {
+      console.error(e);
+      alert('Network error while deleting guest');
+    }
+  };
+
   const openEditModal = (g: Guest) => {
     setEditingGuest(g);
     setEditFirstName(g.firstName);
@@ -319,12 +339,23 @@ export default function AdminGuestsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => openEditModal(g)}
-                          className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg border border-slate-700 text-slate-200 transition"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEditModal(g)}
+                            className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg border border-slate-700 text-slate-200 transition"
+                          >
+                            Edit
+                          </button>
+                          {g.employeeId.startsWith('GUEST-') && !g.isWinner && (
+                            <button
+                              onClick={() => handleDeleteGuest(g)}
+                              className="px-2.5 py-1 bg-red-950/40 hover:bg-red-900/60 text-xs font-bold rounded-lg border border-red-500/30 text-red-400 transition"
+                              title="Delete Manual Guest Entry"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
