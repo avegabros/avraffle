@@ -85,6 +85,8 @@ export async function POST(req: NextRequest) {
 
     // 3. Auto-queue next available prize if current prize ran out & trigger stage guest reload
     if (globalThis.__raffleStageState) {
+      globalThis.__raffleStageState.winner = null;
+      globalThis.__raffleStageState.status = 'IDLE';
       globalThis.__raffleStageState.reloadGuestsCount = (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
       
       // Check if current prize still has remaining quantity

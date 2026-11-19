@@ -67,9 +67,17 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
               } else if (serverStatus == 'IDLE') {
                 if (_isSpinning) {
                   _isSpinning = false;
-                  if (state['winner'] != null) {
+                }
+                // Sync winner from server: if server cleared winner (e.g. claimed or dismissed on stage), dismiss in app
+                if (state['winner'] != null) {
+                  if (_lastWinner == null || _lastWinner!['id'] != state['winner']['id']) {
                     _lastWinner = state['winner'];
                     Vibration.vibrate(duration: 400);
+                  }
+                } else {
+                  // If stage or another client confirmed/claimed or marked absent, clear _lastWinner so app doesn't show stale claim/absent buttons
+                  if (_lastWinner != null) {
+                    _lastWinner = null;
                   }
                 }
               }
