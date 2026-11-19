@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { APP_VERSION } from '@/lib/version';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -31,7 +32,14 @@ if (!globalThis.__raffleWheelSettings) {
 }
 
 export async function GET() {
-  return NextResponse.json(globalThis.__raffleWheelSettings);
+  return NextResponse.json({
+    ...globalThis.__raffleWheelSettings,
+    latestAppVersion: APP_VERSION.version,
+    latestBuildNumber: APP_VERSION.buildNumber,
+    latestAppTag: APP_VERSION.tag,
+    apkDownloadUrl: `https://github.com/avegabros/avraffle/releases/download/${APP_VERSION.tag}/app-release.apk`,
+    playStoreUrl: `https://play.google.com/store/apps/details?id=${APP_VERSION.package}`,
+  });
 }
 
 export async function POST(req: NextRequest) {

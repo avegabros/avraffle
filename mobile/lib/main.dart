@@ -57,6 +57,137 @@ class _MainGateScreenState extends State<MainGateScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForAppUpdate();
+    });
+  }
+
+  Future<void> _checkForAppUpdate() async {
+    try {
+      final res = await http.get(Uri.parse('$_serverUrl/api/settings')).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final int? serverBuildNumber = data['latestBuildNumber'] != null
+            ? (data['latestBuildNumber'] is int
+                ? data['latestBuildNumber']
+                : int.tryParse(data['latestBuildNumber'].toString()))
+            : null;
+
+        final String serverVersion = data['latestAppVersion'] ?? data['latestAppTag'] ?? 'Latest';
+        final String apkUrl = data['apkDownloadUrl'] ?? _serverUrl;
+        final String playStoreUrl = data['playStoreUrl'] ?? 'https://play.google.com/store/apps/details?id=ph.avegabros.avraffle';
+
+        if (serverBuildNumber != null && serverBuildNumber > AppVersion.buildNumber) {
+          if (!mounted) return;
+          _showUpdateDialog(
+            latestVersion: serverVersion,
+            latestBuildNumber: serverBuildNumber,
+            apkUrl: apkUrl,
+            playStoreUrl: playStoreUrl,
+          );
+        }
+      }
+    } catch (_) {
+      // Gracefully ignore network errors on update check
+    }
+  }
+
+  void _showUpdateDialog({
+    required String latestVersion,
+    required int latestBuildNumber,
+    required String apkUrl,
+    required String playStoreUrl,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.system_update, color: Color(0xFFF59E0B), size: 28),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'New Update Available',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'A newer version of AV-Raffle is available!',
+              style: const TextStyle(fontSize: 14, color: Colors.white),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Your App:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text(AppVersion.buildInfo, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Latest Version:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text('v$latestVersion (Build $latestBuildNumber)', style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Please update your app to ensure you have the latest raffle stage syncing and features.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Remind Later', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.download, size: 18, color: Colors.black),
+            label: const Text('Download APK', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF59E0B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () async {
+              final uri = Uri.parse(apkUrl);
+              try {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } catch (_) {}
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadSettings() async {
