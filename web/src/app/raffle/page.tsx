@@ -164,8 +164,8 @@ function RaffleViewContent() {
               });
             }
 
-            // Sync live spin trigger only when stage is active and trigger count increments
-            if (state.stageActive && state.status === 'SPINNING' && state.spinTriggerCount > lastSeenTrigger) {
+            // Sync live spin trigger whenever remote spins and trigger count increments
+            if (state.status === 'SPINNING' && state.spinTriggerCount > lastSeenTrigger) {
               lastSeenTrigger = state.spinTriggerCount;
               setIsModalOpen(false);
               setCurrentWinner(null);
