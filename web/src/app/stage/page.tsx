@@ -115,14 +115,26 @@ export default function StagePage() {
     let lastSeenTrigger = 0;
     let lastSeenSettingsUpdate = 0;
     let lastSeenReloadGuests = 0;
+    let heartbeatTick = 0;
 
     const pollInterval = 500;
 
     const interval = setInterval(async () => {
       try {
+        heartbeatTick++;
+        // Stage heartbeat ping every ~2 seconds (every 4 ticks of 500ms)
+        const sendHeartbeat = heartbeatTick % 4 === 1;
+
         const [stateRes, settingsRes] = await Promise.all([
           fetch('/api/wheel/state'),
           fetch('/api/settings'),
+          sendHeartbeat
+            ? fetch('/api/wheel/state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'STAGE_HEARTBEAT' }),
+              }).catch(() => null)
+            : Promise.resolve(null),
         ]);
 
         if (!isMounted) return;

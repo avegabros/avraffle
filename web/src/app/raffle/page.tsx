@@ -30,6 +30,7 @@ function RaffleViewContent() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default muted on phones
   const [pointingAttendee, setPointingAttendee] = useState<WheelSegment | null>(null);
+  const [isStageActive, setIsStageActive] = useState(false);
 
   // Settings synced from server
   const [duration, setDuration] = useState(8);
@@ -101,7 +102,7 @@ function RaffleViewContent() {
       });
 
     // 2. Poll stage state (1200ms lightweight poll)
-    let lastSeenTrigger = 0;
+    let lastSeenTrigger = -1;
     let lastSeenSettingsUpdate = 0;
     let lastSeenReloadGuests = 0;
 
@@ -117,6 +118,14 @@ function RaffleViewContent() {
           const cfg = data.settings;
 
           if (state) {
+            // Check if stage is actively opened on the master projector
+            setIsStageActive(Boolean(state.stageActive));
+
+            // Initialize lastSeenTrigger on first poll so we don't fire stale spins
+            if (lastSeenTrigger === -1) {
+              lastSeenTrigger = state.spinTriggerCount ?? 0;
+            }
+
             // Reload segments if winner claimed or guests updated
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
@@ -142,8 +151,8 @@ function RaffleViewContent() {
               });
             }
 
-            // Sync live spin trigger
-            if (state.status === 'SPINNING' && state.spinTriggerCount > lastSeenTrigger) {
+            // Sync live spin trigger only when stage is active and trigger count increments
+            if (state.stageActive && state.status === 'SPINNING' && state.spinTriggerCount > lastSeenTrigger) {
               lastSeenTrigger = state.spinTriggerCount;
               setIsModalOpen(false);
               setCurrentWinner(null);
@@ -217,9 +226,18 @@ function RaffleViewContent() {
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-xl">🎡</span>
           <div className="flex flex-col">
-            <span className="text-xs sm:text-sm font-black tracking-wide text-amber-400">
-              LIVE RAFFLE STAGE
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-black tracking-wide text-amber-400">
+                LIVE RAFFLE STAGE
+              </span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                isStageActive
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse'
+                  : 'bg-slate-800 text-slate-400 border border-slate-700'
+              }`}>
+                {isStageActive ? '● Stage Active' : '○ Standby'}
+              </span>
+            </div>
             <span className="text-[10px] text-slate-400 font-mono">
               Venue: {activeLocation === 'ALL' ? 'Unified (All)' : activeLocation}
             </span>

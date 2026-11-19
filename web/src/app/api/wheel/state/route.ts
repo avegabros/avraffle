@@ -16,6 +16,8 @@ declare global {
     location: string;
     eventYear: number;
     timestamp: number;
+    stageActive?: boolean;
+    stageHeartbeat?: number;
     winner: {
       id: number;
       employeeId: string;
@@ -103,6 +105,8 @@ if (!globalThis.__raffleStageState) {
     location: 'TAYUD',
     eventYear: 2026,
     timestamp: Date.now(),
+    stageActive: false,
+    stageHeartbeat: 0,
     winner: null,
   };
 }
@@ -110,6 +114,12 @@ if (!globalThis.__raffleStageState) {
 // GET: Stage polls or mobile checks status
 export async function GET() {
   const currentState = globalThis.__raffleStageState!;
+  // Check if stage is currently considered alive (heartbeat within 5 seconds)
+  const isStageAlive = Boolean(
+    currentState.stageHeartbeat && Date.now() - currentState.stageHeartbeat < 5000
+  );
+  currentState.stageActive = isStageAlive;
+
   // Include settings directly in the state payload to cut polling traffic in half!
   const settings = globalThis.__raffleWheelSettings;
   return NextResponse.json({
@@ -124,7 +134,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const currentState = globalThis.__raffleStageState!;
 
-    if (body.action === 'SPIN') {
+    if (body.action === 'STAGE_HEARTBEAT') {
+      currentState.stageActive = true;
+      currentState.stageHeartbeat = Date.now();
+    } else if (body.action === 'SPIN') {
       currentState.status = 'SPINNING';
       currentState.spinTriggerCount += 1;
       currentState.prizeName = body.prizeName || currentState.prizeName;
