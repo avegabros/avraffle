@@ -57,6 +57,7 @@ export default function StagePage() {
 
   const [activeLocation, setActiveLocation] = useState<string>('ALL');
   const [activeYear, setActiveYear] = useState<number>(2026);
+  const [activeEventName, setActiveEventName] = useState<string>('Unified Event');
 
   const loadWheelData = async (loc = activeLocation, yr = activeYear) => {
     try {
@@ -103,6 +104,7 @@ export default function StagePage() {
         if (!isMounted) return;
         const loc = data.activeLocation || 'ALL';
         const yr = data.activeYear || 2026;
+        const evName = data.activeEventName || 'Unified Event';
         currentLoc = loc;
         currentYr = yr;
         if (data.duration) setDuration(data.duration);
@@ -111,6 +113,7 @@ export default function StagePage() {
         if (data.wheelSize) setWheelSize(data.wheelSize);
         setActiveLocation(loc);
         setActiveYear(yr);
+        setActiveEventName(evName);
         loadWheelData(loc, yr);
       })
       .catch((err) => {
@@ -427,7 +430,7 @@ export default function StagePage() {
               AV-RAFFLE
             </div>
             <span className="text-xs uppercase px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold tracking-wider">
-              🎉 Unified Event ({activeYear})
+              🎉 {activeEventName} ({activeYear})
             </span>
             <span className="text-xs uppercase px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold tracking-widest">
               {selectedPrize.isGrand ? '🌟 Grand Prize Mode' : '🎁 Regular Draw'}

@@ -6,29 +6,57 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const systemLocation = globalThis.__raffleWheelSettings?.activeLocation || 'TAYUD';
     const systemYear = globalThis.__raffleWheelSettings?.activeYear || 2026;
+    const systemEventCode = globalThis.__raffleWheelSettings?.activeEventCode;
 
     const queryLocation = searchParams.get('location');
     const location = (queryLocation && queryLocation !== 'ALL') ? queryLocation : undefined;
 
     const yearStr = searchParams.get('year');
     const eventYear = yearStr ? parseInt(yearStr, 10) : systemYear;
+    const eventCode = searchParams.get('eventCode') || systemEventCode;
 
     const guestWhere: Record<string, unknown> = {
       inWheel: true,
       isWinner: false,
-      eventYear,
     };
+    if (eventCode) {
+      guestWhere.OR = [
+        { eventCode },
+        { eventCode: null, eventYear },
+      ];
+    } else {
+      guestWhere.eventYear = eventYear;
+    }
+
     if (location) {
-      guestWhere.OR = [{ location }, { location: 'ALL' }];
+      const locCondition = [{ location }, { location: 'ALL' }];
+      if (guestWhere.OR) {
+        guestWhere.AND = [{ OR: locCondition }];
+      } else {
+        guestWhere.OR = locCondition;
+      }
     }
 
     const prizeWhere: Record<string, unknown> = {
       isWon: false,
       quantity: { gt: 0 },
-      eventYear,
     };
+    if (eventCode) {
+      prizeWhere.OR = [
+        { eventCode },
+        { eventCode: null, eventYear },
+      ];
+    } else {
+      prizeWhere.eventYear = eventYear;
+    }
+
     if (location) {
-      prizeWhere.OR = [{ location }, { location: 'ALL' }];
+      const locCondition = [{ location }, { location: 'ALL' }];
+      if (prizeWhere.OR) {
+        prizeWhere.AND = [{ OR: locCondition }];
+      } else {
+        prizeWhere.OR = locCondition;
+      }
     }
 
     const guests = await prisma.guest.findMany({

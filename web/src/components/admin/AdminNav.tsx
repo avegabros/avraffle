@@ -14,6 +14,7 @@ export const AdminNav: React.FC<AdminNavProps> = ({ badgeTitle }) => {
 
   const navLinks = [
     { label: '📊 Overview', href: '/admin' },
+    { label: '🎪 Events', href: '/admin/events' },
     { label: '👥 Attendees', href: '/admin/guests' },
     { label: '🎁 Prizes', href: '/admin/prizes' },
     { label: '🔐 Users', href: '/admin/users' },

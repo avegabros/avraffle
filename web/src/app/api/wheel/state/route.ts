@@ -15,6 +15,7 @@ declare global {
     targetWinnerId?: number | null;
     location: string;
     eventYear: number;
+    eventCode?: string;
     timestamp: number;
     stageActive?: boolean;
     stageHeartbeat?: number;
@@ -30,14 +31,26 @@ declare global {
   } | undefined;
 }
 
-export async function getNextAvailablePrize(location = 'TAYUD', eventYear = 2026) {
+export async function getNextAvailablePrize(location = 'TAYUD', eventYear = 2026, eventCode?: string) {
   try {
-    const baseWhere = {
+    const baseWhere: any = {
       isWon: false,
       quantity: { gt: 0 },
-      eventYear,
       OR: [{ location }, { location: 'ALL' }],
     };
+
+    if (eventCode) {
+      baseWhere.AND = [
+        {
+          OR: [
+            { eventCode },
+            { eventCode: null, eventYear },
+          ],
+        },
+      ];
+    } else {
+      baseWhere.eventYear = eventYear;
+    }
 
     // 1. As long as standard/regular prizes are available, select from regular prizes first
     const regularPrize = await prisma.prize.findFirst({
@@ -222,11 +235,13 @@ export async function POST(req: NextRequest) {
       currentState.grandPrizeId = body.grandPrizeId ?? null;
       if (body.location) currentState.location = body.location;
       if (body.eventYear) currentState.eventYear = body.eventYear;
+      if (body.eventCode) currentState.eventCode = body.eventCode;
       currentState.timestamp = Date.now();
     } else if (body.action === 'RESET_TO_AUTO_QUEUE') {
       const activeLoc = body.location || currentState.location || 'TAYUD';
       const activeYr = body.eventYear || currentState.eventYear || 2026;
-      const next = await getNextAvailablePrize(activeLoc, activeYr);
+      const activeCode = body.eventCode || currentState.eventCode;
+      const next = await getNextAvailablePrize(activeLoc, activeYr, activeCode);
       currentState.prizeName = next.prizeName;
       currentState.prizeImagePath = next.prizeImagePath;
       currentState.isGrand = next.isGrand;
@@ -235,6 +250,7 @@ export async function POST(req: NextRequest) {
     } else if (body.action === 'SET_LOCATION') {
       if (body.location) currentState.location = body.location;
       if (body.eventYear) currentState.eventYear = body.eventYear;
+      if (body.eventCode) currentState.eventCode = body.eventCode;
       currentState.timestamp = Date.now();
     } else if (body.action === 'RESPIN') {
       currentState.status = 'IDLE';

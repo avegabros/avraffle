@@ -21,6 +21,25 @@ model User {
   @@map("admin_users")
 }
 
+model Event {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique // e.g. "XMAS-2026", "LOYALTY-2026"
+  name        String    // e.g. "Christmas Party 2026", "Midyear Loyalty Awards 2026"
+  year        Int       @default(2026)
+  description String?
+  isActive    Boolean   @default(false) @map("is_active")
+  isArchived  Boolean   @default(false) @map("is_archived")
+  archivedAt  DateTime? @map("archived_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  guests      Guest[]
+  prizes      Prize[]
+
+  @@index([year, isActive])
+  @@map("events")
+}
+
 model Guest {
   id           Int       @id @default(autoincrement())
   employeeId   String    @unique @map("employee_id")
@@ -32,6 +51,8 @@ model Guest {
   position     String?
   location     String    @default("TAYUD") // TAYUD, MAKATI, etc.
   eventYear    Int       @default(2026) @map("event_year")
+  eventId      Int?      @map("event_id")
+  eventCode    String?   @map("event_code")
   imagePath    String?   @map("image")
   thumbPath    String?   @map("thumb_image")
   registeredOn DateTime  @default(now()) @map("registered_on")
@@ -43,9 +64,11 @@ model Guest {
   prizeWon     String?   @map("prize")
   
   grandPrizeWon Prize?   @relation("GuestWonPrize")
+  event         Event?   @relation(fields: [eventId], references: [id])
 
   @@index([inWheel, isWinner])
   @@index([location, eventYear])
+  @@index([eventId, eventCode])
   @@index([lastName, firstName])
   @@map("guest")
 }
@@ -61,14 +84,18 @@ model Prize {
   priority     Int       @default(999) // Higher numbers draw first (default 999)
   location     String    @default("TAYUD") // TAYUD, MAKATI, ALL
   eventYear    Int       @default(2026) @map("event_year")
+  eventId      Int?      @map("event_id")
+  eventCode    String?   @map("event_code")
   isWon        Boolean   @default(false) @map("is_won")
   wonByGuestId Int?      @unique @map("won_by")
   wonOn        DateTime? @map("won_on")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   wonBy        Guest?    @relation("GuestWonPrize", fields: [wonByGuestId], references: [id])
+  event        Event?    @relation(fields: [eventId], references: [id])
 
   @@index([location, eventYear])
+  @@index([eventId, eventCode])
   @@index([priority, id])
   @@map("prizes")
 }

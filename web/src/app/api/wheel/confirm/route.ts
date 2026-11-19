@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
 
     const activeLoc = globalThis.__raffleWheelSettings?.activeLocation || updatedGuest.location || 'TAYUD';
     const activeYr = globalThis.__raffleWheelSettings?.activeYear || updatedGuest.eventYear || 2026;
+    const activeEventCode = globalThis.__raffleWheelSettings?.activeEventCode || updatedGuest.eventCode;
 
     // 2. If grand prize, mark prize as won
     if (grandPrizeId) {
@@ -38,15 +39,28 @@ export async function POST(req: NextRequest) {
         },
       });
     } else if (prizeName) {
-      // Find matching regular prize by name for current location and mark one unit won
+      // Find matching regular prize by name for current event/location and mark one unit won
+      const prizeWhere: any = {
+        name: prizeName,
+        isGrandPrize: false,
+        isWon: false,
+        OR: [{ location: activeLoc }, { location: 'ALL' }],
+      };
+      if (activeEventCode) {
+        prizeWhere.AND = [
+          {
+            OR: [
+              { eventCode: activeEventCode },
+              { eventCode: null, eventYear: activeYr },
+            ],
+          },
+        ];
+      } else {
+        prizeWhere.eventYear = activeYr;
+      }
+
       const regularPrize = await prisma.prize.findFirst({
-        where: {
-          name: prizeName,
-          isGrandPrize: false,
-          isWon: false,
-          eventYear: activeYr,
-          OR: [{ location: activeLoc }, { location: 'ALL' }],
-        },
+        where: prizeWhere,
       });
 
       if (regularPrize) {
@@ -74,19 +88,32 @@ export async function POST(req: NextRequest) {
       globalThis.__raffleStageState.reloadGuestsCount = (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
       
       // Check if current prize still has remaining quantity
+      const remWhere: any = {
+        name: globalThis.__raffleStageState.prizeName,
+        isWon: false,
+        quantity: { gt: 0 },
+        OR: [{ location: activeLoc }, { location: 'ALL' }],
+      };
+      if (activeEventCode) {
+        remWhere.AND = [
+          {
+            OR: [
+              { eventCode: activeEventCode },
+              { eventCode: null, eventYear: activeYr },
+            ],
+          },
+        ];
+      } else {
+        remWhere.eventYear = activeYr;
+      }
+
       const remainingPrize = await prisma.prize.findFirst({
-        where: {
-          name: globalThis.__raffleStageState.prizeName,
-          isWon: false,
-          quantity: { gt: 0 },
-          eventYear: activeYr,
-          OR: [{ location: activeLoc }, { location: 'ALL' }],
-        },
+        where: remWhere,
       });
 
       if (!remainingPrize) {
         // Auto advance to next prize by priority
-        const nextPrize = await getNextAvailablePrize(activeLoc, activeYr);
+        const nextPrize = await getNextAvailablePrize(activeLoc, activeYr, activeEventCode || undefined);
         globalThis.__raffleStageState.prizeName = nextPrize.prizeName;
         globalThis.__raffleStageState.prizeImagePath = nextPrize.prizeImagePath;
         globalThis.__raffleStageState.isGrand = nextPrize.isGrand;

@@ -190,7 +190,15 @@ export default function AdminArchivePage() {
       {/* Main Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-8 space-y-8">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Archive & Year Transition</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-extrabold tracking-tight">Archive & Event Transition</h1>
+            <Link
+              href="/admin/events"
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition shadow flex items-center gap-1.5"
+            >
+              <span>🎪</span> Manage Named Events
+            </Link>
+          </div>
           <p className="text-slate-400 text-sm mt-1">
             Export historical winners for permanent static archiving, manage attendee rosters, and sync between API sources
           </p>

@@ -10,6 +10,8 @@ declare global {
     wheelSize: number;
     activeLocation: 'ALL' | 'TAYUD' | 'MAKATI';
     activeYear: number;
+    activeEventCode?: string;
+    activeEventName?: string;
     updatedAt: number;
   } | undefined;
 }
@@ -22,6 +24,8 @@ if (!globalThis.__raffleWheelSettings) {
     wheelSize: 900,
     activeLocation: 'ALL',
     activeYear: 2026,
+    activeEventCode: 'XMAS-2026',
+    activeEventName: 'Christmas Party 2026',
     updatedAt: Date.now(),
   };
 }
@@ -41,6 +45,8 @@ export async function POST(req: NextRequest) {
     if (body.wheelSize !== undefined) current.wheelSize = parseInt(body.wheelSize, 10);
     if (body.activeLocation !== undefined) current.activeLocation = body.activeLocation;
     if (body.activeYear !== undefined) current.activeYear = parseInt(body.activeYear, 10);
+    if (body.activeEventCode !== undefined) current.activeEventCode = body.activeEventCode;
+    if (body.activeEventName !== undefined) current.activeEventName = body.activeEventName;
     current.updatedAt = Date.now();
 
     // Persist asynchronously in background so response is sub-5ms instant
@@ -51,6 +57,8 @@ export async function POST(req: NextRequest) {
       { key: 'wheelSize', value: String(current.wheelSize) },
       { key: 'activeLocation', value: current.activeLocation },
       { key: 'activeYear', value: String(current.activeYear) },
+      { key: 'activeEventCode', value: current.activeEventCode || 'XMAS-2026' },
+      { key: 'activeEventName', value: current.activeEventName || 'Christmas Party 2026' },
     ];
 
     Promise.all(
