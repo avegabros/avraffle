@@ -1,0 +1,12 @@
+.git
+.github
+mobile
+node_modules
+web/node_modules
+web/.next
+web/data
+data
+*.apk
+*.aab
+.idea
+.vscode
