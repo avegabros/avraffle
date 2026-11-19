@@ -19,6 +19,7 @@ export const AdminNav: React.FC<AdminNavProps> = ({ badgeTitle }) => {
     { label: '🎁 Prizes', href: '/admin/prizes' },
     { label: '🔐 Users', href: '/admin/users' },
     { label: '🏆 Live & History', href: '/history' },
+    { label: '⭐ Feedback', href: '/admin/feedback' },
     { label: '📽️ Slideshow', href: '/slideshow' },
     { label: '🔄 ABAS Sync & Reset', href: '/admin/archive' },
   ];

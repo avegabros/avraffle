@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { APP_VERSION } from '@/lib/version';
+import { EventFeedbackCard } from '@/components/feedback/EventFeedbackCard';
 
 interface GuestStatus {
   employeeId: string;
@@ -151,6 +152,13 @@ export default function CheckRegistrationPage() {
                 </div>
               )}
             </div>
+
+            {/* Embedded Non-Intrusive Feedback Card */}
+            <EventFeedbackCard
+              employeeId={status.employeeId}
+              name={status.fullName}
+              location={status.location || 'ALL'}
+            />
           </div>
         )}
 

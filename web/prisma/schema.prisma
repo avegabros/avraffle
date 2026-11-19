@@ -107,3 +107,30 @@ model SystemSetting {
 
   @@map("system_settings")
 }
+
+model Feedback {
+  id          Int      @id @default(autoincrement())
+  rating      Int      @default(5) // 1 to 5 overall rating
+  employeeId  String?  @map("employee_id")
+  name        String?  // Optional employee/guest name
+  location    String   @default("ALL")
+  eventCode   String?  @map("event_code")
+  eventYear   Int      @default(2026) @map("event_year")
+
+  // Category ratings (1 to 5 stars, default 5)
+  foodRating          Int? @map("food_rating")
+  drinksRating        Int? @map("drinks_rating")
+  programRating       Int? @map("program_rating")
+  venueRating         Int? @map("venue_rating")
+  raffleRating        Int? @map("raffle_rating")
+  decorRating         Int? @map("decor_rating")
+  gamesRating         Int? @map("games_rating")
+  presentationsRating Int? @map("presentations_rating")
+
+  comment     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([eventCode, eventYear])
+  @@index([location])
+  @@map("feedback")
+}

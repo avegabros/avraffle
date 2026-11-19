@@ -483,15 +483,31 @@ export default function StagePage() {
               Loading attendees into wheel...
             </div>
           ) : allPrizesClaimed ? (
-            <div className="text-center p-10 max-w-xl bg-slate-900/80 rounded-3xl border-2 border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.25)] backdrop-blur-xl animate-in zoom-in-95 duration-500">
-              <div className="text-6xl mb-4">🏆🎉</div>
-              <h2 className="text-3xl font-black text-amber-400 mb-3 tracking-wide">
+            <div className="text-center p-8 lg:p-10 max-w-xl bg-slate-900/80 rounded-3xl border-2 border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.25)] backdrop-blur-xl animate-in zoom-in-95 duration-500">
+              <div className="text-5xl lg:text-6xl mb-3">🏆🎉</div>
+              <h2 className="text-3xl font-black text-amber-400 mb-2 tracking-wide">
                 All Prizes Claimed!
               </h2>
-              <p className="text-base text-slate-300 font-medium leading-relaxed">
-                Thank you for participating! All raffle prizes for this event have been officially drawn and awarded.
+              <p className="text-sm lg:text-base text-slate-300 font-medium leading-relaxed">
+                Thank you for celebrating with us! All raffle prizes have been officially awarded.
               </p>
-              <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
+              
+              {/* Event Feedback QR / Call to Action */}
+              <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4 text-left">
+                <div>
+                  <div className="text-xs font-black uppercase text-amber-300 tracking-wider flex items-center gap-1.5">
+                    <span>⭐</span> Tell Us How We Did!
+                  </div>
+                  <div className="text-xs text-slate-300 mt-1">
+                    Scan or open <span className="text-amber-400 font-mono font-bold">/check</span> on your phone to rate food, drinks, games & the show!
+                  </div>
+                </div>
+                <div className="text-2xl lg:text-3xl font-black text-amber-400 flex-shrink-0">
+                  📱✨
+                </div>
+              </div>
+
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
                 ✨ Raffle Complete ✨
               </div>
             </div>
