@@ -8,6 +8,28 @@ import { soundManager } from '@/lib/sound';
 
 export default function StagePage() {
   const wheelRef = useRef<RaffleWheelHandle | null>(null);
+  const [sessionId, setSessionId] = useState<string>('');
+  const [isMaster, setIsMaster] = useState(true);
+  const isMasterRef = useRef(true);
+  useEffect(() => {
+    isMasterRef.current = isMaster;
+  }, [isMaster]);
+
+  const sessionIdRef = useRef<string>('');
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
+  useEffect(() => {
+    let currentId = sessionStorage.getItem('raffle_stage_session_id');
+    if (!currentId) {
+      currentId = 'stage_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+      sessionStorage.setItem('raffle_stage_session_id', currentId);
+    }
+    sessionIdRef.current = currentId;
+    setSessionId(currentId);
+  }, []);
+
   const [segments, setSegments] = useState<WheelSegment[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentWinner, setCurrentWinner] = useState<WheelSegment | null>(null);
@@ -125,15 +147,18 @@ export default function StagePage() {
         // Stage heartbeat ping every ~2 seconds (every 4 ticks of 500ms)
         const sendHeartbeat = heartbeatTick % 4 === 1;
 
+        const currentSessionId = sessionIdRef.current;
         const [stateRes, settingsRes] = await Promise.all([
-          fetch('/api/wheel/state'),
+          fetch(`/api/wheel/state?sessionId=${encodeURIComponent(currentSessionId)}`),
           fetch('/api/settings'),
-          sendHeartbeat
+          sendHeartbeat && currentSessionId
             ? fetch('/api/wheel/state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'STAGE_HEARTBEAT' }),
-              }).catch(() => null)
+                body: JSON.stringify({ action: 'STAGE_HEARTBEAT', sessionId: currentSessionId }),
+              })
+                .then((r) => r.json())
+                .catch(() => null)
             : Promise.resolve(null),
         ]);
 
@@ -142,6 +167,9 @@ export default function StagePage() {
         if (stateRes.ok) {
           const data = await stateRes.json();
           const state = data.state;
+          if (typeof data.isMaster === 'boolean') {
+            setIsMaster(data.isMaster);
+          }
           if (state) {
             // Reload wheel attendees when remote confirms a winner
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
@@ -222,7 +250,23 @@ export default function StagePage() {
     };
   }, []);
 
+  const handleTakeOverMaster = async () => {
+    try {
+      const res = await fetch('/api/wheel/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'TAKE_OVER_MASTER', sessionId }),
+      });
+      if (res.ok) {
+        setIsMaster(true);
+      }
+    } catch (e) {
+      console.error('Failed to take over master lock:', e);
+    }
+  };
+
   const handleSpinStart = async () => {
+    if (!isMasterRef.current) return;
     if (segments.length === 0 || isSpinning) return;
     // Pick winner index upfront so all viewer screens (/raffle) and the stage wheel stop on the exact same person
     const winnerIdx = Math.floor(Math.random() * segments.length);
@@ -238,6 +282,7 @@ export default function StagePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SPIN',
+          sessionId,
           prizeName: selectedPrize.name,
           prizeImagePath: selectedPrize.imagePath,
           isGrand: selectedPrize.isGrand,
@@ -256,12 +301,15 @@ export default function StagePage() {
     setCurrentWinner(winner);
     setIsModalOpen(true);
 
+    if (!isMasterRef.current) return;
+
     try {
       await fetch('/api/wheel/state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'WINNER_ANNOUNCED',
+          sessionId,
           winner: {
             id: winner.id,
             employeeId: winner.employeeId,
@@ -334,6 +382,20 @@ export default function StagePage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-indigo-950 to-black text-white flex flex-col items-center justify-between p-4 overflow-hidden relative">
+      {/* Top Secondary Display Warning / Take-Over Banner */}
+      {!isMaster && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-2.5 rounded-full bg-slate-900/95 border border-amber-500/50 text-amber-200 text-xs sm:text-sm font-semibold shadow-[0_4px_25px_rgba(245,158,11,0.25)] backdrop-blur-md animate-in fade-in slide-in-from-top-4">
+          <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping mr-1" />
+          <span>Secondary Display (Master Stage Active on Another Window)</span>
+          <button
+            onClick={handleTakeOverMaster}
+            className="ml-2 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-full text-xs shadow transition-all cursor-pointer"
+          >
+            Take Over as Master
+          </button>
+        </div>
+      )}
+
       {/* Top Right Options & Controls */}
       <StageControls
         isMuted={isMuted}
@@ -343,7 +405,7 @@ export default function StagePage() {
         showPrizeCard={showPrizeCard}
         setShowPrizeCard={setShowPrizeCard}
         isSpinning={isSpinning}
-        onStopSpin={handleStopSpin}
+        onStopSpin={isMaster ? handleStopSpin : undefined}
         activeLocation={activeLocation}
         onLocationChange={handleLocationChange}
         isViewer={false}
@@ -395,7 +457,7 @@ export default function StagePage() {
               <RaffleWheel
                 ref={wheelRef}
                 segments={segments}
-                onSpinStart={handleSpinStart}
+                onSpinStart={isMaster ? handleSpinStart : undefined}
                 onSpinEnd={handleSpinEnd}
                 onSpinStateChange={setIsSpinning}
                 onPointingSegmentChange={setPointingAttendee}
@@ -403,7 +465,7 @@ export default function StagePage() {
                 power={power}
                 fontSize={fontSize}
                 wheelSize={showPrizeCard ? Math.min(wheelSize, 780) : Math.min(wheelSize, 850)}
-                isViewer={false}
+                isViewer={!isMaster}
               />
 
               {/* Dynamic Live Attendee Spotlight Banner */}

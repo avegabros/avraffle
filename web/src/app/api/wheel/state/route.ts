@@ -18,6 +18,8 @@ declare global {
     timestamp: number;
     stageActive?: boolean;
     stageHeartbeat?: number;
+    masterSessionId?: string | null;
+    masterHeartbeat?: number;
     winner: {
       id: number;
       employeeId: string;
@@ -107,24 +109,41 @@ if (!globalThis.__raffleStageState) {
     timestamp: Date.now(),
     stageActive: false,
     stageHeartbeat: 0,
+    masterSessionId: null,
+    masterHeartbeat: 0,
     winner: null,
   };
 }
 
 // GET: Stage polls or mobile checks status
-export async function GET() {
+export async function GET(req: NextRequest) {
   const currentState = globalThis.__raffleStageState!;
+  const now = Date.now();
   // Check if stage is currently considered alive (heartbeat within 5 seconds)
   const isStageAlive = Boolean(
-    currentState.stageHeartbeat && Date.now() - currentState.stageHeartbeat < 5000
+    currentState.stageHeartbeat && now - currentState.stageHeartbeat < 5000
   );
   currentState.stageActive = isStageAlive;
+
+  // Master lease validity check (5000ms TTL)
+  const isMasterAlive = Boolean(
+    currentState.masterSessionId &&
+    currentState.masterHeartbeat &&
+    now - currentState.masterHeartbeat < 5000
+  );
+  if (!isMasterAlive) {
+    currentState.masterSessionId = null;
+  }
+
+  const { searchParams } = new URL(req.url);
+  const sessionId = searchParams.get('sessionId');
 
   // Include settings directly in the state payload to cut polling traffic in half!
   const settings = globalThis.__raffleWheelSettings;
   return NextResponse.json({
     state: currentState,
     settings: settings || null,
+    isMaster: sessionId ? currentState.masterSessionId === sessionId : false,
   });
 }
 
@@ -133,10 +152,40 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const currentState = globalThis.__raffleStageState!;
+    const now = Date.now();
 
     if (body.action === 'STAGE_HEARTBEAT') {
       currentState.stageActive = true;
-      currentState.stageHeartbeat = Date.now();
+      currentState.stageHeartbeat = now;
+
+      const clientSessionId = body.sessionId;
+      if (clientSessionId) {
+        const isCurrentMasterValid = Boolean(
+          currentState.masterSessionId &&
+          currentState.masterHeartbeat &&
+          now - currentState.masterHeartbeat < 5000
+        );
+
+        if (!isCurrentMasterValid || currentState.masterSessionId === clientSessionId) {
+          // Claim or renew lock
+          currentState.masterSessionId = clientSessionId;
+          currentState.masterHeartbeat = now;
+        }
+      }
+    } else if (body.action === 'TAKE_OVER_MASTER') {
+      const clientSessionId = body.sessionId;
+      if (clientSessionId) {
+        currentState.masterSessionId = clientSessionId;
+        currentState.masterHeartbeat = now;
+        currentState.stageActive = true;
+        currentState.stageHeartbeat = now;
+      }
+    } else if (body.action === 'RELEASE_MASTER') {
+      const clientSessionId = body.sessionId;
+      if (clientSessionId && currentState.masterSessionId === clientSessionId) {
+        currentState.masterSessionId = null;
+        currentState.masterHeartbeat = 0;
+      }
     } else if (body.action === 'SPIN') {
       currentState.status = 'SPINNING';
       currentState.spinTriggerCount += 1;
@@ -186,7 +235,12 @@ export async function POST(req: NextRequest) {
       currentState.timestamp = Date.now();
     }
 
-    return NextResponse.json({ success: true, state: currentState });
+    const clientSessionId = body.sessionId;
+    return NextResponse.json({
+      success: true,
+      state: currentState,
+      isMaster: clientSessionId ? currentState.masterSessionId === clientSessionId : false,
+    });
   } catch (error) {
     console.error('Spin state error:', error);
     return NextResponse.json({ error: 'Failed to update spin state' }, { status: 500 });
