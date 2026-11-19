@@ -22,6 +22,7 @@ export default function HistoryPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>('ALL');
   const [winners, setWinners] = useState<WinnerRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isResetting, setIsResetting] = useState(false);
 
   const fetchHistory = (yr = selectedYear, loc = selectedLocation) => {
     setLoading(true);
@@ -37,6 +38,41 @@ export default function HistoryPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+  };
+
+  const handleResetHistory = async () => {
+    const confirmPrompt = prompt(
+      `⚠️ RESET RAFFLE TEST DRAW?\n\nThis will reset ALL winners for ${selectedYear} (${selectedLocation}), returning winners back to the wheel and making prizes available again.\n\nType "RESET" to confirm:`
+    );
+
+    if (confirmPrompt !== 'RESET') {
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const res = await fetch('/api/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          year: selectedYear,
+          location: selectedLocation,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || 'Raffle winners successfully reset!');
+        fetchHistory(selectedYear, selectedLocation);
+      } else {
+        alert(data.error || 'Failed to reset history');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Network error while resetting history');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   useEffect(() => {
@@ -98,6 +134,18 @@ export default function HistoryPage() {
                   {yr === '2026' ? '🔴 Live 2026 Winners' : `${yr} Archive`}
                 </button>
               ))}
+              {/* Reset History Test Button (Visible for Live Year) */}
+              {selectedYear === '2026' && (
+                <button
+                  onClick={handleResetHistory}
+                  disabled={isResetting || winners.length === 0}
+                  className="px-4 py-2 rounded-xl text-xs font-black transition border bg-red-950/60 hover:bg-red-900 border-red-500/40 text-red-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shadow"
+                  title="Reset all winners and return them to the wheel"
+                >
+                  <span>🔄</span>
+                  <span>{isResetting ? 'Resetting...' : 'Reset Draw (Test)'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

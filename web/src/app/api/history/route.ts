@@ -84,3 +84,64 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch history' }, { status: 500 });
   }
 }
+
+// POST: Reset winners history for testing or new draw run
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const eventYear = body.year ? parseInt(String(body.year), 10) : 2026;
+    const location = body.location; // optional filter
+
+    const guestWhere: Record<string, unknown> = {
+      isWinner: true,
+      eventYear,
+    };
+    if (location && location !== 'ALL') {
+      guestWhere.location = location;
+    }
+
+    // 1. Reset winning guests back to eligible (inWheel = true if registered)
+    const resetGuests = await prisma.guest.updateMany({
+      where: guestWhere,
+      data: {
+        isWinner: false,
+        prizeWon: null,
+        winOn: null,
+        inWheel: true,
+      },
+    });
+
+    // 2. Reset prize won statuses back to available
+    const prizeWhere: Record<string, unknown> = {
+      eventYear,
+    };
+    if (location && location !== 'ALL') {
+      prizeWhere.OR = [{ location }, { location: 'ALL' }];
+    }
+
+    await prisma.prize.updateMany({
+      where: prizeWhere,
+      data: {
+        isWon: false,
+        wonByGuestId: null,
+        wonOn: null,
+      },
+    });
+
+    // 3. Reset in-memory stage state
+    if (globalThis.__raffleStageState) {
+      globalThis.__raffleStageState.winner = null;
+      globalThis.__raffleStageState.status = 'IDLE';
+      globalThis.__raffleStageState.reloadGuestsCount = (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+      globalThis.__raffleStageState.timestamp = Date.now();
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Reset ${resetGuests.count} winners for event year ${eventYear}. Attendees returned to wheel and prizes restored!`,
+    });
+  } catch (error) {
+    console.error('Failed to reset history:', error);
+    return NextResponse.json({ error: 'Failed to reset history' }, { status: 500 });
+  }
+}

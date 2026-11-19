@@ -135,7 +135,7 @@ export default function StagePage() {
       .catch(console.error);
 
     // 3. Poll for remote spin triggers & live settings updates (500ms for master stage)
-    let lastSeenTrigger = 0;
+    let lastSeenTrigger = -1;
     let lastSeenSettingsUpdate = 0;
     let lastSeenReloadGuests = 0;
     let heartbeatTick = 0;
@@ -172,6 +172,11 @@ export default function StagePage() {
             setIsMaster(data.isMaster);
           }
           if (state) {
+            // Initialize lastSeenTrigger on first poll so navigating to /stage doesn't fire stale past spins
+            if (lastSeenTrigger === -1) {
+              lastSeenTrigger = state.spinTriggerCount ?? 0;
+            }
+
             // Reload wheel attendees when remote confirms a winner
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
