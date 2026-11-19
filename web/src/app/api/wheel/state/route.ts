@@ -37,7 +37,7 @@ export async function getNextAvailablePrize(location = 'TAYUD', eventYear = 2026
     const baseWhere: any = {
       isWon: false,
       quantity: { gt: 0 },
-      OR: [{ location }, { location: 'ALL' }],
+      ...(location && location !== 'ALL' ? { OR: [{ location }, { location: 'ALL' }] } : {}),
     };
 
     if (eventCode) {

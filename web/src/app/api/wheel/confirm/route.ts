@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         name: prizeName,
         isGrandPrize: false,
         isWon: false,
-        OR: [{ location: activeLoc }, { location: 'ALL' }],
+        ...(activeLoc && activeLoc !== 'ALL' ? { OR: [{ location: activeLoc }, { location: 'ALL' }] } : {}),
       };
       if (activeEventCode) {
         prizeWhere.AND = [
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         name: globalThis.__raffleStageState.prizeName,
         isWon: false,
         quantity: { gt: 0 },
-        OR: [{ location: activeLoc }, { location: 'ALL' }],
+        ...(activeLoc && activeLoc !== 'ALL' ? { OR: [{ location: activeLoc }, { location: 'ALL' }] } : {}),
       };
       if (activeEventCode) {
         remWhere.AND = [
