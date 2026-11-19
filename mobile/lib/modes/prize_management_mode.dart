@@ -109,14 +109,26 @@ class _PrizeManagementScreenState extends State<PrizeManagementScreen> {
                     );
 
                     if (source != null) {
-                      final picked = await _picker.pickImage(
-                        source: source,
-                        maxWidth: 1080,
-                        maxHeight: 1080,
-                        imageQuality: 85,
-                      );
-                      if (picked != null) {
-                        setModalState(() => selectedImage = picked);
+                      try {
+                        final picked = await _picker.pickImage(
+                          source: source,
+                          maxWidth: 1080,
+                          maxHeight: 1080,
+                          imageQuality: 85,
+                        );
+                        if (picked != null) {
+                          setModalState(() => selectedImage = picked);
+                        }
+                      } catch (e) {
+                        debugPrint('Prize image picker error: $e');
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text('Image picker error: ${e.toString()}'),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        }
                       }
                     }
                   },

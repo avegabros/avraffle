@@ -43,13 +43,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // Snap Mugshot and complete attendance registration
   Future<void> _checkInWithMugshot(Map<String, dynamic> guest) async {
-    final pickedFile = await _picker.pickImage(
-      source: ImageSource.camera,
-      preferredCameraDevice: CameraDevice.front,
-      maxWidth: 800,
-      maxHeight: 800,
-      imageQuality: 85,
-    );
+    XFile? pickedFile;
+    try {
+      pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+    } catch (e) {
+      debugPrint('Camera mugshot error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Camera error: ${e.toString()}'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
 
     if (pickedFile == null) {
       // User cancelled camera; ask if they want quick check-in without mugshot
