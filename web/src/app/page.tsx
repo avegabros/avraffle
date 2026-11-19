@@ -127,14 +127,14 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative z-10 pt-12 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
-        {/* 3D App Icon Visual */}
-        <div className="relative mb-8 group">
-          <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/30 to-red-500/30 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-300" />
+        {/* 3D App Icon Visual with Transparent Background */}
+        <div className="relative mb-8 group flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/25 via-red-500/20 to-yellow-400/20 rounded-full blur-3xl group-hover:blur-[70px] transition-all duration-300" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo/app-icon.png"
             alt="AV-Raffle 3D Lucky Wheel"
-            className="relative w-36 h-36 sm:w-44 sm:h-44 object-cover rounded-3xl border-2 border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-all duration-300"
+            className="relative w-40 h-40 sm:w-52 sm:h-52 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)] group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 pointer-events-none"
           />
         </div>
 
