@@ -167,6 +167,8 @@ export async function PUT(req: NextRequest) {
         ...(location ? { location } : {}),
         ...(eventYear ? { eventYear } : {}),
         isWon,
+        // If prize is marked un-won or given stock, detach prior winner records
+        ...(!isWon && quantity > 0 ? { wonByGuestId: null, wonOn: null } : {}),
         ...(imagePath ? { imagePath } : {}),
       },
     });
