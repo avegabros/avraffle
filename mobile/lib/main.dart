@@ -58,15 +58,29 @@ class _MainGateScreenState extends State<MainGateScreen> {
     super.initState();
     _loadSettings();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForAppUpdate();
+      _syncServerSettings();
     });
   }
 
-  Future<void> _checkForAppUpdate() async {
+  Future<void> _syncServerSettings() async {
     try {
       final res = await http.get(Uri.parse('$_serverUrl/api/settings')).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
+
+        // 1. Sync authoritative active location if provided by server
+        if (data['activeLocation'] != null && data['activeLocation'].toString().isNotEmpty) {
+          final serverLoc = data['activeLocation'].toString();
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('event_location', serverLoc);
+          if (mounted) {
+            setState(() {
+              _location = serverLoc;
+            });
+          }
+        }
+
+        // 2. Check for App Updates
         final int? serverBuildNumber = data['latestBuildNumber'] != null
             ? (data['latestBuildNumber'] is int
                 ? data['latestBuildNumber']
@@ -88,7 +102,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
         }
       }
     } catch (_) {
-      // Gracefully ignore network errors on update check
+      // Gracefully ignore network errors on sync/update check
     }
   }
 
@@ -373,6 +387,7 @@ class _MainGateScreenState extends State<MainGateScreen> {
 
   void _showSettingsDialog() {
     final urlController = TextEditingController(text: _serverUrl);
+    String selectedLocation = _location;
 
     showDialog(
       context: context,
@@ -391,6 +406,27 @@ class _MainGateScreenState extends State<MainGateScreen> {
                   hintText: 'e.g. https://avraffle.abas.ph or http://192.168.3.4:3000',
                 ),
               ),
+              const SizedBox(height: 16),
+              const Text('Active Event Location Scope:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: ['ALL', 'TAYUD', 'MAKATI'].contains(selectedLocation) ? selectedLocation : 'ALL',
+                dropdownColor: const Color(0xFF0F172A),
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'ALL', child: Text('🎉 All Locations (Unified)')),
+                  DropdownMenuItem(value: 'TAYUD', child: Text('📍 Tayud (Cebu)')),
+                  DropdownMenuItem(value: 'MAKATI', child: Text('📍 Makati (HQ)')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setDialogState(() => selectedLocation = val);
+                  }
+                },
+              ),
             ],
           ),
           actions: [
@@ -403,10 +439,24 @@ class _MainGateScreenState extends State<MainGateScreen> {
                 final prefs = await SharedPreferences.getInstance();
                 final newUrl = urlController.text.trim();
                 await prefs.setString('server_url', newUrl);
+                await prefs.setString('event_location', selectedLocation);
                 setState(() {
                   _serverUrl = newUrl;
-                  _location = 'ALL';
+                  _location = selectedLocation;
                 });
+
+                // If user changed location and is staff/admin, optionally update server's activeLocation setting too
+                if (_isLoggedIn && _currentUser?['role'] == 'ADMIN') {
+                  try {
+                    await http.post(
+                      Uri.parse('$newUrl/api/settings'),
+                      headers: {'Content-Type': 'application/json'},
+                      body: jsonEncode({'activeLocation': selectedLocation}),
+                    );
+                  } catch (_) {}
+                }
+
+                _syncServerSettings();
                 if (ctx.mounted) Navigator.pop(ctx);
               },
               child: const Text('Save'),

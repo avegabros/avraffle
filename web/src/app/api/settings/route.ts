@@ -17,6 +17,12 @@ declare global {
   } | undefined;
 }
 
+// Flag to track whether DB settings have been loaded on startup
+declare global {
+  // eslint-disable-next-line no-var
+  var __raffleWheelSettingsLoaded: boolean | undefined;
+}
+
 if (!globalThis.__raffleWheelSettings) {
   globalThis.__raffleWheelSettings = {
     duration: 8,
@@ -31,7 +37,39 @@ if (!globalThis.__raffleWheelSettings) {
   };
 }
 
+async function ensureSettingsLoaded() {
+  if (globalThis.__raffleWheelSettingsLoaded) return;
+  try {
+    const dbSettings = await prisma.systemSetting.findMany();
+    if (dbSettings && dbSettings.length > 0) {
+      const map = new Map(dbSettings.map((s) => [s.key, s.value]));
+      const current = globalThis.__raffleWheelSettings!;
+
+      if (map.has('duration')) current.duration = parseInt(map.get('duration')!, 10);
+      if (map.has('power')) current.power = map.get('power')! as any;
+      if (map.has('fontSize')) current.fontSize = parseInt(map.get('fontSize')!, 10);
+      if (map.has('wheelSize')) current.wheelSize = parseInt(map.get('wheelSize')!, 10);
+      if (map.has('activeLocation')) current.activeLocation = map.get('activeLocation')! as any;
+      if (map.has('activeYear')) current.activeYear = parseInt(map.get('activeYear')!, 10);
+      if (map.has('activeEventCode')) current.activeEventCode = map.get('activeEventCode')!;
+      if (map.has('activeEventName')) current.activeEventName = map.get('activeEventName')!;
+
+      // Also sync activeLocation to __raffleStageState
+      if (globalThis.__raffleStageState && current.activeLocation) {
+        globalThis.__raffleStageState.location = current.activeLocation;
+        globalThis.__raffleStageState.eventYear = current.activeYear;
+        if (current.activeEventCode) globalThis.__raffleStageState.eventCode = current.activeEventCode;
+      }
+    }
+    globalThis.__raffleWheelSettingsLoaded = true;
+  } catch (err) {
+    console.warn('Could not load settings from database:', err);
+  }
+}
+
 export async function GET() {
+  await ensureSettingsLoaded();
+
   return NextResponse.json({
     ...globalThis.__raffleWheelSettings,
     latestAppVersion: APP_VERSION.version,
@@ -44,6 +82,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    await ensureSettingsLoaded();
     const body = await req.json();
     const current = globalThis.__raffleWheelSettings!;
 
@@ -51,9 +90,26 @@ export async function POST(req: NextRequest) {
     if (body.power !== undefined) current.power = body.power;
     if (body.fontSize !== undefined) current.fontSize = parseInt(body.fontSize, 10);
     if (body.wheelSize !== undefined) current.wheelSize = parseInt(body.wheelSize, 10);
-    if (body.activeLocation !== undefined) current.activeLocation = body.activeLocation;
-    if (body.activeYear !== undefined) current.activeYear = parseInt(body.activeYear, 10);
-    if (body.activeEventCode !== undefined) current.activeEventCode = body.activeEventCode;
+    if (body.activeLocation !== undefined) {
+      current.activeLocation = body.activeLocation;
+      if (globalThis.__raffleStageState) {
+        globalThis.__raffleStageState.location = body.activeLocation;
+        globalThis.__raffleStageState.reloadGuestsCount = (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+        globalThis.__raffleStageState.timestamp = Date.now();
+      }
+    }
+    if (body.activeYear !== undefined) {
+      current.activeYear = parseInt(body.activeYear, 10);
+      if (globalThis.__raffleStageState) {
+        globalThis.__raffleStageState.eventYear = current.activeYear;
+      }
+    }
+    if (body.activeEventCode !== undefined) {
+      current.activeEventCode = body.activeEventCode;
+      if (globalThis.__raffleStageState) {
+        globalThis.__raffleStageState.eventCode = body.activeEventCode;
+      }
+    }
     if (body.activeEventName !== undefined) current.activeEventName = body.activeEventName;
     current.updatedAt = Date.now();
 

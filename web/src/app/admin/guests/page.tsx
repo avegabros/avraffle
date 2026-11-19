@@ -59,6 +59,17 @@ export default function AdminGuestsPage() {
   };
 
   useEffect(() => {
+    // Sync default filter to activeLocation and activeYear from system settings
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.activeLocation) setSelectedLocation(data.activeLocation);
+        if (data.activeYear) setSelectedYear(data.activeYear);
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
     fetchGuests(search, selectedLocation, selectedYear);
   }, [selectedLocation, selectedYear]);
 

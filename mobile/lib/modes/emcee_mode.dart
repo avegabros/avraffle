@@ -8,7 +8,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class EmceeRemoteScreen extends StatefulWidget {
   final String serverUrl;
   final String location;
-  const EmceeRemoteScreen({super.key, required this.serverUrl, this.location = 'TAYUD'});
+  const EmceeRemoteScreen({super.key, required this.serverUrl, this.location = 'ALL'});
 
   @override
   State<EmceeRemoteScreen> createState() => _EmceeRemoteScreenState();
@@ -28,6 +28,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
   Map<String, dynamic>? _lastWinner;
   bool _allPrizesClaimed = false;
   bool _isButtonPressed = false;
+  late String _activeLocation;
 
   // Spin Settings
   int _duration = 8;
@@ -36,6 +37,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
   @override
   void initState() {
     super.initState();
+    _activeLocation = widget.location;
     _enableWakelock(true);
     _fetchGrandPrizes();
     _fetchSettings();
@@ -98,6 +100,14 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                   _grandPrizeId = state['grandPrizeId'];
                 }
               }
+
+              // Sync active location from state or settings payload
+              final settingsPayload = data['settings'];
+              final String? loc = (state['location'] ?? settingsPayload?['activeLocation'])?.toString();
+              if (loc != null && loc.isNotEmpty && loc != _activeLocation) {
+                _activeLocation = loc;
+                _fetchGrandPrizes();
+              }
             });
           }
         }
@@ -109,7 +119,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
 
   Future<void> _fetchGrandPrizes() async {
     try {
-      final locParam = widget.location != 'ALL' ? '?location=${widget.location}' : '';
+      final locParam = _activeLocation != 'ALL' ? '?location=$_activeLocation' : '';
       final res = await http.get(Uri.parse('${widget.serverUrl}/api/wheel$locParam'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -145,9 +155,14 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
       final res = await http.get(Uri.parse('${widget.serverUrl}/api/settings'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
+        final serverLoc = data['activeLocation']?.toString();
         setState(() {
           _duration = data['duration'] ?? 8;
           _power = data['power'] ?? 'high';
+          if (serverLoc != null && serverLoc.isNotEmpty && serverLoc != _activeLocation) {
+            _activeLocation = serverLoc;
+            _fetchGrandPrizes();
+          }
         });
       }
     } catch (_) {}
@@ -190,7 +205,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
           'prizeImagePath': _currentPrizeImage,
           'isGrand': _isGrand,
           'grandPrizeId': _grandPrizeId,
-          'location': widget.location,
+          'location': _activeLocation,
         }),
       ).timeout(const Duration(seconds: 4));
 
@@ -394,7 +409,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                       headers: {'Content-Type': 'application/json'},
                       body: jsonEncode({
                         'action': 'RESET_TO_AUTO_QUEUE',
-                        'location': widget.location,
+                        'location': _activeLocation,
                       }),
                     );
                     if (res.statusCode == 200) {
@@ -443,7 +458,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                               'prizeName': p['name'],
                               'prizeImagePath': p['imagePath'],
                               'isGrand': false,
-                              'location': widget.location,
+                              'location': _activeLocation,
                             }),
                           );
                         } catch (_) {}
@@ -482,7 +497,7 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
                               'prizeImagePath': p['imagePath'],
                               'isGrand': true,
                               'grandPrizeId': p['id'],
-                              'location': widget.location,
+                              'location': _activeLocation,
                             }),
                           );
                         } catch (_) {}
