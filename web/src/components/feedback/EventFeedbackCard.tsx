@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface FeedbackProps {
   employeeId?: string;
@@ -8,119 +8,170 @@ interface FeedbackProps {
   location?: string;
 }
 
+interface StepMeta {
+  key: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+}
+
+const STEPS: StepMeta[] = [
+  { key: 'overall', title: 'Overall Experience', subtitle: 'How is your overall event experience so far?', icon: '⭐' },
+  { key: 'food', title: 'Food & Catering', subtitle: 'How is the food quality and selection?', icon: '🍲' },
+  { key: 'drinks', title: 'Drinks & Bar', subtitle: 'How are the beverages, juices, and drinks?', icon: '🍹' },
+  { key: 'program', title: 'Program & Emcees', subtitle: 'How is the event flow, hosting, and program?', icon: '🎤' },
+  { key: 'venue', title: 'Venue & Comfort', subtitle: 'How is the venue space, seating, and ambiance?', icon: '🏛️' },
+  { key: 'raffle', title: 'Raffle & Prizes', subtitle: 'Excited for the prizes and wheel draws?', icon: '🎡' },
+  { key: 'decor', title: 'Decor & Theme', subtitle: 'How do you like the stage and theme decorations?', icon: '✨' },
+  { key: 'games', title: 'Games & Activities', subtitle: 'How engaging and fun were the party games?', icon: '🎯' },
+  { key: 'presentations', title: 'Presentations & Show', subtitle: 'How did you enjoy the performances?', icon: '📊' },
+];
+
 export const EventFeedbackCard: React.FC<FeedbackProps> = ({
   employeeId,
   name,
   location = 'ALL',
 }) => {
-  const [overallRating, setOverallRating] = useState<number>(5);
-  const [comment, setComment] = useState<string>('');
+  // Current active step: 0 to STEPS.length - 1 (ratings), STEPS.length = comment, STEPS.length + 1 = completed
+  const [currentStep, setCurrentStep] = useState<number>(0);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  // The 8 requested categories - all listed by default
-  const [categories, setCategories] = useState<{
-    food: number;
-    drinks: number;
-    program: number;
-    venue: number;
-    raffle: number;
-    decor: number;
-    games: number;
-    presentations: number;
-  }>({
-    food: 5,
-    drinks: 5,
-    program: 5,
-    venue: 5,
-    raffle: 5,
-    decor: 5,
-    games: 5,
-    presentations: 5,
+  // Store ratings starting as null (unselected)
+  const [ratings, setRatings] = useState<Record<string, number | null>>({
+    overall: null,
+    food: null,
+    drinks: null,
+    program: null,
+    venue: null,
+    raffle: null,
+    decor: null,
+    games: null,
+    presentations: null,
   });
 
-  const categoryLabels: { key: keyof typeof categories; label: string; icon: string }[] = [
-    { key: 'food', label: 'Food', icon: '🍲' },
-    { key: 'drinks', label: 'Drinks', icon: '🍹' },
-    { key: 'program', label: 'Program', icon: '🎤' },
-    { key: 'venue', label: 'Venue', icon: '🏛️' },
-    { key: 'raffle', label: 'Raffle', icon: '🎡' },
-    { key: 'decor', label: 'Decor', icon: '✨' },
-    { key: 'games', label: 'Games', icon: '🎯' },
-    { key: 'presentations', label: 'Presentations', icon: '📊' },
-  ];
-
-  // Auto-save logic with debounce
+  const [comment, setComment] = useState<string>('');
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const triggerAutoSave = (updatedOverall?: number, updatedCats?: typeof categories, updatedComment?: string) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+  // Auto-save helper
+  const saveToServer = async (updatedRatings: typeof ratings, updatedComment?: string) => {
+    try {
+      setSaveStatus('saving');
+      const payload: Record<string, unknown> = {
+        employeeId,
+        name,
+        location,
+        rating: updatedRatings.overall || 5, // Fallback if overall not set
+        foodRating: updatedRatings.food,
+        drinksRating: updatedRatings.drinks,
+        programRating: updatedRatings.program,
+        venueRating: updatedRatings.venue,
+        raffleRating: updatedRatings.raffle,
+        decorRating: updatedRatings.decor,
+        gamesRating: updatedRatings.games,
+        presentationsRating: updatedRatings.presentations,
+      };
 
-    setSaveStatus('saving');
-    debounceTimerRef.current = setTimeout(async () => {
-      try {
-        const curOverall = updatedOverall !== undefined ? updatedOverall : overallRating;
-        const curCats = updatedCats || categories;
-        const curComment = updatedComment !== undefined ? updatedComment : comment;
+      if (updatedComment !== undefined) {
+        payload.comment = updatedComment;
+      }
 
-        const res = await fetch('/api/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            rating: curOverall,
-            employeeId,
-            name,
-            location,
-            foodRating: curCats.food,
-            drinksRating: curCats.drinks,
-            programRating: curCats.program,
-            venueRating: curCats.venue,
-            raffleRating: curCats.raffle,
-            decorRating: curCats.decor,
-            gamesRating: curCats.games,
-            presentationsRating: curCats.presentations,
-            comment: curComment,
-          }),
-        });
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-        if (res.ok) {
-          setSaveStatus('saved');
-          setTimeout(() => setSaveStatus('idle'), 3000);
-        } else {
-          setSaveStatus('idle');
-        }
-      } catch {
+      if (res.ok) {
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2500);
+      } else {
         setSaveStatus('idle');
       }
-    }, 600); // 600ms debounce
+    } catch {
+      setSaveStatus('idle');
+    }
   };
 
-  const handleOverallChange = (val: number) => {
-    setOverallRating(val);
-    triggerAutoSave(val);
+  // When a star is tapped: highlight star, save, and auto-advance after 280ms
+  const handleRate = (score: number) => {
+    const curStepMeta = STEPS[currentStep];
+    if (!curStepMeta) return;
+
+    const updated = { ...ratings, [curStepMeta.key]: score };
+    setRatings(updated);
+    saveToServer(updated);
+
+    // Auto-advance to next step
+    setTimeout(() => {
+      setCurrentStep((prev) => prev + 1);
+    }, 280);
   };
 
-  const handleCategoryChange = (key: keyof typeof categories, val: number) => {
-    const updated = { ...categories, [key]: val };
-    setCategories(updated);
-    triggerAutoSave(undefined, updated);
+  const handleSkip = () => {
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(0, prev - 1));
   };
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setComment(val);
-    triggerAutoSave(undefined, undefined, val);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      saveToServer(ratings, val);
+    }, 600);
   };
+
+  const handleFinish = () => {
+    saveToServer(ratings, comment);
+    setCurrentStep(STEPS.length + 1);
+  };
+
+  // Total questions count: 9 categories + 1 comment step
+  const totalSteps = STEPS.length + 1;
+  const isCommentStep = currentStep === STEPS.length;
+  const isCompletedStep = currentStep > STEPS.length;
+
+  if (isCompletedStep) {
+    return (
+      <div className="mt-4 p-5 sm:p-6 rounded-2xl bg-slate-900/95 border border-emerald-500/40 shadow-xl text-center text-white animate-in zoom-in-95 duration-300">
+        <div className="text-4xl mb-2">🎉🌟</div>
+        <h3 className="text-base sm:text-lg font-black text-emerald-400">
+          Thank you for your feedback, {name || 'Avegan'}!
+        </h3>
+        <p className="text-xs text-slate-300 mt-1 max-w-sm mx-auto">
+          Your input has been recorded and helps us make future Avega company events even better. Enjoy the rest of the celebration!
+        </p>
+        <button
+          type="button"
+          onClick={() => setCurrentStep(0)}
+          className="mt-4 px-4 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-400 hover:text-white transition cursor-pointer"
+        >
+          Review or Change Responses ↺
+        </button>
+      </div>
+    );
+  }
+
+  const activeMeta = STEPS[currentStep];
+  const currentVal = activeMeta ? ratings[activeMeta.key] : null;
 
   return (
     <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-slate-900/95 border border-amber-500/30 shadow-xl text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 mb-3">
+      {/* Header with Step Indicator & Auto-Save Badge */}
+      <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-xl">⭐</span>
+          <span className="text-base sm:text-lg">⭐</span>
           <span className="text-xs font-black uppercase tracking-wider text-amber-400">
             Event Feedback
           </span>
+          <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full">
+            {currentStep + 1} of {totalSteps}
+          </span>
         </div>
+
         <div className="flex items-center gap-1.5 text-[11px] font-semibold">
           {saveStatus === 'saving' && (
             <span className="text-amber-400 flex items-center gap-1 animate-pulse">
@@ -133,87 +184,119 @@ export const EventFeedbackCard: React.FC<FeedbackProps> = ({
             </span>
           )}
           {saveStatus === 'idle' && (
-            <span className="text-slate-400">⚡ Auto-saves instantly</span>
+            <span className="text-slate-400 text-[10px]">⚡ Auto-saves</span>
           )}
         </div>
       </div>
 
-      <p className="text-xs text-slate-300 font-medium mb-3">
-        Tap the stars below to rate the event. Ratings save automatically!
-      </p>
-
-      {/* Main Overall 5-Star Rating - Responsive & No Overflow */}
-      <div className="py-2.5 px-3 mb-4 bg-slate-950/70 rounded-xl border border-white/5 flex flex-col items-center justify-center">
-        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-          Overall Experience
-        </div>
-        <div className="flex items-center justify-center gap-1.5 sm:gap-3">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onClick={() => handleOverallChange(star)}
-              className="text-2xl sm:text-3xl p-1 transition-transform hover:scale-125 active:scale-95 cursor-pointer leading-none"
-            >
-              <span className={star <= overallRating ? 'text-amber-400' : 'text-slate-600'}>
-                ★
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* All 8 Categories Listed Cleanly */}
-      <div className="space-y-2 mb-4">
-        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-          Category Ratings
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {categoryLabels.map(({ key, label, icon }) => (
-            <div
-              key={key}
-              className="flex items-center justify-between px-3 py-2 bg-slate-950/50 rounded-xl border border-white/5"
-            >
-              <span className="flex items-center gap-2 font-semibold text-slate-300 text-xs">
-                <span>{icon}</span> {label}
-              </span>
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((num) => (
-                  <button
-                    key={num}
-                    type="button"
-                    onClick={() => handleCategoryChange(key, num)}
-                    className="p-1 cursor-pointer transition-transform hover:scale-125 active:scale-90"
-                    title={`${num} stars for ${label}`}
-                  >
-                    <span
-                      className={`text-sm sm:text-base leading-none ${
-                        categories[key] >= num ? 'text-amber-400 font-bold' : 'text-slate-700'
-                      }`}
-                    >
-                      ★
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Optional Shoutout / Comment Field */}
-      <div>
-        <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-          Suggestions or Shoutouts for the Committee (Optional)
-        </label>
-        <textarea
-          rows={2}
-          placeholder="Write your note here... (automatically saves)"
-          value={comment}
-          onChange={handleCommentChange}
-          className="w-full text-xs p-3 bg-slate-950 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+      {/* Progress Bar */}
+      <div className="w-full bg-slate-800 h-1.5 rounded-full mb-4 overflow-hidden">
+        <div
+          className="bg-gradient-to-r from-amber-500 to-yellow-400 h-full rounded-full transition-all duration-300"
+          style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
         />
       </div>
+
+      {/* STEP: Rating Question */}
+      {!isCommentStep ? (
+        <div className="py-2 text-center animate-in fade-in slide-in-from-right-4 duration-200" key={activeMeta.key}>
+          <div className="text-3xl mb-1.5">{activeMeta.icon}</div>
+          <h4 className="text-sm sm:text-base font-extrabold text-white">
+            {activeMeta.title}
+          </h4>
+          <p className="text-xs text-slate-300 mt-0.5 mb-4">
+            {activeMeta.subtitle}
+          </p>
+
+          {/* 5 Big Comfortable Star Buttons (Hollow until tapped) */}
+          <div className="flex items-center justify-center gap-2 sm:gap-3 py-2">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const isSelected = currentVal !== null && currentVal >= star;
+              return (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => handleRate(star)}
+                  className="p-1 sm:p-2 transition-transform hover:scale-125 active:scale-90 cursor-pointer leading-none"
+                  title={`${star} Star${star > 1 ? 's' : ''}`}
+                >
+                  <span
+                    className={`text-3xl sm:text-4xl leading-none transition-colors duration-150 ${
+                      isSelected
+                        ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]'
+                        : 'text-slate-600 hover:text-amber-200'
+                    }`}
+                  >
+                    ★
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="text-[11px] text-amber-400/80 font-medium mt-1">
+            Tap a star to rate & auto-advance
+          </div>
+
+          {/* Nav Controls: Back / Skip */}
+          <div className="flex items-center justify-between mt-5 pt-3 border-t border-white/5 text-xs">
+            {currentStep > 0 ? (
+              <button
+                type="button"
+                onClick={handleBack}
+                className="text-slate-400 hover:text-white font-semibold transition flex items-center gap-1 cursor-pointer"
+              >
+                ← Back
+              </button>
+            ) : <div />}
+
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="text-slate-400 hover:text-amber-400 font-semibold transition cursor-pointer"
+            >
+              Skip →
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* STEP: Optional Suggestions / Shoutouts */
+        <div className="py-2 text-center animate-in fade-in slide-in-from-right-4 duration-200">
+          <div className="text-3xl mb-1.5">💬</div>
+          <h4 className="text-sm sm:text-base font-extrabold text-white">
+            Shoutouts & Suggestions (Optional)
+          </h4>
+          <p className="text-xs text-slate-300 mt-0.5 mb-3">
+            Want to thank the organizers or suggest ideas for next year?
+          </p>
+
+          <textarea
+            rows={3}
+            placeholder="Write your note here... (automatically saves)"
+            value={comment}
+            onChange={handleCommentChange}
+            className="w-full text-xs p-3 bg-slate-950 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+          />
+
+          <div className="flex items-center justify-between mt-4 text-xs">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="text-slate-400 hover:text-white font-semibold transition flex items-center gap-1 cursor-pointer"
+            >
+              ← Back
+            </button>
+
+            <button
+              type="button"
+              onClick={handleFinish}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-lg transition active:scale-95 cursor-pointer"
+            >
+              Finish Review ✨
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

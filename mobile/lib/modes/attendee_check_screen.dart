@@ -19,31 +19,78 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
   String? _errorMessage;
 
   // Feedback states
-  int _overallRating = 5;
+  int _currentStep = 0; // 0 to _categorySteps.length - 1 (ratings), _categorySteps.length = comment, > length = complete
   String _saveStatus = 'idle'; // 'idle', 'saving', 'saved'
   Timer? _saveTimer;
   final _commentController = TextEditingController();
 
-  final Map<String, int> _categoryRatings = {
-    'food': 5,
-    'drinks': 5,
-    'program': 5,
-    'venue': 5,
-    'raffle': 5,
-    'decor': 5,
-    'games': 5,
-    'presentations': 5,
+  final Map<String, int?> _ratings = {
+    'overall': null,
+    'food': null,
+    'drinks': null,
+    'program': null,
+    'venue': null,
+    'raffle': null,
+    'decor': null,
+    'games': null,
+    'presentations': null,
   };
 
-  final List<Map<String, String>> _categoryMeta = [
-    {'key': 'food', 'label': 'Food', 'icon': '🍲'},
-    {'key': 'drinks', 'label': 'Drinks', 'icon': '🍹'},
-    {'key': 'program', 'label': 'Program', 'icon': '🎤'},
-    {'key': 'venue', 'label': 'Venue', 'icon': '🏛️'},
-    {'key': 'raffle', 'label': 'Raffle', 'icon': '🎡'},
-    {'key': 'decor', 'label': 'Decor', 'icon': '✨'},
-    {'key': 'games', 'label': 'Games', 'icon': '🎯'},
-    {'key': 'presentations', 'label': 'Presentations', 'icon': '📊'},
+  final List<Map<String, String>> _categorySteps = [
+    {
+      'key': 'overall',
+      'label': 'Overall Experience',
+      'subtitle': 'How is your overall event experience so far?',
+      'icon': '⭐',
+    },
+    {
+      'key': 'food',
+      'label': 'Food & Catering',
+      'subtitle': 'How was the food quality and catering?',
+      'icon': '🍲',
+    },
+    {
+      'key': 'drinks',
+      'label': 'Drinks & Bar',
+      'subtitle': 'How were the drinks, juices, and beverages?',
+      'icon': '🍹',
+    },
+    {
+      'key': 'program',
+      'label': 'Program & Emcees',
+      'subtitle': 'How was the event program, hosting, and flow?',
+      'icon': '🎤',
+    },
+    {
+      'key': 'venue',
+      'label': 'Venue & Comfort',
+      'subtitle': 'How was the venue space, seating, and ambiance?',
+      'icon': '🏛️',
+    },
+    {
+      'key': 'raffle',
+      'label': 'Raffle & Prizes',
+      'subtitle': 'Excited for the prizes and wheel draws?',
+      'icon': '🎡',
+    },
+    {
+      'key': 'decor',
+      'label': 'Decor & Theme',
+      'subtitle': 'How do you like the stage and venue decoration?',
+      'icon': '✨',
+    },
+    {
+      'key': 'games',
+      'label': 'Games & Activities',
+      'subtitle': 'How engaging and fun were the party games?',
+      'icon': '🎯',
+    },
+    {
+      'key': 'presentations',
+      'label': 'Presentations & Show',
+      'subtitle': 'How did you enjoy the special performances?',
+      'icon': '📊',
+    },
   ];
 
   @override
@@ -60,24 +107,24 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
     _saveTimer?.cancel();
     setState(() => _saveStatus = 'saving');
 
-    _saveTimer = Timer(const Duration(milliseconds: 600), () async {
+    _saveTimer = Timer(const Duration(milliseconds: 500), () async {
       try {
         final res = await http.post(
           Uri.parse('${widget.serverUrl}/api/feedback'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'rating': _overallRating,
+            'rating': _ratings['overall'] ?? 5,
             'employeeId': _guestResult!['employeeId'],
             'name': _guestResult!['fullName'],
             'location': _guestResult!['location'] ?? 'ALL',
-            'foodRating': _categoryRatings['food'],
-            'drinksRating': _categoryRatings['drinks'],
-            'programRating': _categoryRatings['program'],
-            'venueRating': _categoryRatings['venue'],
-            'raffleRating': _categoryRatings['raffle'],
-            'decorRating': _categoryRatings['decor'],
-            'gamesRating': _categoryRatings['games'],
-            'presentationsRating': _categoryRatings['presentations'],
+            'foodRating': _ratings['food'],
+            'drinksRating': _ratings['drinks'],
+            'programRating': _ratings['program'],
+            'venueRating': _ratings['venue'],
+            'raffleRating': _ratings['raffle'],
+            'decorRating': _ratings['decor'],
+            'gamesRating': _ratings['games'],
+            'presentationsRating': _ratings['presentations'],
             'comment': _commentController.text.trim(),
           }),
         );
@@ -96,6 +143,23 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
         if (mounted) setState(() => _saveStatus = 'idle');
       }
     });
+  }
+
+  void _handleRate(int score) {
+    if (_currentStep < _categorySteps.length) {
+      final key = _categorySteps[_currentStep]['key']!;
+      setState(() {
+        _ratings[key] = score;
+      });
+      _triggerAutoSave();
+
+      // Smooth auto-advance
+      Future.delayed(const Duration(milliseconds: 280), () {
+        if (mounted) {
+          setState(() => _currentStep++);
+        }
+      });
+    }
   }
 
   Future<void> _checkStatus() async {
@@ -367,6 +431,49 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
   }
 
   Widget _buildFeedbackCard() {
+    final totalSteps = _categorySteps.length + 1; // 9 questions + 1 comment
+    final isCommentStep = _currentStep == _categorySteps.length;
+    final isCompleted = _currentStep > _categorySteps.length;
+
+    if (isCompleted) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+        ),
+        child: Column(
+          children: [
+            const Text('🎉🌟', style: TextStyle(fontSize: 32)),
+            const SizedBox(height: 8),
+            Text(
+              'Thank you, ${_guestResult!['firstName'] ?? 'Avegan'}!',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Your feedback has been recorded and will help make future company events even better.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => setState(() => _currentStep = 0),
+              child: const Text(
+                'Review or Edit Ratings ↺',
+                style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final activeMeta = !isCommentStep ? _categorySteps[_currentStep] : null;
+    final currentScore = activeMeta != null ? _ratings[activeMeta['key']] : null;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -377,20 +484,33 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Header with step and autosave status
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Text('⭐', style: TextStyle(fontSize: 16)),
-                  SizedBox(width: 6),
-                  Text(
+                  const Text('⭐', style: TextStyle(fontSize: 15)),
+                  const SizedBox(width: 6),
+                  const Text(
                     'EVENT FEEDBACK',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFF59E0B),
-                      fontSize: 12,
+                      fontSize: 11,
                       letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${_currentStep + 1} of $totalSteps',
+                      style: const TextStyle(fontSize: 10, color: Color(0xFFF59E0B), fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -404,132 +524,151 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
                       child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFFF59E0B)),
                     ),
                     SizedBox(width: 4),
-                    Text('Saving...', style: TextStyle(fontSize: 11, color: Color(0xFFF59E0B), fontWeight: FontWeight.bold)),
+                    Text('Saving...', style: TextStyle(fontSize: 10, color: Color(0xFFF59E0B), fontWeight: FontWeight.bold)),
                   ],
                 )
               else if (_saveStatus == 'saved')
-                const Text('✓ Saved!', style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.bold))
+                const Text('✓ Saved!', style: TextStyle(fontSize: 10, color: Color(0xFF10B981), fontWeight: FontWeight.bold))
               else
-                const Text('⚡ Auto-saves', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                const Text('⚡ Auto-saves', style: TextStyle(fontSize: 10, color: Colors.grey)),
             ],
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Tap the stars to rate the event. Ratings save automatically!',
-            style: TextStyle(fontSize: 11, color: Colors.white70),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
-          // Overall 5-Star Tap Bar
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(14),
+          // Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (_currentStep + 1) / totalSteps,
+              minHeight: 4,
+              backgroundColor: const Color(0xFF0F172A),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
             ),
-            child: Column(
-              children: [
-                const Text(
-                  'OVERALL EXPERIENCE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white60,
-                    letterSpacing: 1,
+          ),
+          const SizedBox(height: 14),
+
+          // 1-at-a-time Card Content
+          if (!isCommentStep) ...[
+            Center(
+              child: Text(
+                activeMeta!['icon']!,
+                style: const TextStyle(fontSize: 34),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              activeMeta['label']!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              activeMeta['subtitle']!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 11, color: Colors.white70),
+            ),
+            const SizedBox(height: 14),
+
+            // Large Star Buttons (Hollow until tapped)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [1, 2, 3, 4, 5].map((star) {
+                final isSelected = currentScore != null && currentScore >= star;
+                return GestureDetector(
+                  onTap: () => _handleRate(star),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                    child: Icon(
+                      isSelected ? Icons.star : Icons.star_border,
+                      size: 38,
+                      color: isSelected ? const Color(0xFFF59E0B) : Colors.grey.shade600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [1, 2, 3, 4, 5].map((star) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() => _overallRating = star);
-                        _triggerAutoSave();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: Icon(
-                          star <= _overallRating ? Icons.star : Icons.star_border,
-                          color: const Color(0xFFF59E0B),
-                          size: 30,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 6),
+            const Center(
+              child: Text(
+                'Tap a star to rate & continue',
+                style: TextStyle(fontSize: 10, color: Color(0xFFF59E0B)),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Navigation buttons (Back / Skip)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (_currentStep > 0)
+                  TextButton(
+                    onPressed: () => setState(() => _currentStep--),
+                    child: const Text('← Back', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                  )
+                else
+                  const SizedBox.shrink(),
+                TextButton(
+                  onPressed: () => setState(() => _currentStep++),
+                  child: const Text('Skip →', style: TextStyle(color: Colors.grey, fontSize: 11)),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-
-          // All 8 Categories Listed Cleanly
-          const Text(
-            'CATEGORY RATINGS',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: Colors.white60,
-              letterSpacing: 1,
+          ] else ...[
+            // Comment / Suggestion Step
+            const Center(child: Text('💬', style: TextStyle(fontSize: 32))),
+            const SizedBox(height: 6),
+            const Text(
+              'Suggestions or Shoutouts (Optional)',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
             ),
-          ),
-          const SizedBox(height: 6),
-          ..._categoryMeta.map((cat) {
-            final key = cat['key']!;
-            final currentVal = _categoryRatings[key] ?? 5;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${cat['icon']} ${cat['label']}',
-                    style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w600),
-                  ),
-                  Row(
-                    children: [1, 2, 3, 4, 5].map((n) {
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() => _categoryRatings[key] = n);
-                          _triggerAutoSave();
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                          child: Icon(
-                            Icons.star,
-                            size: 18,
-                            color: n <= currentVal ? const Color(0xFFF59E0B) : Colors.grey.shade800,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            );
-          }),
-          const SizedBox(height: 6),
-
-          // Optional Shoutout / Comment Field
-          TextField(
-            controller: _commentController,
-            maxLines: 2,
-            onChanged: (_) => _triggerAutoSave(),
-            decoration: InputDecoration(
-              hintText: 'Any shoutouts or suggestions? (Auto-saves)',
-              hintStyle: const TextStyle(fontSize: 11, color: Colors.grey),
-              filled: true,
-              fillColor: const Color(0xFF0F172A),
-              contentPadding: const EdgeInsets.all(10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            const SizedBox(height: 4),
+            const Text(
+              'Any message or ideas for the committee?',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: Colors.white70),
             ),
-            style: const TextStyle(fontSize: 12),
-          ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _commentController,
+              maxLines: 3,
+              onChanged: (_) => _triggerAutoSave(),
+              decoration: InputDecoration(
+                hintText: 'Write a note... (saves automatically)',
+                hintStyle: const TextStyle(fontSize: 11, color: Colors.grey),
+                filled: true,
+                fillColor: const Color(0xFF0F172A),
+                contentPadding: const EdgeInsets.all(10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () => setState(() => _currentStep--),
+                  child: const Text('← Back', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF59E0B),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  onPressed: () {
+                    _triggerAutoSave();
+                    setState(() => _currentStep = _categorySteps.length + 1);
+                  },
+                  child: const Text(
+                    'Finish Review ✨',
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
