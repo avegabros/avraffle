@@ -71,6 +71,29 @@ export default function EventsAdminPage() {
     }
   };
 
+  const handleAttachAll = async (id: number, eventName: string) => {
+    if (!confirm(`Attach all existing unassigned attendees & prizes for this year to "${eventName}"?`)) {
+      return;
+    }
+    setMessage('Linking attendees and prizes...');
+    try {
+      const res = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'attach_all', id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(`✅ ${data.message}`);
+        fetchEvents();
+      } else {
+        setMessage(`❌ ${data.error || 'Failed to link attendees'}`);
+      }
+    } catch {
+      setMessage('❌ Network error while linking attendees');
+    }
+  };
+
   const handleArchiveEvent = async (eventCode: string, eventName: string) => {
     if (!confirm(`Are you sure you want to archive "${eventName}" (${eventCode})?\n\nThis will freeze all winners and prizes into a permanent snapshot and mark the event archived.`)) {
       return;
@@ -306,6 +329,14 @@ export default function EventsAdminPage() {
                     </div>
 
                     <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                      <button
+                        onClick={() => handleAttachAll(ev.id, ev.name)}
+                        className="px-3 py-1.5 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white font-bold text-xs rounded-xl border border-white/10 transition flex items-center gap-1"
+                        title="Link all current unlinked attendees & prizes of this year to this event"
+                      >
+                        <span>🔗</span> Link All ({ev.year})
+                      </button>
+
                       {ev.isActive ? (
                         <span className="text-xs font-bold text-amber-400 px-3 py-1.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
                           Active Target

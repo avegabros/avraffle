@@ -82,6 +82,55 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Action: Sync / Attach Existing Attendees and Prizes to Active Event
+    if (action === 'attach_all') {
+      const { id } = body;
+      const target = id
+        ? await prisma.event.findUnique({ where: { id: parseInt(String(id), 10) } })
+        : await prisma.event.findFirst({ where: { isActive: true } });
+
+      if (!target) {
+        return NextResponse.json({ error: 'Target event not found' }, { status: 404 });
+      }
+
+      // Attach all guests and prizes of matching year (or without an eventCode) to this event
+      const [updatedGuests, updatedPrizes] = await prisma.$transaction([
+        prisma.guest.updateMany({
+          where: {
+            OR: [
+              { eventYear: target.year },
+              { eventCode: null },
+            ],
+          },
+          data: {
+            eventId: target.id,
+            eventCode: target.code,
+            eventYear: target.year,
+          },
+        }),
+        prisma.prize.updateMany({
+          where: {
+            OR: [
+              { eventYear: target.year },
+              { eventCode: null },
+            ],
+          },
+          data: {
+            eventId: target.id,
+            eventCode: target.code,
+            eventYear: target.year,
+          },
+        }),
+      ]);
+
+      return NextResponse.json({
+        success: true,
+        message: `Successfully linked ${updatedGuests.count} attendees and ${updatedPrizes.count} prizes to "${target.name}" (${target.code})!`,
+        guestsCount: updatedGuests.count,
+        prizesCount: updatedPrizes.count,
+      });
+    }
+
     // Action: Create Event
     if (action === 'create' || !action) {
       const { name, code, year, description, isActive } = body;

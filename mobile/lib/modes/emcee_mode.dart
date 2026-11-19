@@ -524,6 +524,22 @@ class _EmceeRemoteScreenState extends State<EmceeRemoteScreen> {
             tooltip: 'Live Spin Controls',
             onPressed: _showSpinSettingsDialog,
           ),
+          // Refresh / Sync Icon
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white70),
+            tooltip: 'Refresh & Re-sync State',
+            onPressed: () {
+              _fetchGrandPrizes();
+              _fetchSettings();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🔄 Synced wheel state & prize catalog from server'),
+                  duration: Duration(seconds: 1),
+                  backgroundColor: Color(0xFF1E293B),
+                ),
+              );
+            },
+          ),
           const SizedBox(width: 4),
           Row(
             children: [

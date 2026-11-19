@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings2, Volume2, VolumeX, Maximize2, Square, X, MapPin, Lock, Unlock } from 'lucide-react';
+import { Settings2, Volume2, VolumeX, Maximize2, Square, X, MapPin, Lock, Unlock, RefreshCw } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
 interface StageControlsProps {
@@ -13,6 +13,7 @@ interface StageControlsProps {
   setShowPrizeCard: (val: boolean) => void;
   isSpinning: boolean;
   onStopSpin?: () => void;
+  onRefresh?: () => void;
   activeLocation?: string;
   onLocationChange?: (loc: string) => void;
   isViewer?: boolean;
@@ -29,6 +30,7 @@ export const StageControls: React.FC<StageControlsProps> = ({
   setShowPrizeCard,
   isSpinning,
   onStopSpin,
+  onRefresh,
   activeLocation = 'ALL',
   onLocationChange,
   isViewer = false,
@@ -75,6 +77,20 @@ export const StageControls: React.FC<StageControlsProps> = ({
               Stage Display Options
             </h4>
           </div>
+
+          {/* Quick Refresh Option */}
+          {onRefresh && (
+            <button
+              onClick={() => {
+                onRefresh();
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl transition text-xs font-semibold text-amber-300"
+            >
+              <span>Refresh & Re-sync Stage</span>
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Audio Mute Option */}
           <button

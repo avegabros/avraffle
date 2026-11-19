@@ -439,6 +439,10 @@ export default function StagePage() {
         setShowPrizeCard={setShowPrizeCard}
         isSpinning={isSpinning}
         onStopSpin={isMaster ? handleStopSpin : undefined}
+        onRefresh={() => {
+          loadSettings();
+          loadWheelData();
+        }}
         activeLocation={activeLocation}
         onLocationChange={handleLocationChange}
         isViewer={false}
