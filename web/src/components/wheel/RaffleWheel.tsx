@@ -392,12 +392,19 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
   useEffect(() => {
     renderOffscreenWheel();
     drawRotatedWheel(currentAngleRef.current);
-    updatePointingSegment(currentAngleRef.current);
-  }, [renderOffscreenWheel, drawRotatedWheel, updatePointingSegment]);
+    // Only update pointing segment on segment changes if wheel is actively spinning;
+    // when idle, preserving the current pointing attendee prevents jumping when a segment is removed
+    if (isSpinning) {
+      updatePointingSegment(currentAngleRef.current);
+    }
+  }, [renderOffscreenWheel, drawRotatedWheel, updatePointingSegment, isSpinning]);
 
   // Spin Execution with GSAP
   const spinToWinner = useCallback((targetIndex?: number) => {
     if (isSpinning || segments.length === 0) return;
+
+    // Reset last reported index so fresh pointing updates are triggered immediately
+    lastReportedIdxRef.current = -1;
 
     setIsSpinning(true);
     onSpinStateChange?.(true);

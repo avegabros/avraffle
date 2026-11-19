@@ -37,6 +37,7 @@ export default function StagePage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [pointingAttendee, setPointingAttendee] = useState<WheelSegment | null>(null);
+  const [lockedSpotlightName, setLockedSpotlightName] = useState<string | null>(null);
 
   // Hidden by default top header, Show prize card by default
   const [showTopHeader, setShowTopHeader] = useState(false);
@@ -222,6 +223,7 @@ export default function StagePage() {
               lastSeenTrigger = state.spinTriggerCount;
               setIsModalOpen(false);
               setCurrentWinner(null);
+              setLockedSpotlightName(null);
               
               // If target winner segment ID is provided, find its index so all screens stop identically
               let targetIdx: number | undefined = undefined;
@@ -292,6 +294,7 @@ export default function StagePage() {
     // Pick winner index upfront so all viewer screens (/raffle) and the stage wheel stop on the exact same person
     const winnerIdx = Math.floor(Math.random() * segments.length);
     const targetWinner = segments[winnerIdx];
+    setLockedSpotlightName(null);
 
     // 1. Immediately spin local wheel to the selected winner
     wheelRef.current?.spinToWinner(winnerIdx);
@@ -320,6 +323,7 @@ export default function StagePage() {
 
   const handleSpinEnd = async (winner: WheelSegment) => {
     setCurrentWinner(winner);
+    setLockedSpotlightName(winner.name);
     setIsModalOpen(true);
 
     if (!isMasterRef.current) return;
@@ -507,7 +511,7 @@ export default function StagePage() {
               {/* Dynamic Live Attendee Spotlight Banner */}
               <div className="mt-3 min-w-[320px] max-w-[90vw] px-8 py-3 rounded-2xl bg-slate-900/90 border border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-xl flex items-center justify-center text-center transition-all duration-100">
                 <div className="text-2xl lg:text-3xl font-black text-amber-400 tracking-wide truncate max-w-full drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-                  {pointingAttendee?.name || '---'}
+                  {lockedSpotlightName || pointingAttendee?.name || '---'}
                 </div>
               </div>
             </div>

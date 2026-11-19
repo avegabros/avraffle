@@ -30,6 +30,7 @@ function RaffleViewContent() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default muted on phones
   const [pointingAttendee, setPointingAttendee] = useState<WheelSegment | null>(null);
+  const [lockedSpotlightName, setLockedSpotlightName] = useState<string | null>(null);
   const [isStageActive, setIsStageActive] = useState(false);
 
   const [allPrizesClaimed, setAllPrizesClaimed] = useState(false);
@@ -168,6 +169,7 @@ function RaffleViewContent() {
               lastSeenTrigger = state.spinTriggerCount;
               setIsModalOpen(false);
               setCurrentWinner(null);
+              setLockedSpotlightName(null);
 
               let targetIdx: number | undefined = undefined;
               if (state.targetWinnerId) {
@@ -189,6 +191,7 @@ function RaffleViewContent() {
                 department: state.winner.department,
                 imagePath: state.winner.imagePath,
               });
+              setLockedSpotlightName(state.winner.name);
               setIsModalOpen(true);
             }
           }
@@ -308,6 +311,7 @@ function RaffleViewContent() {
               segments={segments}
               onSpinEnd={(winner) => {
                 setCurrentWinner(winner);
+                setLockedSpotlightName(winner.name);
                 setIsModalOpen(true);
               }}
               onSpinStateChange={setIsSpinning}
@@ -322,7 +326,7 @@ function RaffleViewContent() {
             {/* Live Name Spotlight Banner */}
             <div className="mt-3 min-w-[280px] max-w-[90vw] px-6 py-2.5 rounded-2xl bg-slate-900/90 border border-amber-500/40 shadow-xl backdrop-blur-xl flex items-center justify-center text-center">
               <div className="text-xl sm:text-2xl font-black text-amber-400 tracking-wide truncate max-w-full">
-                {pointingAttendee?.name || '---'}
+                {lockedSpotlightName || pointingAttendee?.name || '---'}
               </div>
             </div>
           </div>
