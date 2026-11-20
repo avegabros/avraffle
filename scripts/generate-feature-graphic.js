@@ -96,11 +96,11 @@ async function createFeatureGraphic() {
     .jpeg({ quality: 95 })
     .toFile(jpgOutPath);
 
-  // Also create 512x512 high-res Play Store App Icon
-  const avLogoPath = path.resolve('public/logo/av-logo.jpg');
+  // Also create 512x512 high-res Play Store App Icon using new 3D wheel app icon
+  const appIconPath = path.resolve('public/logo/app-icon-transparent.png');
   const iconOutPath = path.join(outDir, 'play_store_icon_512x512.png');
-  await sharp(avLogoPath)
-    .resize(512, 512, { fit: 'contain', background: { r: 255, g: 0, b: 0, alpha: 1 } })
+  await sharp(appIconPath)
+    .resize(512, 512, { fit: 'contain', background: { r: 15, g: 23, b: 42, alpha: 0 } })
     .png()
     .toFile(iconOutPath);
 
