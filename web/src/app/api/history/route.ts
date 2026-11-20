@@ -113,20 +113,48 @@ export async function GET(req: NextRequest) {
           winOn: true,
           imagePath: true,
           thumbPath: true,
+          grandPrizeWon: {
+            select: {
+              id: true,
+              name: true,
+              isGrandPrize: true,
+              imagePath: true,
+            },
+          },
         },
       });
 
-      winners = liveWinners.map((w) => ({
-        id: w.id,
-        employeeId: w.employeeId,
-        fullName: `${w.firstName} ${w.lastName}`,
-        department: w.department,
-        position: w.position,
-        location: w.location,
-        prize: w.prizeWon || 'Raffle Prize',
-        winOn: w.winOn ? w.winOn.toISOString() : new Date().toISOString(),
-        avatar: w.imagePath || w.thumbPath || null,
-      }));
+      // Also fetch all grand prizes in this event to cross-match by prize name if wonByGuestId was omitted
+      const allGrandPrizes = await prisma.prize.findMany({
+        where: {
+          isGrandPrize: true,
+          ...(whereClause.eventYear ? { eventYear: whereClause.eventYear as number } : {}),
+        },
+        select: { name: true },
+      });
+      const grandPrizeNames = new Set(allGrandPrizes.map((p) => p.name.toLowerCase().trim()));
+
+      winners = liveWinners.map((w) => {
+        const prizeName = w.prizeWon || 'Raffle Prize';
+        const isGrand = Boolean(
+          (w.grandPrizeWon && w.grandPrizeWon.isGrandPrize) ||
+          grandPrizeNames.has(prizeName.toLowerCase().trim()) ||
+          prizeName.toLowerCase().includes('grand')
+        );
+
+        return {
+          id: w.id,
+          employeeId: w.employeeId,
+          fullName: `${w.firstName} ${w.lastName}`,
+          department: w.department,
+          position: w.position,
+          location: w.location,
+          prize: prizeName,
+          isGrand,
+          winOn: w.winOn ? w.winOn.toISOString() : new Date().toISOString(),
+          avatar: w.imagePath || w.thumbPath || null,
+        };
+      });
     } else {
       // Query archived disk records
       let jsonPath = path.join(winnersDir, selectedKey, 'data.json');
