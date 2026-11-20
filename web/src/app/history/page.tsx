@@ -101,7 +101,7 @@ export default function HistoryPage() {
   const isLive = currentEvent?.isActive || selectedEvent === '2026' || selectedEvent === 'XMAS-2026';
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-indigo-950 to-black text-white flex flex-col">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
       <AdminNav badgeTitle="Winners Archive" />
 
       {/* Main Content */}
