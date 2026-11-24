@@ -27,17 +27,32 @@ export async function POST(req: NextRequest) {
     const activeYr = globalThis.__raffleWheelSettings?.activeYear || updatedGuest.eventYear || 2026;
     const activeEventCode = globalThis.__raffleWheelSettings?.activeEventCode || updatedGuest.eventCode;
 
-    // 2. If grand prize, mark prize as won
+    // 2. Decrement prize quantity or mark as won
     if (grandPrizeId) {
-      await prisma.prize.update({
+      const grandPrize = await prisma.prize.findUnique({
         where: { id: grandPrizeId },
-        data: {
-          isWon: true,
-          quantity: 0,
-          wonByGuestId: guestId,
-          wonOn: now,
-        },
       });
+
+      if (grandPrize) {
+        if (grandPrize.quantity > 1) {
+          await prisma.prize.update({
+            where: { id: grandPrize.id },
+            data: {
+              quantity: grandPrize.quantity - 1,
+            },
+          });
+        } else {
+          await prisma.prize.update({
+            where: { id: grandPrize.id },
+            data: {
+              quantity: 0,
+              isWon: true,
+              wonByGuestId: guestId,
+              wonOn: now,
+            },
+          });
+        }
+      }
     } else if (prizeName) {
       // Find matching regular prize by name for current event/location and mark one unit won
       const prizeWhere: any = {
