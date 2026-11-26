@@ -7,20 +7,59 @@ export async function GET(req: Request) {
     const location = searchParams.get('location') || undefined;
     const yearStr = searchParams.get('year') || undefined;
     const eventYear = yearStr ? parseInt(yearStr, 10) : undefined;
+    const eventCode = searchParams.get('eventCode') || globalThis.__raffleWheelSettings?.activeEventCode;
 
     const guestWhere: Record<string, unknown> = {};
-    if (location && location !== 'ALL') guestWhere.location = location;
-    if (eventYear) guestWhere.eventYear = eventYear;
+    if (eventCode) {
+      guestWhere.OR = [
+        { eventCode },
+        { eventCode: null, eventYear },
+      ];
+    } else if (eventYear) {
+      guestWhere.eventYear = eventYear;
+    }
+
+    if (location && location !== 'ALL') {
+      const locCondition = [{ location }, { location: 'ALL' }];
+      if (guestWhere.OR) {
+        guestWhere.AND = [{ OR: locCondition }];
+      } else {
+        guestWhere.OR = locCondition;
+      }
+    }
 
     const prizeWhere: Record<string, unknown> = {};
-    if (location && location !== 'ALL') prizeWhere.OR = [{ location }, { location: 'ALL' }];
-    if (eventYear) prizeWhere.eventYear = eventYear;
+    if (eventCode) {
+      prizeWhere.OR = [
+        { eventCode },
+        { eventCode: null, eventYear },
+      ];
+    } else if (eventYear) {
+      prizeWhere.eventYear = eventYear;
+    }
+
+    if (location && location !== 'ALL') {
+      const locCondition = [{ location }, { location: 'ALL' }];
+      if (prizeWhere.OR) {
+        prizeWhere.AND = [{ OR: locCondition }];
+      } else {
+        prizeWhere.OR = locCondition;
+      }
+    }
+
+    // Active in Wheel eligibility matches /stage wheel:
+    // Must be inWheel: true and not already a winner (isWinner: false)
+    const activeWheelWhere = {
+      ...guestWhere,
+      inWheel: true,
+      isWinner: false,
+    };
 
     const [totalGuests, checkedInGuests, activeWheelCount, totalPrizes, grandPrizes, wonPrizes, adminCount] =
       await Promise.all([
         prisma.guest.count({ where: guestWhere }),
         prisma.guest.count({ where: { ...guestWhere, isRegistered: true } }),
-        prisma.guest.count({ where: { ...guestWhere, inWheel: true } }),
+        prisma.guest.count({ where: activeWheelWhere }),
         prisma.prize.count({ where: prizeWhere }),
         prisma.prize.count({ where: { ...prizeWhere, isGrandPrize: true } }),
         prisma.prize.count({ where: { ...prizeWhere, isWon: true } }),

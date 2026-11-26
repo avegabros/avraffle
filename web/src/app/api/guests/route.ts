@@ -115,6 +115,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    if (globalThis.__raffleStageState) {
+      globalThis.__raffleStageState.reloadGuestsCount =
+        (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+      globalThis.__raffleStageState.timestamp = Date.now();
+    }
+
     return NextResponse.json({ success: true, guest });
   } catch (error) {
     console.error('Registration/Check-in error:', error);
@@ -151,6 +157,12 @@ export async function DELETE(req: NextRequest) {
     await prisma.guest.delete({
       where: { id },
     });
+
+    if (globalThis.__raffleStageState) {
+      globalThis.__raffleStageState.reloadGuestsCount =
+        (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+      globalThis.__raffleStageState.timestamp = Date.now();
+    }
 
     return NextResponse.json({ success: true, message: 'Guest deleted successfully' });
   } catch (error) {

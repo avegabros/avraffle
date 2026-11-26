@@ -28,6 +28,11 @@ export async function PATCH(req: NextRequest) {
         dataToUpdate.prizeWon = null;
         dataToUpdate.winOn = null;
         dataToUpdate.inWheel = true;
+        // Also unlink from any grand prize wonByGuestId
+        await prisma.prize.updateMany({
+          where: { wonByGuestId: parseInt(String(id), 10) },
+          data: { wonByGuestId: null, isWon: false, wonOn: null },
+        });
       } else {
         dataToUpdate.prizeWon = prizeWon || 'Claimed Prize';
         dataToUpdate.winOn = new Date();
@@ -39,6 +44,13 @@ export async function PATCH(req: NextRequest) {
       where: { id: parseInt(String(id), 10) },
       data: dataToUpdate,
     });
+
+    // Notify stage and live views so wheel segments and participants list reload immediately
+    if (globalThis.__raffleStageState) {
+      globalThis.__raffleStageState.reloadGuestsCount =
+        (globalThis.__raffleStageState.reloadGuestsCount || 0) + 1;
+      globalThis.__raffleStageState.timestamp = Date.now();
+    }
 
     return NextResponse.json({ success: true, guest: updated });
   } catch (error) {
