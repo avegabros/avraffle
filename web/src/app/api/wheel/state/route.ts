@@ -310,7 +310,20 @@ export async function POST(req: NextRequest) {
       currentState.timestamp = Date.now();
     } else if (body.action === 'WINNER_ANNOUNCED') {
       currentState.status = 'IDLE';
-      currentState.winner = body.winner || null;
+      let winnerPayload = body.winner || null;
+      if (winnerPayload && !winnerPayload.imagePath && winnerPayload.id) {
+        // Fallback: If imagePath was omitted, lookup from DB so all live views receive mugshot
+        try {
+          const guestRecord = await prisma.guest.findUnique({
+            where: { id: winnerPayload.id },
+            select: { imagePath: true, thumbPath: true },
+          });
+          if (guestRecord) {
+            winnerPayload.imagePath = guestRecord.imagePath || guestRecord.thumbPath || null;
+          }
+        } catch (_) {}
+      }
+      currentState.winner = winnerPayload;
       currentState.timestamp = Date.now();
     } else if (body.action === 'SELECT_PRIZE') {
       const prevIsGrand = currentState.isGrand;

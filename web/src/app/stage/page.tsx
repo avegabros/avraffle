@@ -368,6 +368,7 @@ export default function StagePage() {
             employeeId: winner.employeeId,
             name: winner.name,
             department: winner.department,
+            imagePath: winner.imagePath,
           },
         }),
       });
