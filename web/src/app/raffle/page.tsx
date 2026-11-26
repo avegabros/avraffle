@@ -50,9 +50,10 @@ function RaffleViewContent() {
   const [activeLocation, setActiveLocation] = useState<string>(lockedLocation || 'ALL');
   const [activeYear, setActiveYear] = useState<number>(2026);
 
-  const loadWheelData = async (loc = activeLocation, yr = activeYear) => {
+  const loadWheelData = async (loc = activeLocation, yr = activeYear, isGrand?: boolean) => {
     try {
-      const res = await fetch(`/api/wheel?location=${encodeURIComponent(loc)}&year=${encodeURIComponent(yr)}`);
+      const grandFlag = isGrand !== undefined ? isGrand : selectedPrize.isGrand;
+      const res = await fetch(`/api/wheel?location=${encodeURIComponent(loc)}&year=${encodeURIComponent(yr)}&isGrand=${grandFlag}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (Array.isArray(data.segments)) {
@@ -132,10 +133,10 @@ function RaffleViewContent() {
               lastSeenTrigger = state.spinTriggerCount ?? 0;
             }
 
-            // Reload segments if winner claimed or guests updated
+            // Reload segments if winner claimed, guests updated, or grand prize toggled
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
-              loadWheelData(currentLoc, currentYr);
+              loadWheelData(currentLoc, currentYr, state.isGrand);
             }
 
             // Sync allPrizesClaimed

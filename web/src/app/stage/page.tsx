@@ -88,9 +88,10 @@ export default function StagePage() {
     loadWheelData();
   };
 
-  const loadWheelData = async (loc = activeLocation, yr = activeYear) => {
+  const loadWheelData = async (loc = activeLocation, yr = activeYear, isGrand?: boolean) => {
     try {
-      const res = await fetch(`/api/wheel?location=${encodeURIComponent(loc)}&year=${encodeURIComponent(yr)}`);
+      const grandFlag = isGrand !== undefined ? isGrand : selectedPrize.isGrand;
+      const res = await fetch(`/api/wheel?location=${encodeURIComponent(loc)}&year=${encodeURIComponent(yr)}&isGrand=${grandFlag}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (Array.isArray(data.segments)) {
@@ -212,10 +213,10 @@ export default function StagePage() {
               lastSeenTrigger = state.spinTriggerCount ?? 0;
             }
 
-            // Reload wheel attendees when remote confirms a winner
+            // Reload wheel attendees when remote confirms a winner or prize type switches
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
-              loadWheelData(currentLoc, currentYr);
+              loadWheelData(currentLoc, currentYr, state.isGrand);
             }
 
             // Sync allPrizesClaimed from state
@@ -576,9 +577,15 @@ export default function StagePage() {
         {/* Right Prize Spotlight Panel */}
         {showPrizeCard && !allPrizesClaimed && (
           <div className="hidden md:flex flex-col items-center justify-center w-80 lg:w-96 p-6 rounded-3xl bg-slate-900/80 border-2 border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.2)] backdrop-blur-xl animate-in fade-in slide-in-from-right-6 transition-all duration-300">
-            <div className="px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-widest bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow mb-4">
+            <div className="px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-widest bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow mb-2">
               {selectedPrize.isGrand ? '🌟 GRAND PRIZE DRAW 🌟' : '🎁 REGULAR DRAW PRIZE'}
             </div>
+
+            {selectedPrize.isGrand && (
+              <span className="text-[10px] font-black uppercase text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 rounded-full mb-3 text-center">
+                ✨ All Attendees Eligible in Wheel!
+              </span>
+            )}
 
             {/* Prize Photo Preview */}
             <div className="w-full h-56 lg:h-64 rounded-2xl overflow-hidden bg-slate-950 border border-white/10 shadow-inner flex items-center justify-center mb-4 relative">

@@ -14,11 +14,29 @@ export async function GET(req: NextRequest) {
     const yearStr = searchParams.get('year');
     const eventYear = yearStr ? parseInt(yearStr, 10) : systemYear;
     const eventCode = searchParams.get('eventCode') || systemEventCode;
+    const isGrandParam = searchParams.get('isGrand');
 
-    const guestWhere: Record<string, unknown> = {
-      inWheel: true,
-      isWinner: false,
-    };
+    // Determine if the current active draw prize is a Grand Prize
+    // Either explicitly passed in query ?isGrand=true or inferred from global stage state
+    const isGrandDraw = isGrandParam !== null
+      ? isGrandParam === 'true'
+      : Boolean(globalThis.__raffleStageState?.isGrand);
+
+    const guestWhere: Record<string, unknown> = {};
+
+    if (isGrandDraw) {
+      // GRAND PRIZE ELIGIBILITY (Issue #10):
+      // All checked-in / registered participants return to the wheel,
+      // including past regular prize winners! Only excluded if they already won a Grand Prize.
+      guestWhere.isRegistered = true;
+      guestWhere.grandPrizeWon = null;
+    } else {
+      // REGULAR PRIZE ELIGIBILITY:
+      // Must be in wheel and not have won yet
+      guestWhere.inWheel = true;
+      guestWhere.isWinner = false;
+    }
+
     if (eventCode) {
       guestWhere.OR = [
         { eventCode },
@@ -109,6 +127,7 @@ export async function GET(req: NextRequest) {
       segments,
       grandPrizes: availableGrandPrizes,
       regularPrizes: availableRegularPrizes,
+      isGrandDraw,
       allPrizesClaimed: totalPrizesCount === 0,
     });
   } catch (error) {

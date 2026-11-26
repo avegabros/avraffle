@@ -249,10 +249,20 @@ export async function POST(req: NextRequest) {
           const spinYear = body.eventYear || currentState.eventYear || globalThis.__raffleWheelSettings?.activeYear || 2026;
           const spinCode = body.eventCode || currentState.eventCode || globalThis.__raffleWheelSettings?.activeEventCode;
 
-          const gWhere: any = {
-            inWheel: true,
-            isWinner: false,
-          };
+          const isGrandDraw = Boolean(body.isGrand ?? currentState.isGrand);
+
+          const gWhere: any = {};
+          if (isGrandDraw) {
+            // GRAND PRIZE ELIGIBILITY (Issue #10):
+            // All checked-in / registered participants return to the wheel,
+            // including past regular prize winners! Only excluded if they already won a Grand Prize.
+            gWhere.isRegistered = true;
+            gWhere.grandPrizeWon = null;
+          } else {
+            // REGULAR PRIZE ELIGIBILITY:
+            gWhere.inWheel = true;
+            gWhere.isWinner = false;
+          }
           if (spinCode) {
             gWhere.OR = [
               { eventCode: spinCode },
@@ -303,6 +313,7 @@ export async function POST(req: NextRequest) {
       currentState.winner = body.winner || null;
       currentState.timestamp = Date.now();
     } else if (body.action === 'SELECT_PRIZE') {
+      const prevIsGrand = currentState.isGrand;
       currentState.prizeName = body.prizeName;
       currentState.prizeImagePath = body.prizeImagePath !== undefined ? body.prizeImagePath : null;
       currentState.isGrand = body.isGrand ?? false;
@@ -311,8 +322,13 @@ export async function POST(req: NextRequest) {
       if (body.location) currentState.location = body.location;
       if (body.eventYear) currentState.eventYear = body.eventYear;
       if (body.eventCode) currentState.eventCode = body.eventCode;
+      // If switched between regular prize and grand prize, trigger reload guests so wheel roster updates immediately
+      if (prevIsGrand !== currentState.isGrand) {
+        currentState.reloadGuestsCount = (currentState.reloadGuestsCount || 0) + 1;
+      }
       currentState.timestamp = Date.now();
     } else if (body.action === 'RESET_TO_AUTO_QUEUE') {
+      const prevIsGrand = currentState.isGrand;
       const activeLoc = body.location || currentState.location || 'TAYUD';
       const activeYr = body.eventYear || currentState.eventYear || 2026;
       const activeCode = body.eventCode || currentState.eventCode;
@@ -322,6 +338,9 @@ export async function POST(req: NextRequest) {
       currentState.isGrand = next.isGrand;
       currentState.grandPrizeId = next.grandPrizeId;
       currentState.allPrizesClaimed = next.allPrizesClaimed;
+      if (prevIsGrand !== currentState.isGrand) {
+        currentState.reloadGuestsCount = (currentState.reloadGuestsCount || 0) + 1;
+      }
       currentState.timestamp = Date.now();
     } else if (body.action === 'SET_LOCATION') {
       if (body.location) currentState.location = body.location;

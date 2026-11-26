@@ -34,24 +34,22 @@ export async function POST(req: NextRequest) {
       });
 
       if (grandPrize) {
+        // Link grand prize to guest (if slot available)
+        const prizeUpdateData: any = {
+          wonByGuestId: guestId,
+          wonOn: now,
+        };
         if (grandPrize.quantity > 1) {
-          await prisma.prize.update({
-            where: { id: grandPrize.id },
-            data: {
-              quantity: grandPrize.quantity - 1,
-            },
-          });
+          prizeUpdateData.quantity = grandPrize.quantity - 1;
         } else {
-          await prisma.prize.update({
-            where: { id: grandPrize.id },
-            data: {
-              quantity: 0,
-              isWon: true,
-              wonByGuestId: guestId,
-              wonOn: now,
-            },
-          });
+          prizeUpdateData.quantity = 0;
+          prizeUpdateData.isWon = true;
         }
+
+        await prisma.prize.update({
+          where: { id: grandPrize.id },
+          data: prizeUpdateData,
+        });
       }
     } else if (prizeName) {
       // Find matching regular prize by name for current event/location and mark one unit won
@@ -90,7 +88,6 @@ export async function POST(req: NextRequest) {
             data: {
               quantity: 0,
               isWon: true,
-              wonByGuestId: guestId,
               wonOn: now,
             },
           });
