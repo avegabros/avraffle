@@ -256,7 +256,15 @@ export default function StagePage() {
               let targetIdx: number | undefined = undefined;
               if (state.targetWinnerId) {
                 const foundIdx = segmentsRef.current.findIndex((s) => s.id === state.targetWinnerId);
-                if (foundIdx !== -1) targetIdx = foundIdx;
+                if (foundIdx !== -1) {
+                  targetIdx = foundIdx;
+                  const remoteTarget = segmentsRef.current[foundIdx];
+                  const preloadSrc = remoteTarget?.imagePath || remoteTarget?.thumbPath;
+                  if (preloadSrc) {
+                    const preloadImg = new Image();
+                    preloadImg.src = preloadSrc;
+                  }
+                }
               }
               wheelRef.current?.spinToWinner(targetIdx);
             }
@@ -324,7 +332,14 @@ export default function StagePage() {
     const targetWinner = segments[winnerIdx];
     setLockedSpotlightName(null);
 
-    // 1. Immediately spin local wheel to the selected winner
+    // 1. Immediately spin local wheel to the selected winner and preload their mugshot during the 8s spin
+    if (targetWinner) {
+      const preloadSrc = targetWinner.imagePath || targetWinner.thumbPath;
+      if (preloadSrc) {
+        const preloadImg = new Image();
+        preloadImg.src = preloadSrc;
+      }
+    }
     wheelRef.current?.spinToWinner(winnerIdx);
 
     // 2. Broadcast spin trigger to /api/wheel/state so /raffle viewers spin synchronously
@@ -369,6 +384,7 @@ export default function StagePage() {
             name: winner.name,
             department: winner.department,
             imagePath: winner.imagePath,
+            thumbPath: winner.thumbPath,
           },
         }),
       });

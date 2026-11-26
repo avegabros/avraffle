@@ -15,6 +15,7 @@ export interface WheelSegment {
   name: string;
   department?: string | null;
   imagePath?: string | null;
+  thumbPath?: string | null;
 }
 
 export interface RaffleWheelHandle {

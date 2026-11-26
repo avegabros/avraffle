@@ -175,7 +175,15 @@ function RaffleViewContent() {
               let targetIdx: number | undefined = undefined;
               if (state.targetWinnerId) {
                 const foundIdx = segmentsRef.current.findIndex((s) => s.id === state.targetWinnerId);
-                if (foundIdx !== -1) targetIdx = foundIdx;
+                if (foundIdx !== -1) {
+                  targetIdx = foundIdx;
+                  const remoteTarget = segmentsRef.current[foundIdx];
+                  const preloadSrc = remoteTarget?.imagePath || remoteTarget?.thumbPath;
+                  if (preloadSrc) {
+                    const preloadImg = new Image();
+                    preloadImg.src = preloadSrc;
+                  }
+                }
               }
               wheelRef.current?.spinToWinner(targetIdx);
             }
@@ -192,6 +200,7 @@ function RaffleViewContent() {
                 name: state.winner.name,
                 department: state.winner.department,
                 imagePath: state.winner.imagePath,
+                thumbPath: state.winner.thumbPath,
               });
               setLockedSpotlightName(state.winner.name);
               setIsModalOpen(true);

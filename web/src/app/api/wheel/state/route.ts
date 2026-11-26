@@ -28,6 +28,7 @@ declare global {
       name: string;
       department?: string | null;
       imagePath?: string | null;
+      thumbPath?: string | null;
     } | null;
   } | undefined;
 }
@@ -311,15 +312,20 @@ export async function POST(req: NextRequest) {
     } else if (body.action === 'WINNER_ANNOUNCED') {
       currentState.status = 'IDLE';
       let winnerPayload = body.winner || null;
-      if (winnerPayload && !winnerPayload.imagePath && winnerPayload.id) {
-        // Fallback: If imagePath was omitted, lookup from DB so all live views receive mugshot
+      if (winnerPayload && winnerPayload.id) {
+        // Fallback: If imagePath or thumbPath was omitted, lookup from DB so all live views receive mugshot
         try {
           const guestRecord = await prisma.guest.findUnique({
             where: { id: winnerPayload.id },
             select: { imagePath: true, thumbPath: true },
           });
           if (guestRecord) {
-            winnerPayload.imagePath = guestRecord.imagePath || guestRecord.thumbPath || null;
+            if (!winnerPayload.imagePath) {
+              winnerPayload.imagePath = guestRecord.imagePath || guestRecord.thumbPath || null;
+            }
+            if (!winnerPayload.thumbPath) {
+              winnerPayload.thumbPath = guestRecord.thumbPath || guestRecord.imagePath || null;
+            }
           }
         } catch (_) {}
       }
