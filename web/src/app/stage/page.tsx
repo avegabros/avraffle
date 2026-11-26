@@ -234,6 +234,10 @@ export default function StagePage() {
                   prev.id !== state.grandPrizeId ||
                   prev.imagePath !== state.prizeImagePath
                 ) {
+                  // Issue #14: Reset spotlight banner and previous winner when selecting a new prize
+                  setLockedSpotlightName(null);
+                  setCurrentWinner(null);
+                  setIsModalOpen(false);
                   return {
                     id: state.grandPrizeId,
                     name: state.prizeName,
@@ -274,6 +278,18 @@ export default function StagePage() {
               setIsModalOpen(false);
               setCurrentWinner(null);
               setLockedSpotlightName(null);
+            } else if (state.winner && !isSpinning) {
+              // Synchronize announced winner across all stage screens (master and secondary displays)
+              setCurrentWinner({
+                id: state.winner.id,
+                employeeId: state.winner.employeeId,
+                name: state.winner.name,
+                department: state.winner.department,
+                imagePath: state.winner.imagePath,
+                thumbPath: state.winner.thumbPath,
+              });
+              setLockedSpotlightName(state.winner.name);
+              setIsModalOpen(true);
             }
           }
         }
@@ -640,7 +656,7 @@ export default function StagePage() {
         winner={currentWinner}
         prizeName={selectedPrize.name}
         isGrandPrize={selectedPrize.isGrand}
-        isViewer={false}
+        isViewer={!isMaster}
         onConfirm={handleConfirmWinner}
         onRespin={handleRespin}
       />

@@ -298,8 +298,8 @@ export default function AdminPrizesPage() {
 
                 <div className="p-5 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                   <div className="text-xs">
-                    {p.isWon && p.wonBy ? (
-                      <span className="text-amber-400 font-bold">Won by {p.wonBy.firstName}</span>
+                    {p.isWon ? (
+                      <span className="text-red-400 font-bold">Claimed / Won</span>
                     ) : (
                       <span className="text-emerald-400 font-semibold">In Inventory</span>
                     )}

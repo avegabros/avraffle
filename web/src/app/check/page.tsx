@@ -20,8 +20,10 @@ interface GuestStatus {
 }
 
 export default function CheckRegistrationPage() {
+  const [searchMode, setSearchMode] = useState<'employee' | 'guest'>('employee');
   const [employeeId, setEmployeeId] = useState('');
   const [lastName, setLastName] = useState('');
+  const [guestIdentifier, setGuestIdentifier] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<GuestStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -34,15 +36,19 @@ export default function CheckRegistrationPage() {
     setLoading(true);
 
     try {
+      const payload = searchMode === 'employee' 
+        ? { employeeId, lastName }
+        : { employeeId: guestIdentifier, fullName: guestIdentifier };
+
       const res = await fetch('/api/check-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employeeId, lastName }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setErrorMessage(data.message || 'Attendee not found.');
+        setErrorMessage(data.message || 'Attendee or guest not found.');
       } else {
         setStatus(data.guest);
         setIsFormCollapsed(true); // Automatically collapse input form so feedback & status take center stage
@@ -71,9 +77,13 @@ export default function CheckRegistrationPage() {
         {isFormCollapsed && status ? (
           <div className="mb-4 p-3 rounded-2xl bg-slate-800/60 border border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-slate-300">
-              <span className="text-amber-400 font-mono font-bold">{employeeId}</span>
+              <span className="text-amber-400 font-mono font-bold">
+                {searchMode === 'employee' ? employeeId : status.employeeId}
+              </span>
               <span className="text-slate-500">•</span>
-              <span className="text-white font-semibold">{lastName}</span>
+              <span className="text-white font-semibold">
+                {searchMode === 'employee' ? lastName : status.fullName}
+              </span>
             </div>
             <button
               type="button"
@@ -85,33 +95,80 @@ export default function CheckRegistrationPage() {
           </div>
         ) : (
           <form onSubmit={handleCheck} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-                Employee ID
-              </label>
-              <input
-                type="text"
-                required
-                value={employeeId}
-                onChange={(e) => setEmployeeId(e.target.value)}
-                placeholder="e.g. EMP-001"
-                className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+            {/* Search Type Toggle */}
+            <div className="grid grid-cols-2 p-1 bg-slate-800/90 border border-white/10 rounded-2xl mb-2">
+              <button
+                type="button"
+                onClick={() => setSearchMode('employee')}
+                className={`py-2 text-xs font-bold rounded-xl transition ${
+                  searchMode === 'employee'
+                    ? 'bg-amber-500 text-slate-950 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🏢 Employee ID
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchMode('guest')}
+                className={`py-2 text-xs font-bold rounded-xl transition ${
+                  searchMode === 'guest'
+                    ? 'bg-amber-500 text-slate-950 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🎟️ Guest / VIP
+              </button>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                required
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="e.g. Dela Cruz"
-                className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
+            {searchMode === 'employee' ? (
+              <>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Employee ID
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={employeeId}
+                    onChange={(e) => setEmployeeId(e.target.value)}
+                    placeholder="e.g. EMP-001 or ABMCI-251102"
+                    className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="e.g. Dela Cruz"
+                    className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                  Guest Tag, ID or Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={guestIdentifier}
+                  onChange={(e) => setGuestIdentifier(e.target.value)}
+                  placeholder="e.g. GUEST-001 or Full Name"
+                  className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                  Enter your Guest Tag (e.g. GUEST-...) or the name provided at registration.
+                </p>
+              </div>
+            )}
 
             <button
               type="submit"

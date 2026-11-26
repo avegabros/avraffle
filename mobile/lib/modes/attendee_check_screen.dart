@@ -14,6 +14,8 @@ class AttendeeCheckScreen extends StatefulWidget {
 class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
   final _empIdController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _guestSearchController = TextEditingController();
+  bool _isGuestMode = false;
   bool _isLoading = false;
   Map<String, dynamic>? _guestResult;
   String? _errorMessage;
@@ -166,10 +168,19 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
   Future<void> _checkStatus() async {
     final empId = _empIdController.text.trim();
     final lastName = _lastNameController.text.trim();
+    final guestQuery = _guestSearchController.text.trim();
 
-    if (empId.isEmpty || lastName.isEmpty) {
+    if (!_isGuestMode && (empId.isEmpty || lastName.isEmpty)) {
       setState(() {
         _errorMessage = 'Please enter both Employee ID and Last Name.';
+        _guestResult = null;
+      });
+      return;
+    }
+
+    if (_isGuestMode && guestQuery.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your Guest Tag, ID, or Name.';
         _guestResult = null;
       });
       return;
@@ -182,13 +193,14 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
     });
 
     try {
+      final Map<String, dynamic> requestBody = _isGuestMode
+          ? {'employeeId': guestQuery, 'fullName': guestQuery}
+          : {'employeeId': empId, 'lastName': lastName};
+
       final res = await http.post(
         Uri.parse('${widget.serverUrl}/api/check-status'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'employeeId': empId,
-          'lastName': lastName,
-        }),
+        body: jsonEncode(requestBody),
       );
 
       final data = jsonDecode(res.body);
@@ -202,7 +214,7 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
         });
       } else {
         setState(() {
-          _errorMessage = data['message'] ?? 'No record found matching Employee ID and Last Name.';
+          _errorMessage = data['message'] ?? 'No registration record found.';
           _guestResult = null;
         });
       }
@@ -277,7 +289,9 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
                         const Icon(Icons.person, size: 16, color: Color(0xFFF59E0B)),
                         const SizedBox(width: 8),
                         Text(
-                          '${_empIdController.text} • ${_lastNameController.text}',
+                          _isGuestMode
+                              ? '${_guestResult!['employeeId']} • ${_guestResult!['fullName']}'
+                              : '${_empIdController.text} • ${_lastNameController.text}',
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ],
@@ -295,29 +309,108 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
                 ),
               )
             else ...[
-              TextField(
-                controller: _empIdController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  labelText: 'Employee ID (e.g. ABMCI-251102)',
-                  prefixIcon: const Icon(Icons.badge, color: Color(0xFFF59E0B)),
-                  filled: true,
-                  fillColor: const Color(0xFF1E293B),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+              // Toggle between Employee and Guest / VIP
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isGuestMode = false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: !_isGuestMode ? const Color(0xFFF59E0B) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '🏢 Employee ID',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: !_isGuestMode ? Colors.black : Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isGuestMode = true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _isGuestMode ? const Color(0xFFF59E0B) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '🎟️ Guest / VIP',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: _isGuestMode ? Colors.black : Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
 
-              TextField(
-                controller: _lastNameController,
-                decoration: InputDecoration(
-                  labelText: 'Last Name / Surname',
-                  prefixIcon: const Icon(Icons.person, color: Color(0xFFF59E0B)),
-                  filled: true,
-                  fillColor: const Color(0xFF1E293B),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+              if (!_isGuestMode) ...[
+                TextField(
+                  controller: _empIdController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: 'Employee ID (e.g. ABMCI-251102)',
+                    prefixIcon: const Icon(Icons.badge, color: Color(0xFFF59E0B)),
+                    filled: true,
+                    fillColor: const Color(0xFF1E293B),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: _lastNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Last Name / Surname',
+                    prefixIcon: const Icon(Icons.person, color: Color(0xFFF59E0B)),
+                    filled: true,
+                    fillColor: const Color(0xFF1E293B),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
+                ),
+              ] else ...[
+                TextField(
+                  controller: _guestSearchController,
+                  decoration: InputDecoration(
+                    labelText: 'Guest Tag, ID or Name',
+                    hintText: 'e.g. GUEST-001 or Full Name',
+                    prefixIcon: const Icon(Icons.confirmation_number, color: Color(0xFFF59E0B)),
+                    filled: true,
+                    fillColor: const Color(0xFF1E293B),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Text(
+                    'Enter your guest badge tag (e.g. GUEST-001) or full name given at registration.',
+                    style: TextStyle(color: Colors.grey, fontSize: 11),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
 
               ElevatedButton.icon(

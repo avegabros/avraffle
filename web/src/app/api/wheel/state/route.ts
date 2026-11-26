@@ -338,6 +338,8 @@ export async function POST(req: NextRequest) {
       currentState.isGrand = body.isGrand ?? false;
       currentState.grandPrizeId = body.grandPrizeId ?? null;
       currentState.allPrizesClaimed = false;
+      currentState.winner = null; // Reset previous winner so stage and live views clear previous winner
+      currentState.status = 'IDLE';
       if (body.location) currentState.location = body.location;
       if (body.eventYear) currentState.eventYear = body.eventYear;
       if (body.eventCode) currentState.eventCode = body.eventCode;
@@ -357,6 +359,8 @@ export async function POST(req: NextRequest) {
       currentState.isGrand = next.isGrand;
       currentState.grandPrizeId = next.grandPrizeId;
       currentState.allPrizesClaimed = next.allPrizesClaimed;
+      currentState.winner = null; // Clear previous winner
+      currentState.status = 'IDLE';
       if (prevIsGrand !== currentState.isGrand) {
         currentState.reloadGuestsCount = (currentState.reloadGuestsCount || 0) + 1;
       }
