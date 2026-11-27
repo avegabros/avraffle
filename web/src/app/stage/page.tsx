@@ -216,6 +216,9 @@ export default function StagePage() {
             // Reload wheel attendees when remote confirms a winner or prize type switches
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
+              setLockedSpotlightName(null);
+              setCurrentWinner(null);
+              setPointingAttendee(null);
               loadWheelData(currentLoc, currentYr, state.isGrand);
             }
 
@@ -428,6 +431,7 @@ export default function StagePage() {
       setIsModalOpen(false);
       setCurrentWinner(null);
       setLockedSpotlightName(null);
+      setPointingAttendee(null);
       loadWheelData();
     } catch (err) {
       console.error('Failed to confirm winner:', err);
@@ -437,6 +441,7 @@ export default function StagePage() {
   const handleRespin = async () => {
     setIsModalOpen(false);
     setCurrentWinner(null);
+    setLockedSpotlightName(null);
     try {
       await fetch('/api/wheel/state', {
         method: 'POST',

@@ -136,6 +136,9 @@ function RaffleViewContent() {
             // Reload segments if winner claimed, guests updated, or grand prize toggled
             if (state.reloadGuestsCount && state.reloadGuestsCount > lastSeenReloadGuests) {
               lastSeenReloadGuests = state.reloadGuestsCount;
+              setLockedSpotlightName(null);
+              setCurrentWinner(null);
+              setPointingAttendee(null);
               loadWheelData(currentLoc, currentYr, state.isGrand);
             }
 

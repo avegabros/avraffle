@@ -372,7 +372,12 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
 
   // Calculate currently pointed segment
   const updatePointingSegment = useCallback((angle: number) => {
-    if (!onPointingSegmentChange || segments.length === 0) return;
+    if (!onPointingSegmentChange) return;
+    if (segments.length === 0) {
+      lastReportedIdxRef.current = -1;
+      onPointingSegmentChange(null as any);
+      return;
+    }
     const numSegments = segments.length;
     const arc = (2 * Math.PI) / numSegments;
     const pointerAngle = (3 * Math.PI) / 2; // top indicator
@@ -393,12 +398,12 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
   useEffect(() => {
     renderOffscreenWheel();
     drawRotatedWheel(currentAngleRef.current);
-    // Only update pointing segment on segment changes if wheel is actively spinning;
-    // when idle, preserving the current pointing attendee prevents jumping when a segment is removed
-    if (isSpinning) {
-      updatePointingSegment(currentAngleRef.current);
-    }
-  }, [renderOffscreenWheel, drawRotatedWheel, updatePointingSegment, isSpinning]);
+    // When segments update (e.g., winner claimed and removed from wheel),
+    // reset lastReportedIdxRef and re-evaluate pointing segment so the removed winner
+    // is not kept displayed under the wheel
+    lastReportedIdxRef.current = -1;
+    updatePointingSegment(currentAngleRef.current);
+  }, [renderOffscreenWheel, drawRotatedWheel, updatePointingSegment]);
 
   // Spin Execution with GSAP
   const spinToWinner = useCallback((targetIndex?: number) => {
