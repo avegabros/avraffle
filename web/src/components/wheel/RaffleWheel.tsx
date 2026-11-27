@@ -438,11 +438,11 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
 
     if (tweenRef.current) tweenRef.current.kill();
 
-    // Realistic physical carnival wheel drag curve:
-    // Fast initial velocity, smooth middle deceleration, and an extended suspenseful final crawl across the last segments.
+    // Enhanced physical carnival wheel curve:
+    // Starts fast, maintains suspenseful middle deceleration, then crawls very slowly during the final second directly onto the winning attendee
     const wheelEase = CustomEase.create(
       'realisticWheelDrag',
-      'M0,0 C0.06,0.38 0.16,0.82 0.52,0.94 0.72,0.978 0.88,0.993 1,1'
+      'M0,0 C0.08,0.42 0.22,0.85 0.58,0.96 0.74,0.985 0.88,0.996 1,1'
     );
 
     tweenRef.current = gsap.to(anim, {
@@ -455,12 +455,23 @@ export const RaffleWheel = forwardRef<RaffleWheelHandle, RaffleWheelProps>(({
         updatePointingSegment(anim.angle);
       },
       onComplete: () => {
+        // Ensure the winning segment is firmly drawn and locked into pointing attendee before showing modal
+        currentAngleRef.current = finalAngle;
+        drawRotatedWheel(finalAngle);
+        if (onPointingSegmentChange && segments[winnerIdx]) {
+          lastReportedIdxRef.current = winnerIdx;
+          onPointingSegmentChange(segments[winnerIdx]);
+        }
         setIsSpinning(false);
         onSpinStateChange?.(false);
         soundManager.playWinnerFanfare();
-        if (onSpinEnd) {
-          onSpinEnd(segments[winnerIdx]);
-        }
+
+        // Give audience a suspenseful pause (1.2s) to clearly see the pointer and name banner stopped on the winner before the modal pops up
+        setTimeout(() => {
+          if (onSpinEnd) {
+            onSpinEnd(segments[winnerIdx]);
+          }
+        }, 1200);
       },
     });
   }, [isSpinning, segments, duration, power, drawRotatedWheel, onSpinEnd, onSpinStateChange]);
