@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { WheelSegment } from '@/components/wheel/RaffleWheel';
 
@@ -26,12 +26,26 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
   // Resilience state for image rendering (retries and thumb fallback)
   const [imgErrorCount, setImgErrorCount] = useState<number>(0);
   const [isImgLoaded, setIsImgLoaded] = useState<boolean>(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   // Reset image load state whenever the winner changes or modal opens
   useEffect(() => {
     setImgErrorCount(0);
-    setIsImgLoaded(false);
+    // If image is already cached and complete, mark loaded immediately
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setIsImgLoaded(true);
+    } else {
+      setIsImgLoaded(false);
+    }
   }, [winner?.id, winner?.imagePath, isOpen]);
+
+  // Handle cached image already complete on initial mount/render
+  const checkImgComplete = (el: HTMLImageElement | null) => {
+    imgRef.current = el;
+    if (el && el.complete && el.naturalWidth > 0) {
+      setIsImgLoaded(true);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -118,14 +132,15 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
         <div className="relative mx-auto mb-6 w-48 h-48 rounded-full border-4 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.5)] overflow-hidden bg-slate-800 flex items-center justify-center">
           {currentImgSrc ? (
             <>
-              {/* Spinner placeholder while loading */}
+              {/* Spinner placeholder only while image is not yet loaded */}
               {!isImgLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-800 z-10">
                   <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
+                ref={checkImgComplete}
                 key={currentImgSrc}
                 src={currentImgSrc}
                 alt={winner.name}
@@ -133,9 +148,7 @@ export const WinnerModal: React.FC<WinnerModalProps> = ({
                 decoding="async"
                 onLoad={handleImageLoad}
                 onError={handleImageError}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${
-                  isImgLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
+                className="w-full h-full object-cover"
               />
             </>
           ) : (
