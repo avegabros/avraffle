@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { AdminNav } from '@/components/admin/AdminNav';
 
@@ -38,19 +38,27 @@ export default function AdminDashboardPage() {
   });
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const fetchStats = (loc = settings.activeLocation, yr = settings.activeYear) => {
-    setLoading(true);
+  const fetchStats = (loc = settings.activeLocation, yr = settings.activeYear, isInitial = false) => {
+    if (isInitial) setLoading(true);
     fetch(`/api/admin/stats?location=${loc}&year=${yr}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.stats) setStats(data.stats);
       })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (isInitial) setLoading(false);
+      });
   };
 
+  // Keep a ref to the latest active location and year for the polling interval
+  const activeScopeRef = useRef({ loc: settings.activeLocation, yr: settings.activeYear });
   useEffect(() => {
-    // Fetch wheel settings
+    activeScopeRef.current = { loc: settings.activeLocation, yr: settings.activeYear };
+  }, [settings.activeLocation, settings.activeYear]);
+
+  useEffect(() => {
+    // Fetch initial wheel settings and stats
     fetch('/api/settings')
       .then((res) => res.json())
       .then((data) => {
@@ -65,12 +73,41 @@ export default function AdminDashboardPage() {
             activeLocation: loc,
             activeYear: yr,
           });
-          fetchStats(loc, yr);
+          activeScopeRef.current = { loc, yr };
+          fetchStats(loc, yr, true);
         }
       })
       .catch(() => {
-        fetchStats();
+        fetchStats(settings.activeLocation, settings.activeYear, true);
       });
+
+    // Real-time synchronization polling for stats and wheel state updates
+    let lastSeenReloadGuests = -1;
+    const interval = setInterval(async () => {
+      try {
+        const { loc, yr } = activeScopeRef.current;
+        const res = await fetch('/api/wheel/state');
+        if (res.ok) {
+          const data = await res.json();
+          const state = data?.state;
+          if (state) {
+            if (lastSeenReloadGuests === -1) {
+              lastSeenReloadGuests = state.reloadGuestsCount ?? 0;
+            } else if (state.reloadGuestsCount !== undefined && state.reloadGuestsCount > lastSeenReloadGuests) {
+              lastSeenReloadGuests = state.reloadGuestsCount;
+              fetchStats(loc, yr, false);
+              return;
+            }
+          }
+        }
+        // Periodic background poll to ensure counts stay accurate even if other changes occur
+        fetchStats(loc, yr, false);
+      } catch (err) {
+        console.error('Real-time stats sync error:', err);
+      }
+    }, 2500);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Automatically send real-time updates as user drags or taps settings
