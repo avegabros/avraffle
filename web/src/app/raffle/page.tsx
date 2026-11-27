@@ -49,57 +49,6 @@ function RaffleViewContent() {
 
   const [activeLocation, setActiveLocation] = useState<string>(lockedLocation || 'ALL');
   const [activeYear, setActiveYear] = useState<number>(2026);
-  const [isStaffLoggedIn, setIsStaffLoggedIn] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.authenticated) {
-          setIsStaffLoggedIn(true);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const handleConfirmWinner = async () => {
-    if (!currentWinner) return;
-    try {
-      await fetch('/api/wheel/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          guestId: currentWinner.id,
-          prizeName: selectedPrize.name,
-          grandPrizeId: selectedPrize.id,
-        }),
-      });
-      await fetch('/api/wheel/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'CONFIRM_CLAIMED' }),
-      });
-      setIsModalOpen(false);
-      setCurrentWinner(null);
-      setLockedSpotlightName(null);
-      loadWheelData();
-    } catch (err) {
-      console.error('Failed to confirm winner:', err);
-    }
-  };
-
-  const handleRespin = async () => {
-    setIsModalOpen(false);
-    setCurrentWinner(null);
-    setLockedSpotlightName(null);
-    try {
-      await fetch('/api/wheel/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'RESPIN' }),
-      });
-    } catch (_) {}
-  };
 
   const loadWheelData = async (loc = activeLocation, yr = activeYear, isGrand?: boolean) => {
     try {
@@ -420,9 +369,9 @@ function RaffleViewContent() {
         winner={currentWinner}
         prizeName={selectedPrize.name}
         isGrandPrize={selectedPrize.isGrand}
-        isViewer={!isStaffLoggedIn}
-        onConfirm={handleConfirmWinner}
-        onRespin={handleRespin}
+        isViewer={true}
+        onConfirm={() => setIsModalOpen(false)}
+        onRespin={() => setIsModalOpen(false)}
       />
     </main>
   );
