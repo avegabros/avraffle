@@ -53,6 +53,13 @@ export default function StagePage() {
   const [allowManualSpin, setAllowManualSpin] = useState(false);
 
   const [allPrizesClaimed, setAllPrizesClaimed] = useState(false);
+  const [modeAnnouncement, setModeAnnouncement] = useState<{
+    type: 'GRAND' | 'REGULAR';
+    count: number;
+    title: string;
+    subtitle: string;
+  } | null>(null);
+  const prevIsGrandRef = useRef<boolean | null>(null);
 
   const [selectedPrize, setSelectedPrize] = useState<{ id?: number; name: string; isGrand: boolean; imagePath?: string | null }>({
     name: 'Loading Prize...',
@@ -96,6 +103,29 @@ export default function StagePage() {
       const data = await res.json();
       if (Array.isArray(data.segments)) {
         setSegments(data.segments);
+
+        // Detect mode change transition (e.g., switched between Regular Draw and Grand Prize)
+        if (prevIsGrandRef.current !== null && prevIsGrandRef.current !== grandFlag) {
+          if (grandFlag) {
+            setModeAnnouncement({
+              type: 'GRAND',
+              count: data.segments.length,
+              title: '🌟 GRAND PRIZE MODE ACTIVATED 🌟',
+              subtitle: `All ${data.segments.length} registered participants returned to the wheel!`,
+            });
+          } else {
+            setModeAnnouncement({
+              type: 'REGULAR',
+              count: data.segments.length,
+              title: '🎁 REGULAR DRAW MODE',
+              subtitle: `Wheel updated with ${data.segments.length} eligible participants.`,
+            });
+          }
+          setTimeout(() => {
+            setModeAnnouncement(null);
+          }, 4500);
+        }
+        prevIsGrandRef.current = grandFlag;
       }
       if (typeof data.allPrizesClaimed === 'boolean') {
         setAllPrizesClaimed(data.allPrizesClaimed);
@@ -587,7 +617,35 @@ export default function StagePage() {
               <p className="text-slate-400">Please check in attendees or activate them via the Admin panel.</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center relative">
+              {/* Grand / Regular Mode Switch Transition Banner */}
+              {modeAnnouncement && (
+                <div className="absolute -top-14 z-30 flex flex-col items-center justify-center animate-in fade-in zoom-in-90 slide-in-from-top-4 duration-500 pointer-events-none">
+                  <div className={`px-6 py-2.5 rounded-2xl shadow-[0_0_35px_rgba(245,158,11,0.5)] border-2 backdrop-blur-xl flex items-center gap-3 text-center ${
+                    modeAnnouncement.type === 'GRAND'
+                      ? 'bg-gradient-to-r from-amber-600/95 via-yellow-500/95 to-amber-600/95 border-amber-300 text-slate-950 font-black'
+                      : 'bg-gradient-to-r from-blue-600/95 via-indigo-600/95 to-blue-600/95 border-blue-400 text-white font-black'
+                  }`}>
+                    <span className="text-2xl animate-bounce">
+                      {modeAnnouncement.type === 'GRAND' ? '🌟' : '🎁'}
+                    </span>
+                    <div>
+                      <div className="text-sm lg:text-base tracking-wider uppercase font-black">
+                        {modeAnnouncement.title}
+                      </div>
+                      <div className={`text-xs font-semibold ${
+                        modeAnnouncement.type === 'GRAND' ? 'text-amber-950' : 'text-blue-100'
+                      }`}>
+                        {modeAnnouncement.subtitle}
+                      </div>
+                    </div>
+                    <span className="text-2xl animate-bounce">
+                      {modeAnnouncement.type === 'GRAND' ? '🏆' : '✨'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <RaffleWheel
                 ref={wheelRef}
                 segments={segments}

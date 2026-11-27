@@ -34,6 +34,13 @@ function RaffleViewContent() {
   const [isStageActive, setIsStageActive] = useState(false);
 
   const [allPrizesClaimed, setAllPrizesClaimed] = useState(false);
+  const [modeAnnouncement, setModeAnnouncement] = useState<{
+    type: 'GRAND' | 'REGULAR';
+    count: number;
+    title: string;
+    subtitle: string;
+  } | null>(null);
+  const prevIsGrandRef = useRef<boolean | null>(null);
 
   // Settings synced from server
   const [duration, setDuration] = useState(8);
@@ -58,6 +65,29 @@ function RaffleViewContent() {
       const data = await res.json();
       if (Array.isArray(data.segments)) {
         setSegments(data.segments);
+
+        // Detect mode change transition (e.g. Regular to Grand Prize or vice versa)
+        if (prevIsGrandRef.current !== null && prevIsGrandRef.current !== grandFlag) {
+          if (grandFlag) {
+            setModeAnnouncement({
+              type: 'GRAND',
+              count: data.segments.length,
+              title: '🌟 GRAND PRIZE MODE 🌟',
+              subtitle: `All ${data.segments.length} participants return to wheel!`,
+            });
+          } else {
+            setModeAnnouncement({
+              type: 'REGULAR',
+              count: data.segments.length,
+              title: '🎁 REGULAR DRAW MODE',
+              subtitle: `${data.segments.length} eligible participants in wheel.`,
+            });
+          }
+          setTimeout(() => {
+            setModeAnnouncement(null);
+          }, 4500);
+        }
+        prevIsGrandRef.current = grandFlag;
       }
       if (typeof data.allPrizesClaimed === 'boolean') {
         setAllPrizesClaimed(data.allPrizesClaimed);
@@ -323,7 +353,35 @@ function RaffleViewContent() {
             <p className="text-xs text-slate-400">Check-in at the registration desk to enter the wheel.</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center max-w-full">
+          <div className="flex flex-col items-center max-w-full relative">
+            {/* Grand / Regular Mode Switch Transition Banner */}
+            {modeAnnouncement && (
+              <div className="absolute -top-12 z-30 flex flex-col items-center justify-center animate-in fade-in zoom-in-90 slide-in-from-top-3 duration-500 pointer-events-none">
+                <div className={`px-5 py-2 rounded-2xl shadow-2xl border-2 backdrop-blur-xl flex items-center gap-2.5 text-center ${
+                  modeAnnouncement.type === 'GRAND'
+                    ? 'bg-gradient-to-r from-amber-600/95 via-yellow-500/95 to-amber-600/95 border-amber-300 text-slate-950 font-black'
+                    : 'bg-gradient-to-r from-blue-600/95 via-indigo-600/95 to-blue-600/95 border-blue-400 text-white font-black'
+                }`}>
+                  <span className="text-xl animate-bounce">
+                    {modeAnnouncement.type === 'GRAND' ? '🌟' : '🎁'}
+                  </span>
+                  <div>
+                    <div className="text-xs sm:text-sm tracking-wider uppercase font-black">
+                      {modeAnnouncement.title}
+                    </div>
+                    <div className={`text-[11px] font-semibold ${
+                      modeAnnouncement.type === 'GRAND' ? 'text-amber-950' : 'text-blue-100'
+                    }`}>
+                      {modeAnnouncement.subtitle}
+                    </div>
+                  </div>
+                  <span className="text-xl animate-bounce">
+                    {modeAnnouncement.type === 'GRAND' ? '🏆' : '✨'}
+                  </span>
+                </div>
+              </div>
+            )}
+
             <RaffleWheel
               ref={wheelRef}
               segments={segments}
