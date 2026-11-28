@@ -7,9 +7,10 @@ export async function POST(req: NextRequest) {
     const employeeId = (body.employeeId || body.guestTag || body.id || '').toString().trim();
     const lastName = (body.lastName || '').toString().trim();
     const fullName = (body.fullName || body.name || '').toString().trim();
+    const selectedGuestId = body.guestId ? parseInt(body.guestId, 10) : undefined;
 
     // Check if searching by Guest Tag / ID or by Employee ID + Last Name, or by Full Name / Guest Name
-    if (!employeeId && !lastName && !fullName) {
+    if (!selectedGuestId && !employeeId && !lastName && !fullName) {
       return NextResponse.json(
         { error: 'Please enter your Employee ID, Guest Tag, or Name to verify eligibility.' },
         { status: 400 }
@@ -20,12 +21,12 @@ export async function POST(req: NextRequest) {
     const cleanLastName = lastName ? lastName.toLowerCase() : '';
     const cleanFullName = fullName ? fullName.toLowerCase() : '';
 
-    // Search query resolution:
-    // If the caller passed fullName (or if employeeId was populated with the same string as fullName, e.g. from Guest Mode input)
-    // we should prioritize searching by BOTH employee_id (in case it's a tag like GUEST-001) AND full name / first / last name!
     let whereClause = '';
 
-    if (cleanEmpId && cleanLastName) {
+    if (selectedGuestId) {
+      // Direct exact profile selection from disambiguation list
+      whereClause = `id = ${selectedGuestId}`;
+    } else if (cleanEmpId && cleanLastName) {
       // Standard employee lookup: match ID and last name, or exact employee ID
       whereClause = `(LOWER(employee_id) = ${JSON.stringify(cleanEmpId)} AND LOWER(last_name) = ${JSON.stringify(cleanLastName)})
         OR (LOWER(employee_id) = ${JSON.stringify(cleanEmpId)})`;
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       whereClause = conditions.join(' OR ');
     }
 
-    // Use raw query with LOWER() to guarantee case-insensitive search across SQLite/PostgreSQL
+    // Query up to 10 matching records to detect duplicates / multiple people with the same name
     const guests = await prisma.$queryRawUnsafe<
       Array<{
         id: number;
@@ -120,12 +121,10 @@ export async function POST(req: NextRequest) {
           ELSE 3
         END,
         id DESC
-      LIMIT 1
+      LIMIT 10
     `);
 
-    const guest = guests.length > 0 ? guests[0] : null;
-
-    if (!guest) {
+    if (guests.length === 0) {
       return NextResponse.json(
         { 
           found: false, 
@@ -137,16 +136,67 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Format single attendee record
+    const formatGuest = (g: (typeof guests)[0]) => ({
+      ...g,
+      isRegistered: Boolean(g.isRegistered),
+      inWheel: Boolean(g.inWheel),
+      isWinner: Boolean(g.isWinner),
+      fullName: `${g.firstName} ${g.lastName}`,
+      avatar: g.thumbPath || g.imagePath || null,
+    });
+
+    // Exact ID match check: If user typed their exact employeeId, return it directly
+    const exactIdMatch = cleanEmpId ? guests.find(g => g.employeeId.toLowerCase() === cleanEmpId) : null;
+    if (exactIdMatch && !cleanFullName) {
+      return NextResponse.json({
+        found: true,
+        multiple: false,
+        guest: formatGuest(exactIdMatch),
+      });
+    }
+
+    // If explicit profile was selected or only 1 match found, return directly
+    if (selectedGuestId || guests.length === 1) {
+      return NextResponse.json({
+        found: true,
+        multiple: false,
+        guest: formatGuest(guests[0]),
+      });
+    }
+
+    // MULTIPLE MATCHES DETECTED:
+    // If the top 1 result is an EXACT 100% full name match and none of the other results share the exact full name,
+    // we can return it. Otherwise, return the disambiguation list!
+    const exactFullNameMatches = guests.filter(
+      g => `${g.firstName} ${g.lastName}`.toLowerCase() === (cleanFullName || cleanEmpId)
+    );
+
+    if (exactFullNameMatches.length === 1) {
+      return NextResponse.json({
+        found: true,
+        multiple: false,
+        guest: formatGuest(exactFullNameMatches[0]),
+      });
+    }
+
+    // Return multiple candidates for user selection
     return NextResponse.json({
       found: true,
-      guest: {
-        ...guest,
-        isRegistered: Boolean(guest.isRegistered),
-        inWheel: Boolean(guest.inWheel),
-        isWinner: Boolean(guest.isWinner),
-        fullName: `${guest.firstName} ${guest.lastName}`,
-        avatar: guest.thumbPath || guest.imagePath || null,
-      },
+      multiple: true,
+      matches: guests.map((g) => ({
+        id: g.id,
+        employeeId: g.employeeId,
+        firstName: g.firstName,
+        middleName: g.middleName,
+        lastName: g.lastName,
+        fullName: `${g.firstName} ${g.lastName}`,
+        department: g.department,
+        position: g.position,
+        location: g.location,
+        eventYear: g.eventYear,
+        avatar: g.thumbPath || g.imagePath || null,
+      })),
     });
   } catch (error) {
     console.error('Status check error:', error);

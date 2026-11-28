@@ -18,6 +18,7 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
   bool _isGuestMode = false;
   bool _isLoading = false;
   Map<String, dynamic>? _guestResult;
+  List<dynamic> _multipleMatches = [];
   String? _errorMessage;
   bool _isFormCollapsed = false;
 
@@ -165,37 +166,49 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
     }
   }
 
-  Future<void> _checkStatus() async {
+  Future<void> _checkStatus({int? guestId}) async {
     final empId = _empIdController.text.trim();
     final lastName = _lastNameController.text.trim();
     final guestQuery = _guestSearchController.text.trim();
 
-    if (!_isGuestMode && (empId.isEmpty || lastName.isEmpty)) {
-      setState(() {
-        _errorMessage = 'Please enter both Employee ID and Last Name.';
-        _guestResult = null;
-      });
-      return;
-    }
+    if (guestId == null) {
+      if (!_isGuestMode && (empId.isEmpty || lastName.isEmpty)) {
+        setState(() {
+          _errorMessage = 'Please enter both Employee ID and Last Name.';
+          _guestResult = null;
+          _multipleMatches = [];
+        });
+        return;
+      }
 
-    if (_isGuestMode && guestQuery.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter your Guest Tag, ID, or Name.';
-        _guestResult = null;
-      });
-      return;
+      if (_isGuestMode && guestQuery.isEmpty) {
+        setState(() {
+          _errorMessage = 'Please enter your Guest Tag, ID, or Name.';
+          _guestResult = null;
+          _multipleMatches = [];
+        });
+        return;
+      }
     }
 
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-      _guestResult = null;
+      if (guestId == null) {
+        _guestResult = null;
+        _multipleMatches = [];
+      }
     });
 
     try {
-      final Map<String, dynamic> requestBody = _isGuestMode
-          ? {'employeeId': guestQuery, 'fullName': guestQuery}
-          : {'employeeId': empId, 'lastName': lastName};
+      final Map<String, dynamic> requestBody;
+      if (guestId != null) {
+        requestBody = {'guestId': guestId};
+      } else if (_isGuestMode) {
+        requestBody = {'employeeId': guestQuery, 'fullName': guestQuery};
+      } else {
+        requestBody = {'employeeId': empId, 'lastName': lastName};
+      }
 
       final res = await http.post(
         Uri.parse('${widget.serverUrl}/api/check-status'),
@@ -206,22 +219,33 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
       final data = jsonDecode(res.body);
 
       if (res.statusCode == 200 && data['found'] == true) {
-        setState(() {
-          _guestResult = data['guest'];
-          _errorMessage = null;
-          _saveStatus = 'idle';
-          _isFormCollapsed = true;
-        });
+        if (data['multiple'] == true && data['matches'] is List) {
+          setState(() {
+            _multipleMatches = data['matches'];
+            _guestResult = null;
+            _errorMessage = null;
+          });
+        } else if (data['guest'] != null) {
+          setState(() {
+            _guestResult = data['guest'];
+            _multipleMatches = [];
+            _errorMessage = null;
+            _saveStatus = 'idle';
+            _isFormCollapsed = true;
+          });
+        }
       } else {
         setState(() {
           _errorMessage = data['message'] ?? 'No registration record found.';
           _guestResult = null;
+          _multipleMatches = [];
         });
       }
     } catch (e) {
       setState(() {
         _errorMessage = 'Unable to reach raffle server. Check your connection.';
         _guestResult = null;
+        _multipleMatches = [];
       });
     } finally {
       setState(() => _isLoading = false);
@@ -449,6 +473,68 @@ class _AttendeeCheckScreenState extends State<AttendeeCheckScreen> {
                     Expanded(
                       child: Text(_errorMessage!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
                     ),
+                  ],
+                ),
+              ),
+
+            // Multiple Matches Candidate Picker
+            if (_multipleMatches.isNotEmpty && _guestResult == null)
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.people, color: Color(0xFFF59E0B), size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Multiple Attendees Found (${_multipleMatches.length})',
+                          style: const TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Please select your profile to view your raffle status:',
+                      style: TextStyle(color: Colors.grey, fontSize: 11),
+                    ),
+                    const SizedBox(height: 12),
+                    ..._multipleMatches.map((m) => Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: ListTile(
+                            dense: true,
+                            leading: CircleAvatar(
+                              radius: 16,
+                              backgroundColor: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                              child: Text(
+                                (m['firstName'] ?? 'A')[0],
+                                style: const TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                            ),
+                            title: Text(
+                              m['fullName'] ?? '${m['firstName']} ${m['lastName']}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            subtitle: Text(
+                              '${m['employeeId']} • ${m['department'] ?? 'General'} • ${m['location']}',
+                              style: const TextStyle(color: Colors.grey, fontSize: 11),
+                            ),
+                            trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: Color(0xFFF59E0B)),
+                            onTap: () => _checkStatus(guestId: m['id']),
+                          ),
+                        )),
                   ],
                 ),
               ),
