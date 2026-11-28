@@ -28,13 +28,14 @@ function LoginForm() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Invalid credentials');
+        setLoading(false);
       } else {
-        router.push(redirectTarget);
-        router.refresh();
+        // Use full navigation so browser immediately attaches the freshly received cookie
+        // and middleware acknowledges the authenticated session without router cache delay
+        window.location.href = redirectTarget;
       }
     } catch {
       setError('Connection failed. Please retry.');
-    } finally {
       setLoading(false);
     }
   };

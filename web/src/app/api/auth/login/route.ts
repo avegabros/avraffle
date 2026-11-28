@@ -33,9 +33,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Set simple session cookie
+    // Set session cookie with proper sameSite, secure, and path
     res.cookies.set('av_admin_session', user.username, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 24 hours
     });
