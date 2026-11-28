@@ -1,14 +1,24 @@
 # Multi-stage Dockerfile for AV-Raffle Web Application
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
+# Enable corepack and activate pnpm
+RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 WORKDIR /app
 
-# Install dependencies
-COPY web/package.json web/package-lock.json* ./
-RUN npm ci
+# Dual-fallback dependency installation:
+# Prefer pnpm-lock.yaml when present; seamlessly fall back to package-lock.json (npm ci) if reverted
+COPY web/package.json web/pnpm-lock.yaml* web/package-lock.json* ./
+RUN if [ -f pnpm-lock.yaml ]; then \
+      pnpm install --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then \
+      npm ci; \
+    else \
+      npm install; \
+    fi
 
 # Builder stage
 FROM node:20-alpine AS builder
+RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY web/ ./
@@ -16,10 +26,10 @@ COPY web/ ./
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Build Next.js
+# Build Next.js using whichever tool is active
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-RUN npm run build
+RUN if [ -f pnpm-lock.yaml ]; then pnpm run build; else npm run build; fi
 
 # Production Runner stage
 FROM node:20-alpine AS runner
@@ -54,7 +64,7 @@ RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'chmod -R 775 /app/data /app/public/uploads /app/public/downloads' >> /app/entrypoint.sh && \
     echo 'su-exec nextjs npx prisma db push --skip-generate' >> /app/entrypoint.sh && \
     echo 'su-exec nextjs node scripts/seed-users.js || true' >> /app/entrypoint.sh && \
-    echo 'exec su-exec nextjs npm start' >> /app/entrypoint.sh && \
+    echo 'exec su-exec nextjs npx next start' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh && \
     chown root:root /app/entrypoint.sh
 

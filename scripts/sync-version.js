@@ -44,13 +44,28 @@ export const APP_VERSION = {
 fs.writeFileSync(webVersionPath, webCode, 'utf8');
 console.log(`Updated web/src/lib/version.ts -> ${versionData.version}`);
 
-// 4. Sync web/package.json
+// 4. Sync web/package.json & web/package-lock.json
 const webPkgPath = path.resolve(__dirname, '../web/package.json');
 if (fs.existsSync(webPkgPath)) {
   const pkg = JSON.parse(fs.readFileSync(webPkgPath, 'utf8'));
   pkg.version = versionData.version;
   fs.writeFileSync(webPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
   console.log(`Updated web/package.json -> version: ${versionData.version}`);
+}
+
+const webLockPath = path.resolve(__dirname, '../web/package-lock.json');
+if (fs.existsSync(webLockPath)) {
+  try {
+    const lock = JSON.parse(fs.readFileSync(webLockPath, 'utf8'));
+    lock.version = versionData.version;
+    if (lock.packages && lock.packages['']) {
+      lock.packages[''].version = versionData.version;
+    }
+    fs.writeFileSync(webLockPath, JSON.stringify(lock, null, 2) + '\n', 'utf8');
+    console.log(`Updated web/package-lock.json -> version: ${versionData.version}`);
+  } catch (err) {
+    console.warn(`Could not sync web/package-lock.json:`, err.message);
+  }
 }
 
 console.log('Version sync completed successfully!');
