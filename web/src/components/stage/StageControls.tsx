@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings2, Volume2, VolumeX, Maximize2, Square, X, MapPin, Lock, Unlock, RefreshCw } from 'lucide-react';
+import { Settings2, Volume2, VolumeX, Maximize2, Square, X, MapPin, Lock, Unlock, RefreshCw, Gift } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
 interface StageControlsProps {
@@ -19,6 +19,8 @@ interface StageControlsProps {
   isViewer?: boolean;
   allowManualSpin?: boolean;
   onToggleManualSpin?: (val: boolean) => void;
+  onOpenPrizeSelector?: () => void;
+  currentPrizeName?: string;
 }
 
 export const StageControls: React.FC<StageControlsProps> = ({
@@ -36,6 +38,8 @@ export const StageControls: React.FC<StageControlsProps> = ({
   isViewer = false,
   allowManualSpin = false,
   onToggleManualSpin,
+  onOpenPrizeSelector,
+  currentPrizeName,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -77,6 +81,25 @@ export const StageControls: React.FC<StageControlsProps> = ({
               Stage Display Options
             </h4>
           </div>
+
+          {/* Change Prize Selector Button (Backstage Control) */}
+          {!isViewer && onOpenPrizeSelector && (
+            <button
+              onClick={() => {
+                onOpenPrizeSelector();
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 rounded-xl transition text-xs font-bold text-amber-300 cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Gift className="w-4 h-4 text-amber-400" />
+                <span>Change Prize</span>
+              </div>
+              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200">
+                Live
+              </span>
+            </button>
+          )}
 
           {/* Quick Refresh Option */}
           {onRefresh && (

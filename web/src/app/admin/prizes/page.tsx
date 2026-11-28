@@ -26,6 +26,12 @@ interface Prize {
 export default function AdminPrizesPage() {
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeStagePrize, setActiveStagePrize] = useState<{
+    prizeName: string;
+    isGrand: boolean;
+    grandPrizeId?: number | null;
+  } | null>(null);
+  const [settingActivePrize, setSettingActivePrize] = useState(false);
 
   // Filters
   const [selectedLocation, setSelectedLocation] = useState<string>('ALL');
@@ -59,6 +65,21 @@ export default function AdminPrizesPage() {
       .finally(() => setLoading(false));
   };
 
+  const fetchActiveStageState = () => {
+    fetch('/api/wheel/state')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.state) {
+          setActiveStagePrize({
+            prizeName: data.state.prizeName,
+            isGrand: Boolean(data.state.isGrand),
+            grandPrizeId: data.state.grandPrizeId,
+          });
+        }
+      })
+      .catch(console.error);
+  };
+
   useEffect(() => {
     // Sync default filter to activeLocation and activeYear from system settings
     fetch('/api/settings')
@@ -68,6 +89,10 @@ export default function AdminPrizesPage() {
         if (data.activeYear) setSelectedYear(data.activeYear);
       })
       .catch(console.error);
+
+    fetchActiveStageState();
+    const interval = setInterval(fetchActiveStageState, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -140,6 +165,63 @@ export default function AdminPrizesPage() {
     }
   };
 
+  const handleSetActiveLivePrize = async (p: Prize) => {
+    setSettingActivePrize(true);
+    try {
+      const res = await fetch('/api/wheel/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SELECT_PRIZE',
+          prizeName: p.name,
+          prizeImagePath: p.imagePath || null,
+          isGrand: p.isGrandPrize,
+          grandPrizeId: p.isGrandPrize ? p.id : null,
+          location: selectedLocation === 'ALL' ? undefined : selectedLocation,
+        }),
+      });
+      if (res.ok) {
+        setActiveStagePrize({
+          prizeName: p.name,
+          isGrand: p.isGrandPrize,
+          grandPrizeId: p.isGrandPrize ? p.id : null,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSettingActivePrize(false);
+    }
+  };
+
+  const handleResetAutoQueue = async () => {
+    setSettingActivePrize(true);
+    try {
+      const res = await fetch('/api/wheel/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'RESET_TO_AUTO_QUEUE',
+          location: selectedLocation === 'ALL' ? undefined : selectedLocation,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) {
+          setActiveStagePrize({
+            prizeName: data.state.prizeName,
+            isGrand: Boolean(data.state.isGrand),
+            grandPrizeId: data.state.grandPrizeId,
+          });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSettingActivePrize(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) return;
@@ -204,7 +286,7 @@ export default function AdminPrizesPage() {
           </div>
         </div>
 
-        {/* Filter Toolbar */}
+        {/* Filter Toolbar & Live Stage Prize Status */}
         <div className="bg-slate-900/90 border border-white/10 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase text-slate-400 mr-2">Location:</span>
@@ -212,7 +294,7 @@ export default function AdminPrizesPage() {
               <button
                 key={loc}
                 onClick={() => setSelectedLocation(loc)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   selectedLocation === loc
                     ? 'bg-amber-500 text-slate-950 shadow-md'
                     : 'bg-slate-800 text-slate-400 hover:text-white'
@@ -228,12 +310,54 @@ export default function AdminPrizesPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-              className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-amber-400 focus:outline-none"
+              className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-amber-400 focus:outline-none cursor-pointer"
             >
               <option value={2026}>2026 (Upcoming)</option>
               <option value={2025}>2025 (Previous / Archived)</option>
               <option value={2027}>2027</option>
             </select>
+          </div>
+        </div>
+
+        {/* Live Stage Prize Control Banner */}
+        <div className="bg-slate-900/80 border border-amber-500/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 text-xl">
+              🎯
+            </div>
+            <div>
+              <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <span>Active Live Stage Prize</span>
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </div>
+              <div className="text-base font-extrabold text-white flex items-center gap-2 mt-0.5">
+                <span>{activeStagePrize?.prizeName || 'Auto-queue active'}</span>
+                {activeStagePrize?.isGrand && (
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500 text-slate-950">
+                    Grand Prize
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleResetAutoQueue}
+              disabled={settingActivePrize}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-xs font-bold text-slate-200 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Reset wheel to automatic priority queue"
+            >
+              <span>⚡ Reset to Auto-Queue</span>
+            </button>
+            <a
+              href="/stage"
+              target="_blank"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 border border-amber-500/30 text-xs font-bold text-amber-300 transition flex items-center gap-1.5"
+            >
+              <span>📺 Open Stage Wheel</span>
+              <span>↗</span>
+            </a>
           </div>
         </div>
 
@@ -305,17 +429,31 @@ export default function AdminPrizesPage() {
                     )}
                   </div>
 
-                  {/* Edit & Delete Action Buttons */}
+                  {/* Actions: Set as Live Stage Prize, Edit, Delete */}
                   <div className="flex items-center gap-2">
+                    {!p.isWon && p.quantity > 0 && (
+                      <button
+                        onClick={() => handleSetActiveLivePrize(p)}
+                        disabled={settingActivePrize}
+                        className={`px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer ${
+                          activeStagePrize?.prizeName === p.name
+                            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                            : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                        }`}
+                        title="Set as the active prize on the live wheel stage right now"
+                      >
+                        {activeStagePrize?.prizeName === p.name ? 'Active' : 'Set Live'}
+                      </button>
+                    )}
                     <button
                       onClick={() => openEditModal(p)}
-                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg border border-slate-700 text-slate-200 transition"
+                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg border border-slate-700 text-slate-200 transition cursor-pointer"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeletePrize(p.id)}
-                      className="px-2.5 py-1 bg-red-950/60 hover:bg-red-900 text-xs font-bold rounded-lg border border-red-800/60 text-red-300 transition"
+                      className="px-2.5 py-1 bg-red-950/60 hover:bg-red-900 text-xs font-bold rounded-lg border border-red-800/60 text-red-300 transition cursor-pointer"
                       title="Delete Prize"
                     >
                       ✕

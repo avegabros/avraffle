@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { RaffleWheel, WheelSegment, RaffleWheelHandle } from '@/components/wheel/RaffleWheel';
 import { WinnerModal } from '@/components/stage/WinnerModal';
 import { StageControls } from '@/components/stage/StageControls';
+import { PrizeSelectorModal } from '@/components/stage/PrizeSelectorModal';
 import { soundManager } from '@/lib/sound';
 
 export default function StagePage() {
@@ -36,6 +37,7 @@ export default function StagePage() {
   const [loading, setLoading] = useState(true);
   const [currentWinner, setCurrentWinner] = useState<WheelSegment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPrizeSelectorOpen, setIsPrizeSelectorOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [pointingAttendee, setPointingAttendee] = useState<WheelSegment | null>(null);
@@ -544,6 +546,8 @@ export default function StagePage() {
         isViewer={false}
         allowManualSpin={allowManualSpin}
         onToggleManualSpin={setAllowManualSpin}
+        onOpenPrizeSelector={() => setIsPrizeSelectorOpen(true)}
+        currentPrizeName={selectedPrize.name}
       />
 
       {/* Stage Header Banner (Hidden by default) */}
@@ -722,6 +726,24 @@ export default function StagePage() {
         isViewer={!isMaster}
         onConfirm={handleConfirmWinner}
         onRespin={handleRespin}
+      />
+
+      {/* Backstage Live Prize Selector Modal */}
+      <PrizeSelectorModal
+        isOpen={isPrizeSelectorOpen}
+        onClose={() => setIsPrizeSelectorOpen(false)}
+        activeLocation={activeLocation}
+        activeYear={activeYear}
+        currentPrizeName={selectedPrize.name}
+        onPrizeSelected={(p) => {
+          setSelectedPrize({
+            id: p.id,
+            name: p.name,
+            isGrand: p.isGrand,
+            imagePath: p.imagePath || null,
+          });
+          loadWheelData(activeLocation, activeYear, p.isGrand);
+        }}
       />
     </main>
   );
