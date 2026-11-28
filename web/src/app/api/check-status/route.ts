@@ -20,27 +20,56 @@ export async function POST(req: NextRequest) {
     const cleanLastName = lastName ? lastName.toLowerCase() : '';
     const cleanFullName = fullName ? fullName.toLowerCase() : '';
 
-    // Build flexible query matching both employees and non-employee guests:
-    // 1. If employeeId + lastName provided: match exactly or prefix
-    // 2. If only employeeId provided (e.g. "GUEST-001" or ID badge): match employeeId
-    // 3. If fullName or single name provided: match full name or guest entry
+    // Search query resolution:
+    // If the caller passed fullName (or if employeeId was populated with the same string as fullName, e.g. from Guest Mode input)
+    // we should prioritize searching by BOTH employee_id (in case it's a tag like GUEST-001) AND full name / first / last name!
     let whereClause = '';
-    const params: any[] = [];
 
     if (cleanEmpId && cleanLastName) {
-      // Standard employee lookup OR guest with assigned ID & last name
+      // Standard employee lookup: match ID and last name, or exact employee ID
       whereClause = `(LOWER(employee_id) = ${JSON.stringify(cleanEmpId)} AND LOWER(last_name) = ${JSON.stringify(cleanLastName)})
         OR (LOWER(employee_id) = ${JSON.stringify(cleanEmpId)})`;
-    } else if (cleanEmpId) {
-      // Direct ID or Guest Tag lookup (e.g. GUEST-001, EMP-101, etc.)
-      whereClause = `LOWER(employee_id) = ${JSON.stringify(cleanEmpId)}
-        OR LOWER(employee_id) LIKE ${JSON.stringify('%' + cleanEmpId + '%')}`;
-    } else if (cleanFullName) {
-      whereClause = `LOWER(first_name || ' ' || last_name) LIKE ${JSON.stringify('%' + cleanFullName + '%')}
-        OR LOWER(last_name) = ${JSON.stringify(cleanFullName)}
-        OR LOWER(first_name) = ${JSON.stringify(cleanFullName)}`;
-    } else if (cleanLastName) {
-      whereClause = `LOWER(last_name) = ${JSON.stringify(cleanLastName)}`;
+    } else {
+      // Search term can be either ID / Guest Tag OR Full Name / Name
+      const searchTerms = Array.from(new Set([cleanEmpId, cleanFullName])).filter(Boolean);
+      
+      const conditions: string[] = [];
+      for (const term of searchTerms) {
+        const escapedTerm = JSON.stringify(term);
+        const escapedLike = JSON.stringify(`%${term}%`);
+        
+        // Match exact or substring on employee_id / tag
+        conditions.push(`LOWER(employee_id) = ${escapedTerm}`);
+        conditions.push(`LOWER(employee_id) LIKE ${escapedLike}`);
+        
+        // Match full name: "first_name last_name" or "first_name middle_name last_name" or "last_name, first_name"
+        conditions.push(`LOWER(first_name || ' ' || last_name) LIKE ${escapedLike}`);
+        conditions.push(`LOWER(first_name || ' ' || COALESCE(middle_name, '') || ' ' || last_name) LIKE ${escapedLike}`);
+        conditions.push(`LOWER(last_name || ', ' || first_name) LIKE ${escapedLike}`);
+        conditions.push(`LOWER(last_name || ' ' || first_name) LIKE ${escapedLike}`);
+        
+        // Match single first or last name
+        conditions.push(`LOWER(last_name) = ${escapedTerm}`);
+        conditions.push(`LOWER(first_name) = ${escapedTerm}`);
+        conditions.push(`LOWER(last_name) LIKE ${escapedLike}`);
+        conditions.push(`LOWER(first_name) LIKE ${escapedLike}`);
+
+        // If multi-word search term (e.g. "John Ondangan"), also split words to match both first and last
+        const words = term.split(/\s+/).filter((w: string) => w.length > 1);
+        if (words.length >= 2) {
+          const wordConditions = words.map((w: string) => {
+            const ew = JSON.stringify(`%${w}%`);
+            return `(LOWER(first_name) LIKE ${ew} OR LOWER(last_name) LIKE ${ew} OR LOWER(COALESCE(middle_name, '')) LIKE ${ew})`;
+          }).join(' AND ');
+          conditions.push(`(${wordConditions})`);
+        }
+      }
+
+      if (cleanLastName) {
+        conditions.push(`LOWER(last_name) = ${JSON.stringify(cleanLastName)}`);
+      }
+
+      whereClause = conditions.join(' OR ');
     }
 
     // Use raw query with LOWER() to guarantee case-insensitive search across SQLite/PostgreSQL
@@ -84,7 +113,12 @@ export async function POST(req: NextRequest) {
       FROM guest
       WHERE ${whereClause}
       ORDER BY 
-        CASE WHEN LOWER(employee_id) = ${JSON.stringify(cleanEmpId)} THEN 0 ELSE 1 END,
+        CASE 
+          WHEN LOWER(employee_id) = ${JSON.stringify(cleanEmpId)} THEN 0
+          WHEN LOWER(first_name || ' ' || last_name) = ${JSON.stringify(cleanFullName || cleanEmpId)} THEN 1
+          WHEN LOWER(last_name) = ${JSON.stringify(cleanFullName || cleanEmpId)} THEN 2
+          ELSE 3
+        END,
         id DESC
       LIMIT 1
     `);
